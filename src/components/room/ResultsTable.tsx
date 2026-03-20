@@ -4,7 +4,6 @@ import {
   Box,
   Button,
   ButtonGroup,
-  Paper,
   Table,
   TableBody,
   TableCell,
@@ -32,27 +31,41 @@ const ResultsTable = observer(function ResultsTable() {
 
   if (completedRounds.length === 0) return null;
 
-  const getSolve = (
-    round: number,
-    playerId: string,
-  ): RoomSolve | undefined =>
-    roomStore.solves.find(
-      s => s.round === round && s.playerId === playerId,
-    );
+  const getSolve = (round: number, playerId: string): RoomSolve | undefined =>
+    roomStore.solves.find(s => s.round === round && s.playerId === playerId);
 
   return (
     <>
-      <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+      <Typography
+        sx={{
+          textTransform: 'uppercase',
+          letterSpacing: '0.12em',
+          fontSize: '0.6rem',
+          fontWeight: 700,
+          color: 'text.secondary',
+          mb: 1,
+        }}>
         {t('room.history')}
       </Typography>
-      <TableContainer component={Paper} sx={{ maxHeight: 300 }}>
+      <TableContainer
+        sx={{
+          maxHeight: 180,
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+        }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
-              <TableCell>{t('room.round')}</TableCell>
+              <TableCell sx={{ bgcolor: 'background.paper' }}>
+                {t('room.round')}
+              </TableCell>
               {roomStore.players.map((player: Player) => (
-                <TableCell key={player.id} sx={{ fontWeight: 600 }}>
-                  {player.name}
+                <TableCell key={player.id} sx={{ bgcolor: 'background.paper' }}>
+                  {player.id === roomStore.playerId
+                    ? t('room.you')
+                    : player.name}
                 </TableCell>
               ))}
             </TableRow>
@@ -60,7 +73,10 @@ const ResultsTable = observer(function ResultsTable() {
           <TableBody>
             {completedRounds.map(round => (
               <TableRow key={round}>
-                <TableCell>{round}</TableCell>
+                <TableCell
+                  sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
+                  {round}
+                </TableCell>
                 {roomStore.players.map((player: Player) => {
                   const solve = getSolve(round, player.id);
                   const isMe = player.id === roomStore.playerId;
@@ -77,7 +93,12 @@ const ResultsTable = observer(function ResultsTable() {
                           <Typography
                             variant="body2"
                             component="span"
-                            sx={{ fontFamily: 'monospace' }}>
+                            sx={{
+                              fontFamily: 'monospace',
+                              fontWeight: isMe ? 600 : 400,
+                              color: isMe ? 'primary.main' : 'text.primary',
+                              fontSize: '0.8rem',
+                            }}>
                             {getDisplayTime(solve)}
                           </Typography>
                           {isMe && (
@@ -90,9 +111,10 @@ const ResultsTable = observer(function ResultsTable() {
                                     : 'outlined'
                                 }
                                 sx={{
-                                  minWidth: 28,
-                                  px: 0.5,
-                                  fontSize: '0.65rem',
+                                  minWidth: 24,
+                                  px: 0.3,
+                                  py: 0,
+                                  fontSize: '0.6rem',
                                 }}
                                 onClick={() =>
                                   roomStore.updatePenalty(
@@ -110,9 +132,10 @@ const ResultsTable = observer(function ResultsTable() {
                                     : 'outlined'
                                 }
                                 sx={{
-                                  minWidth: 28,
-                                  px: 0.5,
-                                  fontSize: '0.65rem',
+                                  minWidth: 24,
+                                  px: 0.3,
+                                  py: 0,
+                                  fontSize: '0.6rem',
                                 }}
                                 onClick={() =>
                                   roomStore.updatePenalty(
@@ -126,7 +149,11 @@ const ResultsTable = observer(function ResultsTable() {
                           )}
                         </Box>
                       ) : (
-                        '-'
+                        <Typography
+                          variant="body2"
+                          sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
+                          -
+                        </Typography>
                       )}
                     </TableCell>
                   );

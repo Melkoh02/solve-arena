@@ -67,23 +67,33 @@ const Timer = observer(function Timer({ disabled = false }: TimerProps) {
   const getColor = (): string => {
     switch (timerStore.timerPhase) {
       case 'ready':
-        return 'success.main';
+        return '#4caf50';
+      case 'running':
+        return '#FF69B4';
+      case 'stopped':
+        return '#FF69B4';
       default:
-        return 'text.primary';
+        return '#ffffff';
     }
   };
 
   return (
     <Typography
-      variant="h1"
       sx={{
-        fontFamily: 'monospace',
-        fontSize: '6rem',
-        fontWeight: 700,
+        fontFamily: '"Inter", monospace',
+        fontSize: { xs: '5rem', md: '8rem' },
+        fontWeight: 900,
         textAlign: 'center',
         color: getColor(),
         userSelect: 'none',
+        lineHeight: 1,
+        letterSpacing: '-0.02em',
         py: 4,
+        textShadow:
+          timerStore.timerPhase === 'running'
+            ? '0 0 40px rgba(255, 105, 180, 0.3)'
+            : 'none',
+        transition: 'color 0.15s, text-shadow 0.3s',
       }}>
       {formatTime(timerStore.displayTime)}
     </Typography>

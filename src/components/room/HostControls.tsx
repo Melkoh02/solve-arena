@@ -1,5 +1,5 @@
 import { observer } from 'mobx-react-lite';
-import { Button, Stack } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import PuzzleSelector from '../timer/PuzzleSelector';
@@ -11,15 +11,19 @@ const HostControls = observer(function HostControls() {
   if (!roomStore.isHost) return null;
 
   return (
-    <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       <PuzzleSelector
         value={roomStore.eventId}
         onChange={eventId => roomStore.changeEvent(eventId)}
       />
-      <Button variant="outlined" onClick={() => roomStore.nextScramble()}>
+      <Button
+        variant="outlined"
+        color="primary"
+        size="small"
+        onClick={() => roomStore.nextScramble()}>
         {t('room.nextScramble')}
       </Button>
-    </Stack>
+    </Box>
   );
 });
 

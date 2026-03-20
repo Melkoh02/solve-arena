@@ -65,6 +65,8 @@
     "kick": "Kick",
     "nextScramble": "Next Scramble",
     "playerCount": "{{count}} player(s)",
+    "competitors": "Competitors",
+    "yourTime": "Your Finish Time",
     "history": "History",
     "round": "Round"
   },

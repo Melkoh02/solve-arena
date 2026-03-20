@@ -66,6 +66,8 @@
     "kick": "Expulsar",
     "nextScramble": "Siguiente Mezcla",
     "playerCount": "{{count}} jugador(es)",
+    "competitors": "Competidores",
+    "yourTime": "Tu Tiempo",
     "history": "Historial",
     "round": "Ronda"
   },

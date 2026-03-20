@@ -1,4 +1,8 @@
-html, body, #root {
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+html,
+body,
+#root {
   height: 100%;
   margin: 0;
 }
@@ -6,4 +10,9 @@ html, body, #root {
 #root {
   max-width: none;
   padding: 0;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

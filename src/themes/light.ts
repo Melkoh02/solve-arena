@@ -6,8 +6,8 @@ export const lightTheme = createTheme({
   customColors: sharedColors,
   palette: {
     mode: 'light',
-    primary: { main: '#1976d2' },
-    background: { default: '#fafafa', paper: '#fff' },
+    primary: { main: '#db5a9c' },
+    background: { default: '#f8f4f6', paper: '#ffffff' },
   },
   components: {
     MuiPaper: { styleOverrides: { root: { borderRadius: 12 } } },
