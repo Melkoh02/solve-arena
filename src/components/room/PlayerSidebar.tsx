@@ -154,20 +154,16 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                 justifyContent: 'space-between',
               }}>
               <Box sx={{ display: 'flex', gap: 1.5 }}>
-                {playerSolves.length > 0 && (
-                  <>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                      ao5: {formatAverage(ao5)}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                      ao12: {formatAverage(ao12)}
-                    </Typography>
-                  </>
-                )}
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                  ao5: {formatAverage(ao5)}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                  ao12: {formatAverage(ao12)}
+                </Typography>
               </Box>
               {roomStore.isHost && !isMe && (
                 <IconButton
