@@ -17,20 +17,33 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
+import {
+  calculateAverage,
+  formatAverage,
+} from '../../lib/utils/averages';
 import type { Penalty } from '../../lib/types/timer';
+import type { RoomSolve } from '../../lib/types/room';
 
 const PlayerList = observer(function PlayerList() {
   const { roomStore } = useStore();
   const { t } = useTranslation();
   const roundSolves = roomStore.currentRoundSolves;
 
+  /** Get a player's solves sorted newest-first (for average calculations). */
+  const getPlayerSolves = (playerId: string): RoomSolve[] =>
+    roomStore.solves
+      .filter(s => s.playerId === playerId)
+      .sort((a, b) => b.round - a.round);
+
   return (
-    <TableContainer component={Paper} sx={{ maxHeight: 400 }}>
-      <Table stickyHeader size="small">
+    <TableContainer component={Paper}>
+      <Table size="small">
         <TableHead>
           <TableRow>
             <TableCell>{t('room.player')}</TableCell>
             <TableCell>{t('timer.columnTime')}</TableCell>
+            <TableCell>ao5</TableCell>
+            <TableCell>ao12</TableCell>
             <TableCell align="right">{t('timer.columnActions')}</TableCell>
           </TableRow>
         </TableHead>
@@ -38,6 +51,9 @@ const PlayerList = observer(function PlayerList() {
           {roomStore.players.map(player => {
             const solve = roundSolves.find(s => s.playerId === player.id);
             const isMe = player.id === roomStore.playerId;
+            const playerSolves = getPlayerSolves(player.id);
+            const ao5 = calculateAverage(playerSolves, 5);
+            const ao12 = calculateAverage(playerSolves, 12);
 
             return (
               <TableRow key={player.id}>
@@ -71,6 +87,12 @@ const PlayerList = observer(function PlayerList() {
                       {t('room.solving')}
                     </Typography>
                   )}
+                </TableCell>
+                <TableCell sx={{ fontFamily: 'monospace' }}>
+                  {formatAverage(ao5)}
+                </TableCell>
+                <TableCell sx={{ fontFamily: 'monospace' }}>
+                  {formatAverage(ao12)}
                 </TableCell>
                 <TableCell align="right">
                   {solve && isMe && (

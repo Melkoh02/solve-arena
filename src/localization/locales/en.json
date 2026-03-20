@@ -64,7 +64,9 @@
     "solving": "Solving...",
     "kick": "Kick",
     "nextScramble": "Next Scramble",
-    "playerCount": "{{count}} player(s)"
+    "playerCount": "{{count}} player(s)",
+    "history": "History",
+    "round": "Round"
   },
   "settings": {
     "title": "Settings Screen",

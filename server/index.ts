@@ -144,7 +144,7 @@ io.on('connection', socket => {
     broadcastRoomState(room);
   });
 
-  socket.on('submit-time', ({ time }) => {
+  socket.on('submit-time', async ({ time }) => {
     if (!currentRoom) return;
     const room = rooms.get(currentRoom);
     if (!room) return;
@@ -165,6 +165,21 @@ io.on('connection', socket => {
       penalty: 'none',
       round: room.currentRound,
     });
+
+    // Auto-advance when all players have submitted
+    const submittedCount = room.solves.filter(
+      s => s.round === room.currentRound,
+    ).length;
+    const roundAtSubmit = room.currentRound;
+
+    if (submittedCount >= room.players.size) {
+      const newScramble = await generateScramble(room.eventId);
+      // Guard: only advance if round hasn't been changed during await
+      if (room.currentRound === roundAtSubmit) {
+        room.currentScramble = newScramble;
+        room.currentRound += 1;
+      }
+    }
 
     broadcastRoomState(room);
   });

@@ -65,7 +65,9 @@
     "solving": "Resolviendo...",
     "kick": "Expulsar",
     "nextScramble": "Siguiente Mezcla",
-    "playerCount": "{{count}} jugador(es)"
+    "playerCount": "{{count}} jugador(es)",
+    "history": "Historial",
+    "round": "Ronda"
   },
   "settings": {
     "title": "Pantalla de Configuraciones",

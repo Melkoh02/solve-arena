@@ -19,6 +19,7 @@ import ScrambleDisplay from '../components/timer/ScrambleDisplay';
 import Timer from '../components/timer/Timer';
 import HostControls from '../components/room/HostControls';
 import PlayerList from '../components/room/PlayerList';
+import ResultsTable from '../components/room/ResultsTable';
 import { getDisplayTime } from '../lib/utils/formatTime';
 
 const RoomScreen = observer(function RoomScreen() {
@@ -148,9 +149,10 @@ const RoomScreen = observer(function RoomScreen() {
         <Timer disabled={roomStore.hasSubmittedCurrentRound} />
       )}
 
-      {/* Player results */}
+      {/* Player results + history */}
       <Box sx={{ flex: 1, overflow: 'auto', mt: 2 }}>
         <PlayerList />
+        <ResultsTable />
       </Box>
     </Box>
   );
