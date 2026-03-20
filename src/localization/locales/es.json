@@ -65,6 +65,7 @@
     "solving": "Resolviendo...",
     "kick": "Expulsar",
     "nextScramble": "Siguiente Mezcla",
+    "resetRoom": "Reiniciar Sala",
     "playerCount": "{{count}} jugador(es)",
     "competitors": "Competidores",
     "current": "Actual",

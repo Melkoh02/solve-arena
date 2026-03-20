@@ -64,6 +64,7 @@
     "solving": "Solving...",
     "kick": "Kick",
     "nextScramble": "Next Scramble",
+    "resetRoom": "Reset Room",
     "playerCount": "{{count}} player(s)",
     "competitors": "Competitors",
     "current": "Current",

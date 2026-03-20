@@ -40,6 +40,7 @@ export interface ClientToServerEvents {
   'change-event': (data: { eventId: string }) => void;
   'kick-player': (data: { playerId: string }) => void;
   'next-scramble': () => void;
+  'reset-room': () => void;
 }
 
 export interface ServerToClientEvents {

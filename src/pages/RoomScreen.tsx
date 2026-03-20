@@ -249,10 +249,11 @@ const RoomScreen = observer(function RoomScreen() {
           )}
         </Box>
 
-        {/* Results history */}
+        {/* Results history — fixed height so it never pushes the timer */}
         <Box
           sx={{
-            maxHeight: { xs: 160, md: 220 },
+            height: { xs: 160, md: 220 },
+            flexShrink: 0,
             overflow: 'auto',
             px: { xs: 1.5, sm: 2, md: 3 },
             pb: 2,

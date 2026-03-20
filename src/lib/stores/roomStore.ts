@@ -250,6 +250,10 @@ export class RoomStore {
     this.socket.emit('next-scramble');
   }
 
+  resetRoom() {
+    this.socket.emit('reset-room');
+  }
+
   private loadPlayerName() {
     try {
       const saved = localStorage.getItem(PLAYER_NAME_KEY);

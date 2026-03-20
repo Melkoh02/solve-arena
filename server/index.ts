@@ -233,6 +233,17 @@ io.on('connection', socket => {
     broadcastRoomState(room);
   });
 
+  socket.on('reset-room', async () => {
+    if (!currentRoom) return;
+    const room = rooms.get(currentRoom);
+    if (!room || room.hostId !== socket.id) return;
+
+    room.solves = [];
+    room.currentScramble = await generateScramble(room.eventId);
+    room.currentRound = 1;
+    broadcastRoomState(room);
+  });
+
   socket.on('leave-room', () => handleLeave());
   socket.on('disconnect', () => handleLeave());
 

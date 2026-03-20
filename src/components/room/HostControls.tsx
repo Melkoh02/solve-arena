@@ -23,6 +23,13 @@ const HostControls = observer(function HostControls() {
         onClick={() => roomStore.nextScramble()}>
         {t('room.nextScramble')}
       </Button>
+      <Button
+        variant="outlined"
+        color="error"
+        size="small"
+        onClick={() => roomStore.resetRoom()}>
+        {t('room.resetRoom')}
+      </Button>
     </Box>
   );
 });
