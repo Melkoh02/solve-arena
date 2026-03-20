@@ -52,8 +52,8 @@ const PlayerList = observer(function PlayerList() {
             const solve = roundSolves.find(s => s.playerId === player.id);
             const isMe = player.id === roomStore.playerId;
             const playerSolves = getPlayerSolves(player.id);
-            const ao5 = calculateAverage(playerSolves, 5);
-            const ao12 = calculateAverage(playerSolves, 12);
+            const ao5 = calculateAverage(playerSolves, 5, 2);
+            const ao12 = calculateAverage(playerSolves, 12, 3);
 
             return (
               <TableRow key={player.id}>
