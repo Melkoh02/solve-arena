@@ -1,69 +1,96 @@
-# React + TypeScript + Vite
+# Solve Arena
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A multiplayer speedcube timer where you and your friends can compete in real-time. Create a room, share the code, and race against the same scrambles together.
 
-Currently, two official plugins are available:
+**[Try it live](https://melkoh02.github.io/solve-arena/)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- **Multiplayer rooms** — Create or join rooms with a 4-character code
+- **All WCA events** — 2x2 through 7x7, Megaminx, Pyraminx, Skewb, Square-1, Clock, BLD, and more
+- **WCA-level scrambles** — Random-state scrambles powered by [cubing.js](https://js.cubing.net/cubing/)
+- **Spacebar timer** — Hold to ready, release to start, press to stop
+- **Live results** — See everyone's times as they finish
+- **Auto-advance** — Next scramble generates automatically when all players finish
+- **Averages** — ao5 and ao12 calculated per player with proper DNF handling
+- **Penalties** — Flag solves as +2 or DNF, even retroactively from the history
+- **Full history** — Round-by-round results table with all players
+- **Host controls** — Change puzzle, skip scrambles, reset the room, kick players
+- **i18n** — English and Spanish
+- **Dark theme** — Hot pink accent on dark navy
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+| Layer | Tech |
+|-------|------|
+| Frontend | React 19, TypeScript, Vite |
+| UI | MUI 7, Emotion |
+| State | MobX |
+| Realtime | Socket.IO |
+| Scrambles | cubing.js |
+| i18n | i18next |
+| Hosting | GitHub Pages (frontend), Render (server) |
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## Getting Started
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prerequisites
+
+- Node.js 22+
+- Yarn
+
+### Development
+
+```bash
+# Install dependencies
+yarn install
+
+# Run both client and server
+yarn dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+This starts:
+- Vite dev server on `http://localhost:5173`
+- Socket.IO server on `http://localhost:3001`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Build
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+yarn build
 ```
+
+## Deployment
+
+- **Frontend**: Deployed to GitHub Pages via GitHub Actions on push to `master`
+- **Server**: Deployed to Render as a free-tier web service
+
+### Environment
+
+| Variable | Where | Purpose |
+|----------|-------|---------|
+| `VITE_SOCKET_URL` | GitHub Actions secret | Production server URL |
+
+## Project Structure
+
+```
+solve-arena/
+├── server/
+│   └── index.ts            # Socket.IO server (rooms, scrambles, state sync)
+├── src/
+│   ├── components/
+│   │   ├── room/           # PlayerSidebar, HostControls, ResultsTable
+│   │   └── timer/          # Timer, ScrambleDisplay, PuzzleSelector
+│   ├── lib/
+│   │   ├── stores/         # MobX stores (timer, room, theme, language)
+│   │   ├── types/          # TypeScript types
+│   │   └── utils/          # formatTime, averages
+│   ├── localization/       # i18n (en, es)
+│   ├── pages/              # LobbyScreen, RoomScreen
+│   ├── routes/             # React Router config
+│   └── themes/             # MUI dark/light themes
+├── .github/workflows/      # GitHub Actions deploy
+└── render.yaml             # Render service config
+```
+
+## License
+
+MIT
