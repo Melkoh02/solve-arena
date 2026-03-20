@@ -67,6 +67,8 @@
     "nextScramble": "Siguiente Mezcla",
     "playerCount": "{{count}} jugador(es)",
     "competitors": "Competidores",
+    "current": "Actual",
+    "last": "Anterior",
     "yourTime": "Tu Tiempo",
     "history": "Historial",
     "round": "Ronda"

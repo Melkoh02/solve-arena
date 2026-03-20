@@ -66,6 +66,8 @@
     "nextScramble": "Next Scramble",
     "playerCount": "{{count}} player(s)",
     "competitors": "Competitors",
+    "current": "Current",
+    "last": "Last",
     "yourTime": "Your Finish Time",
     "history": "History",
     "round": "Round"

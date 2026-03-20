@@ -6,7 +6,7 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
+import LogoutIcon from '@mui/icons-material/Logout';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
@@ -22,15 +22,28 @@ const LABEL_SX = {
   color: 'text.secondary',
 } as const;
 
+const TIME_SX = {
+  fontFamily: 'monospace',
+  fontVariantNumeric: 'tabular-nums',
+  fontSize: '0.8rem',
+  fontWeight: 600,
+} as const;
+
 const PlayerSidebar = observer(function PlayerSidebar() {
   const { roomStore } = useStore();
   const { t } = useTranslation();
   const roundSolves = roomStore.currentRoundSolves;
+  const prevRound = roomStore.currentRound - 1;
 
   const getPlayerSolves = (playerId: string): RoomSolve[] =>
     roomStore.solves
       .filter(s => s.playerId === playerId)
       .sort((a, b) => b.round - a.round);
+
+  const getLastSolve = (playerId: string): RoomSolve | undefined =>
+    roomStore.solves.find(
+      s => s.playerId === playerId && s.round === prevRound,
+    );
 
   return (
     <Box sx={{ px: 1.5, overflow: 'auto', flex: 1 }}>
@@ -39,11 +52,13 @@ const PlayerSidebar = observer(function PlayerSidebar() {
       </Typography>
 
       {roomStore.players.map(player => {
-        const solve = roundSolves.find(s => s.playerId === player.id);
+        const currentSolve = roundSolves.find(s => s.playerId === player.id);
+        const lastSolve = getLastSolve(player.id);
         const isMe = player.id === roomStore.playerId;
         const playerSolves = getPlayerSolves(player.id);
         const ao5 = calculateAverage(playerSolves, 5, 2);
         const ao12 = calculateAverage(playerSolves, 12, 3);
+        const hasFinished = !!currentSolve;
 
         return (
           <Box
@@ -59,13 +74,13 @@ const PlayerSidebar = observer(function PlayerSidebar() {
               bgcolor: isMe ? 'rgba(255, 105, 180, 0.05)' : 'transparent',
               transition: 'all 0.15s',
             }}>
-            {/* Name row */}
+            {/* Row 1: Name + host badge + status dot */}
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                mb: 0.5,
+                mb: 0.75,
               }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Typography
@@ -90,81 +105,107 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                   </Typography>
                 )}
               </Box>
-
-              {/* Status dot */}
               <Box
                 sx={{
                   width: 8,
                   height: 8,
                   borderRadius: '50%',
-                  bgcolor: solve ? 'primary.main' : 'text.secondary',
-                  opacity: solve ? 1 : 0.4,
-                  boxShadow: solve
+                  flexShrink: 0,
+                  bgcolor: hasFinished ? 'primary.main' : 'text.secondary',
+                  opacity: hasFinished ? 1 : 0.3,
+                  boxShadow: hasFinished
                     ? '0 0 6px rgba(255, 105, 180, 0.5)'
                     : 'none',
+                  transition: 'all 0.2s',
                 }}
               />
             </Box>
 
-            {/* Time / Status */}
-            <Typography
-              sx={{
-                fontFamily: 'monospace',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                color: solve ? 'text.primary' : 'text.secondary',
-              }}>
-              {solve ? getDisplayTime(solve) : t('room.solving')}
-            </Typography>
-
-            {/* ao5 / ao12 */}
-            {playerSolves.length > 0 && (
-              <Box sx={{ display: 'flex', gap: 1.5, mt: 0.5 }}>
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                  ao5: {formatAverage(ao5)}
+            {/* Row 2: Current time + Last time */}
+            <Box sx={{ display: 'flex', gap: 2, mb: 0.5 }}>
+              <Box>
+                <Typography sx={{ ...LABEL_SX, fontSize: '0.5rem', mb: 0.25 }}>
+                  {t('room.current')}
                 </Typography>
                 <Typography
-                  variant="caption"
-                  sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                  ao12: {formatAverage(ao12)}
+                  sx={{
+                    ...TIME_SX,
+                    color: hasFinished ? 'text.primary' : 'text.secondary',
+                  }}>
+                  {currentSolve ? getDisplayTime(currentSolve) : '—'}
                 </Typography>
               </Box>
-            )}
+              <Box>
+                <Typography sx={{ ...LABEL_SX, fontSize: '0.5rem', mb: 0.25 }}>
+                  {t('room.last')}
+                </Typography>
+                <Typography
+                  sx={{ ...TIME_SX, color: 'text.secondary' }}>
+                  {lastSolve ? getDisplayTime(lastSolve) : '—'}
+                </Typography>
+              </Box>
+            </Box>
 
-            {/* Penalty buttons for own current-round solve */}
-            {solve && isMe && (
-              <ButtonGroup size="small" sx={{ mt: 0.5 }}>
+            {/* Row 3: ao5 / ao12 + kick button */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
+                {playerSolves.length > 0 && (
+                  <>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                      ao5: {formatAverage(ao5)}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                      ao12: {formatAverage(ao12)}
+                    </Typography>
+                  </>
+                )}
+              </Box>
+              {roomStore.isHost && !isMe && (
+                <IconButton
+                  size="small"
+                  onClick={() => roomStore.kickPlayer(player.id)}
+                  title={t('room.kick')}
+                  sx={{ p: 0.25 }}>
+                  <LogoutIcon
+                    sx={{ fontSize: 13, color: 'text.secondary' }}
+                  />
+                </IconButton>
+              )}
+            </Box>
+
+            {/* Row 4: Penalty buttons (own current-round solve) */}
+            {currentSolve && isMe && (
+              <ButtonGroup size="small" sx={{ mt: 0.75 }}>
                 <Button
-                  variant={solve.penalty === '+2' ? 'contained' : 'outlined'}
+                  variant={
+                    currentSolve.penalty === '+2' ? 'contained' : 'outlined'
+                  }
                   sx={{ minWidth: 32, fontSize: '0.65rem', py: 0 }}
                   onClick={() =>
-                    roomStore.updatePenalty(solve.id, '+2' as Penalty)
+                    roomStore.updatePenalty(currentSolve.id, '+2' as Penalty)
                   }>
                   +2
                 </Button>
                 <Button
-                  variant={solve.penalty === 'DNF' ? 'contained' : 'outlined'}
+                  variant={
+                    currentSolve.penalty === 'DNF' ? 'contained' : 'outlined'
+                  }
                   sx={{ minWidth: 32, fontSize: '0.65rem', py: 0 }}
                   onClick={() =>
-                    roomStore.updatePenalty(solve.id, 'DNF' as Penalty)
+                    roomStore.updatePenalty(currentSolve.id, 'DNF' as Penalty)
                   }>
                   DNF
                 </Button>
               </ButtonGroup>
-            )}
-
-            {/* Kick button for host */}
-            {roomStore.isHost && !isMe && (
-              <Box sx={{ mt: 0.5 }}>
-                <IconButton
-                  size="small"
-                  onClick={() => roomStore.kickPlayer(player.id)}
-                  sx={{ p: 0.25 }}>
-                  <DeleteIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-                </IconButton>
-              </Box>
             )}
           </Box>
         );
