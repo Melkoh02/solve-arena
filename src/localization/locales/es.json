@@ -93,5 +93,9 @@
         "es": "Español"
       }
     }
+  },
+  "errors": {
+    "connectionFailed": "No se pudo conectar al servidor.",
+    "kicked": "Fuiste expulsado de la sala."
   }
 }

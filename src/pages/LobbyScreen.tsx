@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Button,
+  CircularProgress,
   Divider,
   Paper,
   TextField,
@@ -89,7 +90,7 @@ const LobbyScreen = observer(function LobbyScreen() {
             severity="error"
             onClose={() => roomStore.clearError()}
             sx={{ mb: 2 }}>
-            {roomStore.error}
+            {t(roomStore.error)}
           </Alert>
         )}
 
@@ -109,7 +110,11 @@ const LobbyScreen = observer(function LobbyScreen() {
           onClick={handleCreate}
           disabled={!canSubmit || roomStore.isJoining}
           sx={{ py: 1.5, fontSize: '0.95rem' }}>
-          {t('lobby.createRoom')}
+          {roomStore.isJoining ? (
+            <CircularProgress size={22} sx={{ color: 'inherit' }} />
+          ) : (
+            t('lobby.createRoom')
+          )}
         </Button>
 
         <Divider sx={{ my: 3 }}>
@@ -150,7 +155,11 @@ const LobbyScreen = observer(function LobbyScreen() {
           onClick={handleJoin}
           disabled={!canSubmit || !roomCode.trim() || roomStore.isJoining}
           sx={{ py: 1.5, fontSize: '0.95rem' }}>
-          {t('lobby.joinRoom')}
+          {roomStore.isJoining ? (
+            <CircularProgress size={22} sx={{ color: 'inherit' }} />
+          ) : (
+            t('lobby.joinRoom')
+          )}
         </Button>
       </Paper>
     </Box>

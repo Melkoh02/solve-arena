@@ -92,5 +92,9 @@
         "es": "Spanish"
       }
     }
+  },
+  "errors": {
+    "connectionFailed": "Could not connect to the server.",
+    "kicked": "You were kicked from the room."
   }
 }

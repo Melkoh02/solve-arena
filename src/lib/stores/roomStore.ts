@@ -1,12 +1,6 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { io, Socket } from 'socket.io-client';
-import type {
-  ClientToServerEvents,
-  Player,
-  RoomSolve,
-  RoomState,
-  ServerToClientEvents,
-} from '../types/room';
+import type { ClientToServerEvents, Player, RoomSolve, RoomState, ServerToClientEvents, } from '../types/room';
 import type { Penalty } from '../types/timer';
 import { PLAYER_NAME_KEY } from '../constants';
 
@@ -63,7 +57,7 @@ export class RoomStore {
 
     this.socket.on('connect_error', () => {
       runInAction(() => {
-        this.error = 'Could not connect to the server. Is it running?';
+        this.error = 'errors.connectionFailed';
         this.isJoining = false;
       });
       this.socket.disconnect();
@@ -86,7 +80,7 @@ export class RoomStore {
         this.roomCode = null;
         this.players = [];
         this.solves = [];
-        this.error = 'You were kicked from the room';
+        this.error = 'errors.kicked';
       });
       this.socket.disconnect();
     });
@@ -161,7 +155,7 @@ export class RoomStore {
       await this.ensureConnected();
     } catch {
       runInAction(() => {
-        this.error = 'Could not connect to the server. Is it running?';
+        this.error = 'errors.connectionFailed';
         this.isJoining = false;
       });
       return null;
@@ -195,7 +189,7 @@ export class RoomStore {
       await this.ensureConnected();
     } catch {
       runInAction(() => {
-        this.error = 'Could not connect to the server. Is it running?';
+        this.error = 'errors.connectionFailed';
         this.isJoining = false;
       });
       return false;
