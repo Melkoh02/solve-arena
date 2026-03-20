@@ -83,6 +83,7 @@ const Timer = observer(function Timer({ disabled = false }: TimerProps) {
         fontFamily: '"Inter", monospace',
         fontSize: 'clamp(3rem, 12vw, 8rem)',
         fontWeight: 900,
+        fontVariantNumeric: 'tabular-nums',
         textAlign: 'center',
         color: getColor(),
         userSelect: 'none',

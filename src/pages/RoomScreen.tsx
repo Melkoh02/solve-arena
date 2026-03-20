@@ -235,6 +235,7 @@ const RoomScreen = observer(function RoomScreen() {
                   fontFamily: '"Inter", monospace',
                   fontSize: 'clamp(3rem, 12vw, 8rem)',
                   fontWeight: 900,
+                  fontVariantNumeric: 'tabular-nums',
                   color: 'primary.main',
                   lineHeight: 1,
                   letterSpacing: '-0.02em',
