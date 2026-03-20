@@ -87,13 +87,14 @@ const RoomScreen = observer(function RoomScreen() {
         mx: 'auto',
         width: '100%',
       }}>
-      {/* ── Left Sidebar (desktop) / Top panel (mobile) ──── */}
+      {/* ── Left Sidebar (desktop) / Bottom panel (mobile) ──── */}
       <Box
         sx={{
+          order: { xs: 2, md: 0 },
           width: { xs: '100%', md: 260 },
           flexShrink: 0,
           borderRight: { xs: 'none', md: '1px solid' },
-          borderBottom: { xs: '1px solid', md: 'none' },
+          borderTop: { xs: '1px solid', md: 'none' },
           borderColor: 'divider',
           display: 'flex',
           flexDirection: 'column',
@@ -174,6 +175,7 @@ const RoomScreen = observer(function RoomScreen() {
       {/* ── Main Content ───────────────────────────────────── */}
       <Box
         sx={{
+          order: { xs: 1, md: 0 },
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -254,7 +256,6 @@ const RoomScreen = observer(function RoomScreen() {
           sx={{
             height: { xs: 160, md: 220 },
             flexShrink: 0,
-            overflow: 'auto',
             px: { xs: 1.5, sm: 2, md: 3 },
             pb: 2,
           }}>

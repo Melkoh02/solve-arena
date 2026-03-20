@@ -49,11 +49,11 @@ const ResultsTable = observer(function ResultsTable() {
       </Typography>
       <TableContainer
         sx={{
-          maxHeight: 180,
           borderRadius: 2,
           border: '1px solid',
           borderColor: 'divider',
           bgcolor: 'background.paper',
+          maxHeight: 180,
         }}>
         <Table stickyHeader size="small">
           <TableHead>
