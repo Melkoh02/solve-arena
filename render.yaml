@@ -1,0 +1,10 @@
+services:
+  - type: web
+    runtime: node
+    name: solve-arena-server
+    plan: free
+    buildCommand: yarn install
+    startCommand: npx tsx server/index.ts
+    envVars:
+      - key: NODE_VERSION
+        value: 20

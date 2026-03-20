@@ -10,7 +10,7 @@ const App = observer(function App() {
   return (
     <ThemeProvider theme={themeStore.theme}>
       <CssBaseline />
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <AppRoutes />
       </BrowserRouter>
     </ThemeProvider>
