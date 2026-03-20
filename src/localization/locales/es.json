@@ -40,6 +40,14 @@
   "title": "Pantalla de Inicio",
   "welcome": "Bienvenidos a M003"
  },
+ "timer": {
+  "puzzle": "Rompecabezas",
+  "noSolves": "Sin resoluciones aún. ¡Presiona espacio para comenzar!",
+  "columnIndex": "#",
+  "columnTime": "Tiempo",
+  "columnScramble": "Mezcla",
+  "columnActions": "Acciones"
+ },
  "settings": {
   "title": "Pantalla de Configuraciones",
   "language": "Idioma",

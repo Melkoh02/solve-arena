@@ -1,0 +1,88 @@
+import { useEffect, useRef, useCallback } from 'react';
+import { observer } from 'mobx-react-lite';
+import { Typography } from '@mui/material';
+import { useStore } from '../../lib/hooks/useStore';
+import { formatTime } from '../../lib/utils/formatTime';
+
+const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
+
+const Timer = observer(function Timer() {
+  const { timerStore } = useStore();
+  const rafRef = useRef<number | null>(null);
+  const isSpaceDown = useRef(false);
+
+  const animate = useCallback(() => {
+    if (timerStore.timerPhase === 'running' && timerStore.startTime !== null) {
+      timerStore.updateDisplayTime(Date.now() - timerStore.startTime);
+      rafRef.current = requestAnimationFrame(animate);
+    }
+  }, [timerStore]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || e.repeat) return;
+      if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
+      e.preventDefault();
+
+      if (timerStore.timerPhase === 'running') {
+        timerStore.stopTimer();
+        return;
+      }
+
+      if (!isSpaceDown.current) {
+        isSpaceDown.current = true;
+        timerStore.setReady();
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
+      e.preventDefault();
+
+      isSpaceDown.current = false;
+
+      if (timerStore.timerPhase === 'ready') {
+        timerStore.startTimer();
+        rafRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [timerStore, animate]);
+
+  const getColor = (): string => {
+    switch (timerStore.timerPhase) {
+      case 'ready':
+        return 'success.main';
+      default:
+        return 'text.primary';
+    }
+  };
+
+  return (
+    <Typography
+      variant="h1"
+      sx={{
+        fontFamily: 'monospace',
+        fontSize: '6rem',
+        fontWeight: 700,
+        textAlign: 'center',
+        color: getColor(),
+        userSelect: 'none',
+        py: 4,
+      }}
+    >
+      {formatTime(timerStore.displayTime)}
+    </Typography>
+  );
+});
+
+export default Timer;

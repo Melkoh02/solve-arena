@@ -39,6 +39,14 @@
   "title": "Home Screen",
   "welcome": "Welcome to M003"
  },
+ "timer": {
+  "puzzle": "Puzzle",
+  "noSolves": "No solves yet. Press space to start timing!",
+  "columnIndex": "#",
+  "columnTime": "Time",
+  "columnScramble": "Scramble",
+  "columnActions": "Actions"
+ },
  "settings": {
   "title": "Settings Screen",
   "language": "Language",

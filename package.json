@@ -17,6 +17,7 @@
   "@mui/icons-material": "^7.2.0",
   "@mui/material": "^7.3.4",
   "axios": "^1.11.0",
+  "cubing": "^0.63.3",
   "formik": "^2.4.6",
   "i18next": "^25.3.2",
   "mobx": "^6.13.7",
