@@ -1,0 +1,62 @@
+{
+ "appName": "M003",
+ "greeting": "Welcome, {{name}}!",
+ "common": {
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "yes": "Yes",
+  "no": "No",
+  "continue": "Continue",
+  "search": "Search"
+ },
+ "login": {
+  "title": "Login",
+  "loginButton": "Log in",
+  "email": "Email",
+  "emailPlaceholder": "Email",
+  "password": "Password",
+  "passwordPlaceholder": "Password",
+  "forgotPassword": "Forgot password?",
+  "noAccount": "Don't have an account?",
+  "continueAsGuest": "Continue as Guest"
+ },
+ "signUp": {
+  "title": "Sign Up",
+  "signUpButton": "Sign Up",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "confirmPasswordPlaceholder": "Confirm Password",
+  "backToLogin": "Already have an account?"
+ },
+ "forgotPassword": {
+  "title": "Reset Password",
+  "email": "Email",
+  "submitButton": "Send reset link",
+  "backToLogin": "Back to"
+ },
+ "home": {
+  "title": "Home Screen",
+  "welcome": "Welcome to M003"
+ },
+ "settings": {
+  "title": "Settings Screen",
+  "language": "Language",
+  "switchLanguage": "Switch Language",
+  "toggleTheme": "Toggle Theme",
+  "logout": "Log Out"
+ },
+ "modals": {
+  "userAccount": {
+   "title": "M001"
+  },
+  "selectLanguageModal": {
+   "title": "Select Language",
+   "placeholder": "Select Language",
+   "languages": {
+    "en": "English",
+    "es": "Spanish"
+   }
+  }
+ }
+}
