@@ -224,8 +224,8 @@ export class RoomStore {
     this.currentScramble = '';
   }
 
-  submitTime(time: number) {
-    this.socket.emit('submit-time', { time });
+  submitTime(time: number, dnf = false) {
+    this.socket.emit('submit-time', { time, dnf });
   }
 
   updatePenalty(solveId: string, penalty: Penalty) {

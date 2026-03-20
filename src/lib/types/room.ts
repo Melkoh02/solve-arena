@@ -35,7 +35,7 @@ export interface ClientToServerEvents {
     callback: (response: { success: boolean } | { error: string }) => void,
   ) => void;
   'leave-room': () => void;
-  'submit-time': (data: { time: number }) => void;
+  'submit-time': (data: { time: number; dnf?: boolean }) => void;
   'update-penalty': (data: { solveId: string; penalty: Penalty }) => void;
   'change-event': (data: { eventId: string }) => void;
   'kick-player': (data: { playerId: string }) => void;

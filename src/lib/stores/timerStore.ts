@@ -5,6 +5,7 @@ export class TimerStore {
   timerPhase: TimerPhase = 'idle';
   startTime: number | null = null;
   displayTime = 0;
+  lastStopWasDnf = false;
 
   constructor() {
     makeAutoObservable(this, {
@@ -13,7 +14,7 @@ export class TimerStore {
   }
 
   setReady() {
-    if (this.timerPhase === 'idle' || this.timerPhase === 'stopped') {
+    if (this.timerPhase === 'idle') {
       this.displayTime = 0;
       this.timerPhase = 'ready';
     }
@@ -27,11 +28,12 @@ export class TimerStore {
     }
   }
 
-  stopTimer() {
+  stopTimer(dnf = false) {
     if (this.timerPhase === 'running' && this.startTime !== null) {
       this.displayTime = Date.now() - this.startTime;
       this.timerPhase = 'stopped';
       this.startTime = null;
+      this.lastStopWasDnf = dnf;
     }
   }
 
@@ -42,5 +44,6 @@ export class TimerStore {
   resetToIdle() {
     this.timerPhase = 'idle';
     this.displayTime = 0;
+    this.lastStopWasDnf = false;
   }
 }

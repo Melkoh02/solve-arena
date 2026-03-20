@@ -54,7 +54,7 @@ const RoomScreen = observer(function RoomScreen() {
         () => timerStore.timerPhase,
         phase => {
           if (phase === 'stopped' && !roomStore.hasSubmittedCurrentRound) {
-            roomStore.submitTime(timerStore.displayTime);
+            roomStore.submitTime(timerStore.displayTime, timerStore.lastStopWasDnf);
           }
         },
       ),

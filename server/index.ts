@@ -144,7 +144,7 @@ io.on('connection', socket => {
     broadcastRoomState(room);
   });
 
-  socket.on('submit-time', async ({ time }) => {
+  socket.on('submit-time', async ({ time, dnf }) => {
     if (!currentRoom) return;
     const room = rooms.get(currentRoom);
     if (!room) return;
@@ -162,7 +162,7 @@ io.on('connection', socket => {
       playerId: socket.id,
       playerName: player.name,
       time,
-      penalty: 'none',
+      penalty: dnf ? 'DNF' : 'none',
       round: room.currentRound,
     });
 

@@ -75,15 +75,20 @@ const Timer = observer(function Timer({ disabled = false }: TimerProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code !== 'Space' || e.repeat) return;
+      if (e.repeat) return;
       if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
       if (disabled) return;
-      e.preventDefault();
 
+      // Any key stops a running timer; Escape also flags as DNF
       if (timerStore.timerPhase === 'running') {
-        timerStore.stopTimer();
+        e.preventDefault();
+        timerStore.stopTimer(e.code === 'Escape');
         return;
       }
+
+      // Only spacebar starts the ready/start flow
+      if (e.code !== 'Space') return;
+      e.preventDefault();
 
       if (!isSpaceDown.current) {
         isSpaceDown.current = true;
