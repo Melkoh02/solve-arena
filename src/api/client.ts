@@ -29,7 +29,10 @@ export type HandleOptions<T> = {
 };
 
 class RequestWrapper<T> {
-  constructor(private promise: Promise<AxiosResponse<T>>) {}
+  private promise: Promise<AxiosResponse<T>>;
+  constructor(promise: Promise<AxiosResponse<T>>) {
+    this.promise = promise;
+  }
 
   handle(opts: HandleOptions<T> = {}) {
     this.promise
