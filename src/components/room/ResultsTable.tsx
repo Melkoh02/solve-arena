@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Box,
@@ -15,12 +15,15 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
+import { getEffectiveTime } from '../../lib/utils/averages';
+import SolveDetailModal from './SolveDetailModal';
 import type { Player, RoomSolve } from '../../lib/types/room';
 import type { Penalty } from '../../lib/types/timer';
 
 const ResultsTable = observer(function ResultsTable() {
   const { roomStore } = useStore();
   const { t } = useTranslation();
+  const [selectedSolve, setSelectedSolve] = useState<RoomSolve | null>(null);
 
   const completedRounds = useMemo(() => {
     const rounds = new Set(roomStore.solves.map(s => s.round));
@@ -33,6 +36,26 @@ const ResultsTable = observer(function ResultsTable() {
 
   const getSolve = (round: number, playerId: string): RoomSolve | undefined =>
     roomStore.solves.find(s => s.round === round && s.playerId === playerId);
+
+  const getFastestId = (round: number): string | null => {
+    const roundSolves = roomStore.solves.filter(s => s.round === round);
+    if (roundSolves.length === 0) return null;
+    let best: RoomSolve | null = null;
+    let bestTime = Infinity;
+    for (const s of roundSolves) {
+      const eff = getEffectiveTime(s);
+      if (eff < bestTime) {
+        bestTime = eff;
+        best = s;
+      }
+    }
+    return best?.id ?? null;
+  };
+
+  // Keep modal in sync with live data (penalty updates)
+  const liveSolve = selectedSolve
+    ? roomStore.solves.find(s => s.id === selectedSolve.id) ?? null
+    : null;
 
   return (
     <>
@@ -77,31 +100,40 @@ const ResultsTable = observer(function ResultsTable() {
                   sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
                   {round}
                 </TableCell>
-                {roomStore.players.map((player: Player) => {
-                  const solve = getSolve(round, player.id);
-                  const isMe = player.id === roomStore.playerId;
+                {(() => {
+                  const fastestId = getFastestId(round);
+                  return roomStore.players.map((player: Player) => {
+                    const solve = getSolve(round, player.id);
+                    const isMe = player.id === roomStore.playerId;
+                    const isFastest = solve?.id === fastestId;
 
-                  return (
-                    <TableCell key={player.id}>
-                      {solve ? (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 3,
-                          }}>
-                          <Typography
-                            variant="body2"
-                            component="span"
+                    return (
+                      <TableCell key={player.id}>
+                        {solve ? (
+                          <Box
                             sx={{
-                              fontFamily: 'monospace',
-                              fontVariantNumeric: 'tabular-nums',
-                              fontWeight: isMe ? 600 : 400,
-                              color: isMe ? 'primary.main' : 'text.primary',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 3,
+                            }}>
+                            <Typography
+                              variant="body2"
+                              component="span"
+                              onClick={() => setSelectedSolve(solve)}
+                              sx={{
+                                fontFamily: 'monospace',
+                                fontVariantNumeric: 'tabular-nums',
+                                fontWeight: isFastest ? 600 : 400,
+                                color: isFastest ? 'primary.main' : 'text.primary',
                               fontSize: '0.8rem',
                               minWidth: '4.5em',
                               display: 'inline-block',
                               textAlign: 'right',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                textDecoration: 'underline',
+                                opacity: 0.8,
+                              },
                             }}>
                             {getDisplayTime(solve)}
                           </Typography>
@@ -161,12 +193,18 @@ const ResultsTable = observer(function ResultsTable() {
                       )}
                     </TableCell>
                   );
-                })}
+                });
+                })()}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </TableContainer>
+
+      <SolveDetailModal
+        solve={liveSolve}
+        onClose={() => setSelectedSolve(null)}
+      />
     </>
   );
 });

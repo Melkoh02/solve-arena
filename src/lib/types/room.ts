@@ -13,6 +13,8 @@ export interface RoomSolve {
   time: number;
   penalty: Penalty;
   round: number;
+  scramble: string;
+  date: number;
 }
 
 export interface RoomState {

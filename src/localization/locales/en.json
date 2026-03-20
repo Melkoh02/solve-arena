@@ -71,7 +71,10 @@
     "last": "Last",
     "yourTime": "Your Finish Time",
     "history": "History",
-    "round": "Round"
+    "round": "Round",
+    "solveDetails": "Solve Details",
+    "scrambleLabel": "Scramble",
+    "dateTime": "Date & Time"
   },
   "settings": {
     "title": "Settings Screen",

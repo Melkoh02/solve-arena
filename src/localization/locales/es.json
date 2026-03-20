@@ -72,7 +72,10 @@
     "last": "Anterior",
     "yourTime": "Tu Tiempo",
     "history": "Historial",
-    "round": "Ronda"
+    "round": "Ronda",
+    "solveDetails": "Detalles de la Resolución",
+    "scrambleLabel": "Mezcla",
+    "dateTime": "Fecha y Hora"
   },
   "settings": {
     "title": "Pantalla de Configuraciones",

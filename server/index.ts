@@ -20,6 +20,8 @@ interface Solve {
   time: number;
   penalty: Penalty;
   round: number;
+  scramble: string;
+  date: number;
 }
 
 interface Room {
@@ -164,6 +166,8 @@ io.on('connection', socket => {
       time,
       penalty: dnf ? 'DNF' : 'none',
       round: room.currentRound,
+      scramble: room.currentScramble,
+      date: Date.now(),
     });
 
     // Auto-advance when all players have submitted
