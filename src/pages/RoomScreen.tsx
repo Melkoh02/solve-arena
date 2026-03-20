@@ -11,13 +11,13 @@ import {
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import CloseIcon from '@mui/icons-material/Close';
 import { observer } from 'mobx-react-lite';
 import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/hooks/useStore';
 import ScrambleDisplay from '../components/timer/ScrambleDisplay';
-import Timer from '../components/timer/Timer';
+import Timer, { useTimerTouch } from '../components/timer/Timer';
 import HostControls from '../components/room/HostControls';
 import PlayerSidebar from '../components/room/PlayerSidebar';
 import ResultsTable from '../components/room/ResultsTable';
@@ -32,7 +32,6 @@ const LABEL_SX = {
 } as const;
 
 const SIDEBAR_WIDTH = 260;
-const SIDEBAR_COLLAPSED = 48;
 
 const RoomScreen = observer(function RoomScreen() {
   const { timerStore, roomStore } = useStore();
@@ -42,7 +41,9 @@ const RoomScreen = observer(function RoomScreen() {
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
-  // Sync sidebar state when crossing breakpoint
+  const isTimerDisabled = roomStore.hasSubmittedCurrentRound;
+  const touchHandlers = useTimerTouch(isTimerDisabled);
+
   useEffect(() => {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
@@ -109,46 +110,28 @@ const RoomScreen = observer(function RoomScreen() {
         width: '100%',
         overflow: 'hidden',
       }}>
-      {/* ── Sidebar ────────────────────────────────────────── */}
-      <Box
-        sx={{
-          width: sidebarOpen ? SIDEBAR_WIDTH : SIDEBAR_COLLAPSED,
-          flexShrink: 0,
-          borderRight: '1px solid',
-          borderColor: 'divider',
-          display: 'flex',
-          flexDirection: 'column',
-          bgcolor: 'background.paper',
-          overflow: 'hidden',
-          transition: 'width 0.2s ease',
-        }}>
-        {/* Toggle button */}
+      {/* ── Sidebar — fully hidden when closed ─────────────── */}
+      {sidebarOpen && (
         <Box
           sx={{
+            width: SIDEBAR_WIDTH,
+            flexShrink: 0,
+            borderRight: '1px solid',
+            borderColor: 'divider',
             display: 'flex',
-            justifyContent: sidebarOpen ? 'flex-end' : 'center',
-            p: 0.5,
-          }}>
-          <IconButton
-            size="small"
-            onClick={() => setSidebarOpen(prev => !prev)}>
-            {sidebarOpen ? (
-              <ChevronLeftIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-            ) : (
-              <MenuIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
-            )}
-          </IconButton>
-        </Box>
-
-        {/* Sidebar content — only visible when open */}
-        <Box
-          sx={{
-            display: sidebarOpen ? 'flex' : 'none',
             flexDirection: 'column',
-            flex: 1,
+            bgcolor: 'background.paper',
             overflow: 'hidden',
-            minWidth: SIDEBAR_WIDTH,
           }}>
+          {/* Close button */}
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 0.5 }}>
+            <IconButton
+              size="small"
+              onClick={() => setSidebarOpen(false)}>
+              <CloseIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+            </IconButton>
+          </Box>
+
           {/* Sidebar header */}
           <Box sx={{ px: 2, pb: 1 }}>
             <Typography sx={{ ...LABEL_SX, mb: 1, fontSize: '0.6rem' }}>
@@ -174,11 +157,7 @@ const RoomScreen = observer(function RoomScreen() {
                 </Typography>
               </Box>
               <Box
-                sx={{
-                  display: 'flex',
-                  gap: 0.5,
-                  alignItems: 'center',
-                }}>
+                sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
                 <Typography
                   sx={{
                     color: 'primary.main',
@@ -213,7 +192,6 @@ const RoomScreen = observer(function RoomScreen() {
 
           <Box sx={{ flex: 1 }} />
 
-          {/* Host controls + leave */}
           <Box sx={{ p: 2, pt: 0 }}>
             <HostControls />
             <Button
@@ -227,7 +205,7 @@ const RoomScreen = observer(function RoomScreen() {
             </Button>
           </Box>
         </Box>
-      </Box>
+      )}
 
       {/* ── Main Content ───────────────────────────────────── */}
       <Box
@@ -244,12 +222,21 @@ const RoomScreen = observer(function RoomScreen() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            px: { xs: 2, md: 3 },
-            py: 1.5,
+            px: { xs: 1.5, md: 3 },
+            py: 1,
             borderBottom: '1px solid',
             borderColor: 'divider',
           }}>
           <Stack direction="row" spacing={1} alignItems="center">
+            {/* Sidebar toggle — visible when sidebar is closed */}
+            {!sidebarOpen && (
+              <IconButton
+                size="small"
+                onClick={() => setSidebarOpen(true)}
+                sx={{ mr: 0.5 }}>
+                <MenuIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+              </IconButton>
+            )}
             <Typography
               sx={{
                 color: 'primary.main',
@@ -270,8 +257,10 @@ const RoomScreen = observer(function RoomScreen() {
           </Typography>
         </Box>
 
-        {/* Scramble + Timer area */}
+        {/* Scramble + Timer area — full touch target */}
         <Box
+          onTouchStart={touchHandlers.onTouchStart}
+          onTouchEnd={touchHandlers.onTouchEnd}
           sx={{
             flex: 1,
             display: 'flex',
@@ -281,6 +270,9 @@ const RoomScreen = observer(function RoomScreen() {
             px: { xs: 2, sm: 3, md: 4 },
             overflow: 'auto',
             minHeight: 0,
+            touchAction: 'none',
+            WebkitTapHighlightColor: 'transparent',
+            cursor: 'pointer',
           }}>
           <ScrambleDisplay scramble={roomStore.currentScramble} />
 
@@ -304,11 +296,11 @@ const RoomScreen = observer(function RoomScreen() {
               </Typography>
             </Box>
           ) : (
-            <Timer disabled={roomStore.hasSubmittedCurrentRound} />
+            <Timer disabled={isTimerDisabled} />
           )}
         </Box>
 
-        {/* Results history — fixed height so it never pushes the timer */}
+        {/* Results history */}
         <Box
           sx={{
             height: { xs: 160, md: 220 },
