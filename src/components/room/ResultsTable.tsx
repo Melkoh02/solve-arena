@@ -88,16 +88,20 @@ const ResultsTable = observer(function ResultsTable() {
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 0.5,
+                            gap: 3,
                           }}>
                           <Typography
                             variant="body2"
                             component="span"
                             sx={{
                               fontFamily: 'monospace',
+                              fontVariantNumeric: 'tabular-nums',
                               fontWeight: isMe ? 600 : 400,
                               color: isMe ? 'primary.main' : 'text.primary',
                               fontSize: '0.8rem',
+                              minWidth: '4.5em',
+                              display: 'inline-block',
+                              textAlign: 'right',
                             }}>
                             {getDisplayTime(solve)}
                           </Typography>
