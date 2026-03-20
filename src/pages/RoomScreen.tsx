@@ -1,7 +1,17 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, IconButton, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  IconButton,
+  Stack,
+  Typography,
+  useMediaQuery,
+  useTheme as useMuiTheme,
+} from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import MenuIcon from '@mui/icons-material/Menu';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { observer } from 'mobx-react-lite';
 import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
@@ -21,10 +31,21 @@ const LABEL_SX = {
   color: 'text.secondary',
 } as const;
 
+const SIDEBAR_WIDTH = 260;
+const SIDEBAR_COLLAPSED = 48;
+
 const RoomScreen = observer(function RoomScreen() {
   const { timerStore, roomStore } = useStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const muiTheme = useMuiTheme();
+  const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+  const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+
+  // Sync sidebar state when crossing breakpoint
+  useEffect(() => {
+    setSidebarOpen(!isMobile);
+  }, [isMobile]);
 
   useEffect(
     () =>
@@ -81,114 +102,149 @@ const RoomScreen = observer(function RoomScreen() {
     <Box
       sx={{
         display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
+        flexDirection: 'row',
         height: '100vh',
         maxWidth: 1400,
         mx: 'auto',
         width: '100%',
+        overflow: 'hidden',
       }}>
-      {/* ── Left Sidebar (desktop) / Bottom panel (mobile) ──── */}
+      {/* ── Sidebar ────────────────────────────────────────── */}
       <Box
         sx={{
-          order: { xs: 2, md: 0 },
-          width: { xs: '100%', md: 260 },
+          width: sidebarOpen ? SIDEBAR_WIDTH : SIDEBAR_COLLAPSED,
           flexShrink: 0,
-          borderRight: { xs: 'none', md: '1px solid' },
-          borderTop: { xs: '1px solid', md: 'none' },
+          borderRight: '1px solid',
           borderColor: 'divider',
           display: 'flex',
           flexDirection: 'column',
           bgcolor: 'background.paper',
-          maxHeight: { xs: '40vh', md: '100vh' },
-          overflow: 'auto',
+          overflow: 'hidden',
+          transition: 'width 0.2s ease',
         }}>
-        {/* Sidebar header */}
-        <Box sx={{ p: 2, pb: 1 }}>
-          <Typography sx={{ ...LABEL_SX, mb: 1, fontSize: '0.6rem' }}>
-            {t('room.player')}
-          </Typography>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center">
-            <Box>
-              <Typography
-                sx={{
-                  color: 'primary.main',
-                  fontWeight: 800,
-                  fontSize: '0.95rem',
-                }}>
-                {roomStore.playerName}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                {roomStore.isHost ? t('room.host') : 'Competitor'}
-              </Typography>
-            </Box>
-            {/* Mobile: show room code in sidebar header */}
-            <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 0.5, alignItems: 'center' }}>
-              <Typography
-                sx={{
-                  color: 'primary.main',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  letterSpacing: '0.05em',
-                }}>
-                {roomStore.roomCode}
-              </Typography>
-              <IconButton size="small" onClick={handleCopyCode} sx={{ p: 0.25 }}>
-                <ContentCopyIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-              </IconButton>
-            </Box>
-          </Stack>
-        </Box>
-
+        {/* Toggle button */}
         <Box
           sx={{
-            mx: 2,
-            mb: 1,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-          }}
-        />
-
-        <PlayerSidebar />
-
-        <Box sx={{ flex: 1, display: { xs: 'none', md: 'block' } }} />
-
-        {/* Host controls + leave — bottom of sidebar on desktop */}
-        <Box sx={{ p: 2, pt: 0 }}>
-          <HostControls />
-          <Button
-            variant="outlined"
-            color="error"
-            fullWidth
+            display: 'flex',
+            justifyContent: sidebarOpen ? 'flex-end' : 'center',
+            p: 0.5,
+          }}>
+          <IconButton
             size="small"
-            onClick={handleLeave}
-            sx={{ mt: 1 }}>
-            {t('room.leave')}
-          </Button>
+            onClick={() => setSidebarOpen(prev => !prev)}>
+            {sidebarOpen ? (
+              <ChevronLeftIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+            ) : (
+              <MenuIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+            )}
+          </IconButton>
+        </Box>
+
+        {/* Sidebar content — only visible when open */}
+        <Box
+          sx={{
+            display: sidebarOpen ? 'flex' : 'none',
+            flexDirection: 'column',
+            flex: 1,
+            overflow: 'hidden',
+            minWidth: SIDEBAR_WIDTH,
+          }}>
+          {/* Sidebar header */}
+          <Box sx={{ px: 2, pb: 1 }}>
+            <Typography sx={{ ...LABEL_SX, mb: 1, fontSize: '0.6rem' }}>
+              {t('room.player')}
+            </Typography>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center">
+              <Box>
+                <Typography
+                  sx={{
+                    color: 'primary.main',
+                    fontWeight: 800,
+                    fontSize: '0.95rem',
+                  }}>
+                  {roomStore.playerName}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                  {roomStore.isHost ? t('room.host') : 'Competitor'}
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 0.5,
+                  alignItems: 'center',
+                }}>
+                <Typography
+                  sx={{
+                    color: 'primary.main',
+                    fontWeight: 800,
+                    fontSize: '0.8rem',
+                    letterSpacing: '0.05em',
+                  }}>
+                  {roomStore.roomCode}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={handleCopyCode}
+                  sx={{ p: 0.25 }}>
+                  <ContentCopyIcon
+                    sx={{ fontSize: 14, color: 'text.secondary' }}
+                  />
+                </IconButton>
+              </Box>
+            </Stack>
+          </Box>
+
+          <Box
+            sx={{
+              mx: 2,
+              mb: 1,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}
+          />
+
+          <PlayerSidebar />
+
+          <Box sx={{ flex: 1 }} />
+
+          {/* Host controls + leave */}
+          <Box sx={{ p: 2, pt: 0 }}>
+            <HostControls />
+            <Button
+              variant="outlined"
+              color="error"
+              fullWidth
+              size="small"
+              onClick={handleLeave}
+              sx={{ mt: 1 }}>
+              {t('room.leave')}
+            </Button>
+          </Box>
         </Box>
       </Box>
 
       {/* ── Main Content ───────────────────────────────────── */}
       <Box
         sx={{
-          order: { xs: 1, md: 0 },
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
           minWidth: 0,
         }}>
-        {/* Top bar — desktop only (mobile shows code in sidebar) */}
+        {/* Top bar */}
         <Box
           sx={{
-            display: { xs: 'none', md: 'flex' },
+            display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            px: 3,
+            px: { xs: 2, md: 3 },
             py: 1.5,
             borderBottom: '1px solid',
             borderColor: 'divider',
@@ -204,7 +260,9 @@ const RoomScreen = observer(function RoomScreen() {
               ROOM: {roomStore.roomCode}
             </Typography>
             <IconButton size="small" onClick={handleCopyCode} sx={{ p: 0.5 }}>
-              <ContentCopyIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <ContentCopyIcon
+                sx={{ fontSize: 16, color: 'text.secondary' }}
+              />
             </IconButton>
           </Stack>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -221,7 +279,6 @@ const RoomScreen = observer(function RoomScreen() {
             alignItems: 'center',
             justifyContent: 'center',
             px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 2, md: 0 },
             overflow: 'auto',
             minHeight: 0,
           }}>
