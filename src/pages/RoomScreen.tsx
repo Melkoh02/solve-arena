@@ -26,7 +26,6 @@ const RoomScreen = observer(function RoomScreen() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  // Submit time when timer stops
   useEffect(
     () =>
       reaction(
@@ -40,7 +39,6 @@ const RoomScreen = observer(function RoomScreen() {
     [timerStore, roomStore],
   );
 
-  // Reset timer when new round starts
   useEffect(
     () =>
       reaction(
@@ -52,7 +50,6 @@ const RoomScreen = observer(function RoomScreen() {
     [timerStore, roomStore],
   );
 
-  // Redirect to lobby if not in room
   useEffect(() => {
     if (!roomStore.isInRoom && !roomStore.isJoining) {
       navigate('/');
@@ -81,36 +78,69 @@ const RoomScreen = observer(function RoomScreen() {
   const mySolve = roomStore.myCurrentRoundSolve;
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh' }}>
-      {/* ── Left Sidebar ───────────────────────────────────── */}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', md: 'row' },
+        height: '100vh',
+        maxWidth: 1400,
+        mx: 'auto',
+        width: '100%',
+      }}>
+      {/* ── Left Sidebar (desktop) / Top panel (mobile) ──── */}
       <Box
         sx={{
-          width: 260,
+          width: { xs: '100%', md: 260 },
           flexShrink: 0,
-          borderRight: '1px solid',
+          borderRight: { xs: 'none', md: '1px solid' },
+          borderBottom: { xs: '1px solid', md: 'none' },
           borderColor: 'divider',
           display: 'flex',
           flexDirection: 'column',
           bgcolor: 'background.paper',
+          maxHeight: { xs: '40vh', md: '100vh' },
+          overflow: 'auto',
         }}>
         {/* Sidebar header */}
         <Box sx={{ p: 2, pb: 1 }}>
-          <Typography sx={{ ...LABEL_SX, mb: 1.5, fontSize: '0.6rem' }}>
+          <Typography sx={{ ...LABEL_SX, mb: 1, fontSize: '0.6rem' }}>
             {t('room.player')}
           </Typography>
-          <Typography
-            sx={{
-              color: 'primary.main',
-              fontWeight: 800,
-              fontSize: '0.95rem',
-            }}>
-            {roomStore.playerName}
-          </Typography>
-          <Typography
-            variant="caption"
-            sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-            {roomStore.isHost ? t('room.host') : 'Competitor'}
-          </Typography>
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center">
+            <Box>
+              <Typography
+                sx={{
+                  color: 'primary.main',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                }}>
+                {roomStore.playerName}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
+                {roomStore.isHost ? t('room.host') : 'Competitor'}
+              </Typography>
+            </Box>
+            {/* Mobile: show room code in sidebar header */}
+            <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 0.5, alignItems: 'center' }}>
+              <Typography
+                sx={{
+                  color: 'primary.main',
+                  fontWeight: 800,
+                  fontSize: '0.8rem',
+                  letterSpacing: '0.05em',
+                }}>
+                {roomStore.roomCode}
+              </Typography>
+              <IconButton size="small" onClick={handleCopyCode} sx={{ p: 0.25 }}>
+                <ContentCopyIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
+              </IconButton>
+            </Box>
+          </Stack>
         </Box>
 
         <Box
@@ -122,12 +152,11 @@ const RoomScreen = observer(function RoomScreen() {
           }}
         />
 
-        {/* Players */}
         <PlayerSidebar />
 
-        <Box sx={{ flex: 1 }} />
+        <Box sx={{ flex: 1, display: { xs: 'none', md: 'block' } }} />
 
-        {/* Host controls at bottom of sidebar */}
+        {/* Host controls + leave — bottom of sidebar on desktop */}
         <Box sx={{ p: 2, pt: 0 }}>
           <HostControls />
           <Button
@@ -149,11 +178,12 @@ const RoomScreen = observer(function RoomScreen() {
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
+          minWidth: 0,
         }}>
-        {/* Top bar */}
+        {/* Top bar — desktop only (mobile shows code in sidebar) */}
         <Box
           sx={{
-            display: 'flex',
+            display: { xs: 'none', md: 'flex' },
             alignItems: 'center',
             justifyContent: 'space-between',
             px: 3,
@@ -188,13 +218,13 @@ const RoomScreen = observer(function RoomScreen() {
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            px: 4,
-            position: 'relative',
+            px: { xs: 2, sm: 3, md: 4 },
+            py: { xs: 2, md: 0 },
+            overflow: 'auto',
+            minHeight: 0,
           }}>
-          {/* Scramble */}
           <ScrambleDisplay scramble={roomStore.currentScramble} />
 
-          {/* Timer or submitted time */}
           {roomStore.hasSubmittedCurrentRound && mySolve ? (
             <Box sx={{ textAlign: 'center' }}>
               <Typography sx={{ ...LABEL_SX, mb: 1 }}>
@@ -203,7 +233,7 @@ const RoomScreen = observer(function RoomScreen() {
               <Typography
                 sx={{
                   fontFamily: '"Inter", monospace',
-                  fontSize: { xs: '5rem', md: '8rem' },
+                  fontSize: 'clamp(3rem, 12vw, 8rem)',
                   fontWeight: 900,
                   color: 'primary.main',
                   lineHeight: 1,
@@ -221,9 +251,9 @@ const RoomScreen = observer(function RoomScreen() {
         {/* Results history */}
         <Box
           sx={{
-            maxHeight: 220,
+            maxHeight: { xs: 160, md: 220 },
             overflow: 'auto',
-            px: 3,
+            px: { xs: 1.5, sm: 2, md: 3 },
             pb: 2,
           }}>
           <ResultsTable />

@@ -18,7 +18,7 @@ export default function ScrambleDisplay({
   }
 
   return (
-    <Box sx={{ textAlign: 'center', mb: 2 }}>
+    <Box sx={{ textAlign: 'center', mb: 2, maxWidth: '100%' }}>
       <Typography
         sx={{
           textTransform: 'uppercase',
@@ -33,7 +33,8 @@ export default function ScrambleDisplay({
       <Box
         sx={{
           display: 'inline-block',
-          px: 3,
+          maxWidth: '100%',
+          px: { xs: 2, md: 3 },
           py: 1.5,
           borderRadius: 2,
           bgcolor: 'rgba(255, 105, 180, 0.04)',
@@ -43,10 +44,11 @@ export default function ScrambleDisplay({
         <Typography
           sx={{
             fontFamily: 'monospace',
-            fontSize: '0.9rem',
+            fontSize: { xs: '0.75rem', md: '0.9rem' },
             letterSpacing: '0.06em',
             color: 'text.secondary',
             lineHeight: 1.6,
+            wordBreak: 'break-word',
           }}>
           {scramble}
         </Typography>

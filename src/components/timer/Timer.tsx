@@ -81,14 +81,14 @@ const Timer = observer(function Timer({ disabled = false }: TimerProps) {
     <Typography
       sx={{
         fontFamily: '"Inter", monospace',
-        fontSize: { xs: '5rem', md: '8rem' },
+        fontSize: 'clamp(3rem, 12vw, 8rem)',
         fontWeight: 900,
         textAlign: 'center',
         color: getColor(),
         userSelect: 'none',
         lineHeight: 1,
         letterSpacing: '-0.02em',
-        py: 4,
+        py: { xs: 2, md: 4 },
         textShadow:
           timerStore.timerPhase === 'running'
             ? '0 0 40px rgba(255, 105, 180, 0.3)'
