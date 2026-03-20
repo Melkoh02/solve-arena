@@ -48,9 +48,7 @@ const SolveHistory = observer(function SolveHistory() {
           {solves.map((solve, index) => (
             <TableRow key={solve.id}>
               <TableCell>{solves.length - index}</TableCell>
-              <TableCell
-                sx={{ fontFamily: 'monospace', fontWeight: 600 }}
-              >
+              <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
                 {getDisplayTime(solve)}
               </TableCell>
               <TableCell
@@ -61,33 +59,25 @@ const SolveHistory = observer(function SolveHistory() {
                   whiteSpace: 'nowrap',
                   fontFamily: 'monospace',
                   fontSize: '0.75rem',
-                }}
-              >
+                }}>
                 {solve.scramble}
               </TableCell>
               <TableCell align="right">
                 <ButtonGroup size="small" sx={{ mr: 1 }}>
                   <Button
-                    variant={
-                      solve.penalty === '+2' ? 'contained' : 'outlined'
-                    }
-                    onClick={() => timerStore.setPenalty(solve.id, '+2')}
-                  >
+                    variant={solve.penalty === '+2' ? 'contained' : 'outlined'}
+                    onClick={() => timerStore.setPenalty(solve.id, '+2')}>
                     +2
                   </Button>
                   <Button
-                    variant={
-                      solve.penalty === 'DNF' ? 'contained' : 'outlined'
-                    }
-                    onClick={() => timerStore.setPenalty(solve.id, 'DNF')}
-                  >
+                    variant={solve.penalty === 'DNF' ? 'contained' : 'outlined'}
+                    onClick={() => timerStore.setPenalty(solve.id, 'DNF')}>
                     DNF
                   </Button>
                 </ButtonGroup>
                 <IconButton
                   size="small"
-                  onClick={() => timerStore.deleteSolve(solve.id)}
-                >
+                  onClick={() => timerStore.deleteSolve(solve.id)}>
                   <DeleteIcon fontSize="small" />
                 </IconButton>
               </TableCell>

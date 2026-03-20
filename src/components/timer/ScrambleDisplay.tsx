@@ -1,11 +1,15 @@
-import { observer } from 'mobx-react-lite';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { useStore } from '../../lib/hooks/useStore';
 
-const ScrambleDisplay = observer(function ScrambleDisplay() {
-  const { timerStore } = useStore();
+interface ScrambleDisplayProps {
+  scramble: string;
+  isLoading?: boolean;
+}
 
-  if (timerStore.isGeneratingScramble) {
+export default function ScrambleDisplay({
+  scramble,
+  isLoading = false,
+}: ScrambleDisplayProps) {
+  if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
         <CircularProgress size={24} />
@@ -16,11 +20,8 @@ const ScrambleDisplay = observer(function ScrambleDisplay() {
   return (
     <Typography
       variant="h6"
-      sx={{ textAlign: 'center', fontFamily: 'monospace', py: 2, px: 2 }}
-    >
-      {timerStore.currentScramble}
+      sx={{ textAlign: 'center', fontFamily: 'monospace', py: 2, px: 2 }}>
+      {scramble}
     </Typography>
   );
-});
-
-export default ScrambleDisplay;
+}

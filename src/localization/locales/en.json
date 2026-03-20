@@ -1,70 +1,89 @@
 {
- "appName": "M003",
- "greeting": "Welcome, {{name}}!",
- "common": {
-  "cancel": "Cancel",
-  "confirm": "Confirm",
-  "yes": "Yes",
-  "no": "No",
-  "continue": "Continue",
-  "search": "Search"
- },
- "login": {
-  "title": "Login",
-  "loginButton": "Log in",
-  "email": "Email",
-  "emailPlaceholder": "Email",
-  "password": "Password",
-  "passwordPlaceholder": "Password",
-  "forgotPassword": "Forgot password?",
-  "noAccount": "Don't have an account?",
-  "continueAsGuest": "Continue as Guest"
- },
- "signUp": {
-  "title": "Sign Up",
-  "signUpButton": "Sign Up",
-  "email": "Email",
-  "password": "Password",
-  "confirmPassword": "Confirm Password",
-  "confirmPasswordPlaceholder": "Confirm Password",
-  "backToLogin": "Already have an account?"
- },
- "forgotPassword": {
-  "title": "Reset Password",
-  "email": "Email",
-  "submitButton": "Send reset link",
-  "backToLogin": "Back to"
- },
- "home": {
-  "title": "Home Screen",
-  "welcome": "Welcome to M003"
- },
- "timer": {
-  "puzzle": "Puzzle",
-  "noSolves": "No solves yet. Press space to start timing!",
-  "columnIndex": "#",
-  "columnTime": "Time",
-  "columnScramble": "Scramble",
-  "columnActions": "Actions"
- },
- "settings": {
-  "title": "Settings Screen",
-  "language": "Language",
-  "switchLanguage": "Switch Language",
-  "toggleTheme": "Toggle Theme",
-  "logout": "Log Out"
- },
- "modals": {
-  "userAccount": {
-   "title": "M001"
+  "appName": "M003",
+  "greeting": "Welcome, {{name}}!",
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "continue": "Continue",
+    "search": "Search"
   },
-  "selectLanguageModal": {
-   "title": "Select Language",
-   "placeholder": "Select Language",
-   "languages": {
-    "en": "English",
-    "es": "Spanish"
-   }
+  "login": {
+    "title": "Login",
+    "loginButton": "Log in",
+    "email": "Email",
+    "emailPlaceholder": "Email",
+    "password": "Password",
+    "passwordPlaceholder": "Password",
+    "forgotPassword": "Forgot password?",
+    "noAccount": "Don't have an account?",
+    "continueAsGuest": "Continue as Guest"
+  },
+  "signUp": {
+    "title": "Sign Up",
+    "signUpButton": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm Password",
+    "backToLogin": "Already have an account?"
+  },
+  "forgotPassword": {
+    "title": "Reset Password",
+    "email": "Email",
+    "submitButton": "Send reset link",
+    "backToLogin": "Back to"
+  },
+  "home": {
+    "title": "Home Screen",
+    "welcome": "Welcome to M003"
+  },
+  "timer": {
+    "puzzle": "Puzzle",
+    "noSolves": "No solves yet. Press space to start timing!",
+    "columnIndex": "#",
+    "columnTime": "Time",
+    "columnScramble": "Scramble",
+    "columnActions": "Actions"
+  },
+  "lobby": {
+    "title": "Solve Arena",
+    "playerName": "Your Name",
+    "createRoom": "Create Room",
+    "joinRoom": "Join Room",
+    "roomCode": "Room Code",
+    "or": "or"
+  },
+  "room": {
+    "title": "Room",
+    "leave": "Leave",
+    "host": "Host",
+    "you": "You",
+    "player": "Player",
+    "solving": "Solving...",
+    "kick": "Kick",
+    "nextScramble": "Next Scramble",
+    "playerCount": "{{count}} player(s)"
+  },
+  "settings": {
+    "title": "Settings Screen",
+    "language": "Language",
+    "switchLanguage": "Switch Language",
+    "toggleTheme": "Toggle Theme",
+    "logout": "Log Out"
+  },
+  "modals": {
+    "userAccount": {
+      "title": "M001"
+    },
+    "selectLanguageModal": {
+      "title": "Select Language",
+      "placeholder": "Select Language",
+      "languages": {
+        "en": "English",
+        "es": "Spanish"
+      }
+    }
   }
- }
 }

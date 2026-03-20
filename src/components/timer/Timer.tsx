@@ -6,7 +6,11 @@ import { formatTime } from '../../lib/utils/formatTime';
 
 const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
 
-const Timer = observer(function Timer() {
+interface TimerProps {
+  disabled?: boolean;
+}
+
+const Timer = observer(function Timer({ disabled = false }: TimerProps) {
   const { timerStore } = useStore();
   const rafRef = useRef<number | null>(null);
   const isSpaceDown = useRef(false);
@@ -22,6 +26,7 @@ const Timer = observer(function Timer() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code !== 'Space' || e.repeat) return;
       if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
+      if (disabled) return;
       e.preventDefault();
 
       if (timerStore.timerPhase === 'running') {
@@ -38,6 +43,7 @@ const Timer = observer(function Timer() {
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.code !== 'Space') return;
       if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
+      if (disabled) return;
       e.preventDefault();
 
       isSpaceDown.current = false;
@@ -56,7 +62,7 @@ const Timer = observer(function Timer() {
       window.removeEventListener('keyup', handleKeyUp);
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [timerStore, animate]);
+  }, [timerStore, animate, disabled]);
 
   const getColor = (): string => {
     switch (timerStore.timerPhase) {
@@ -78,8 +84,7 @@ const Timer = observer(function Timer() {
         color: getColor(),
         userSelect: 'none',
         py: 4,
-      }}
-    >
+      }}>
       {formatTime(timerStore.displayTime)}
     </Typography>
   );

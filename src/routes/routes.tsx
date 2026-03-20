@@ -1,20 +1,16 @@
-import {observer} from 'mobx-react-lite';
-import AuthRoutes from './groups/AuthRoutes';
-import HomeRoutes from './groups/HomeRoutes';
+import { Route, Routes, Navigate } from 'react-router-dom';
+import { Box } from '@mui/material';
+import LobbyScreen from '../pages/LobbyScreen';
+import RoomScreen from '../pages/RoomScreen';
 
-import {useStore} from '../lib/hooks/useStore.ts';
-import {Box} from '@mui/material';
-
-const AppRoutes = observer(function AppRoutes() {
-  const {userStore} = useStore();
-
-  if (!userStore.isHydrated) return null;
-
+export default function AppRoutes() {
   return (
-    <Box sx={{height: '100vh', width: '100%', display: 'flex', flex: 1}}>
-      {userStore?.user ? <HomeRoutes /> : <AuthRoutes />}
+    <Box sx={{ height: '100vh', width: '100%', display: 'flex', flex: 1 }}>
+      <Routes>
+        <Route path="/" element={<LobbyScreen />} />
+        <Route path="/room/:code" element={<RoomScreen />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Box>
   );
-});
-
-export default AppRoutes;
+}
