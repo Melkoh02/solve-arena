@@ -11,6 +11,7 @@ import type { Penalty } from '../types/timer';
 import { PLAYER_NAME_KEY } from '../constants';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+const CONNECTION_TIMEOUT_MS = 5000;
 
 export class RoomStore {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -37,7 +38,11 @@ export class RoomStore {
 
     this.loadPlayerName();
 
-    this.socket = io(SOCKET_URL, { autoConnect: false });
+    this.socket = io(SOCKET_URL, {
+      autoConnect: false,
+      reconnectionAttempts: 3,
+      timeout: CONNECTION_TIMEOUT_MS,
+    });
 
     this.socket.on('connect', () => {
       runInAction(() => {
@@ -54,6 +59,14 @@ export class RoomStore {
         this.currentRound = 0;
         this.currentScramble = '';
       });
+    });
+
+    this.socket.on('connect_error', () => {
+      runInAction(() => {
+        this.error = 'Could not connect to the server. Is it running?';
+        this.isJoining = false;
+      });
+      this.socket.disconnect();
     });
 
     this.socket.on('room-state', (state: RoomState) => {
@@ -120,11 +133,23 @@ export class RoomStore {
     this.error = null;
   }
 
-  private async ensureConnected(): Promise<void> {
-    if (this.socket.connected) return;
-    this.socket.connect();
-    return new Promise(resolve => {
-      this.socket.once('connect', resolve);
+  private ensureConnected(): Promise<void> {
+    if (this.socket.connected) return Promise.resolve();
+
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.socket.off('connect', onConnect);
+        this.socket.disconnect();
+        reject(new Error('Connection timed out'));
+      }, CONNECTION_TIMEOUT_MS);
+
+      const onConnect = () => {
+        clearTimeout(timer);
+        resolve();
+      };
+
+      this.socket.once('connect', onConnect);
+      this.socket.connect();
     });
   }
 
@@ -132,7 +157,15 @@ export class RoomStore {
     this.isJoining = true;
     this.error = null;
 
-    await this.ensureConnected();
+    try {
+      await this.ensureConnected();
+    } catch {
+      runInAction(() => {
+        this.error = 'Could not connect to the server. Is it running?';
+        this.isJoining = false;
+      });
+      return null;
+    }
 
     return new Promise(resolve => {
       this.socket.emit(
@@ -158,7 +191,15 @@ export class RoomStore {
     this.isJoining = true;
     this.error = null;
 
-    await this.ensureConnected();
+    try {
+      await this.ensureConnected();
+    } catch {
+      runInAction(() => {
+        this.error = 'Could not connect to the server. Is it running?';
+        this.isJoining = false;
+      });
+      return false;
+    }
 
     return new Promise(resolve => {
       this.socket.emit(
