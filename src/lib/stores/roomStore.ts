@@ -5,7 +5,7 @@ import type { Penalty } from '../types/timer';
 import { PLAYER_NAME_KEY } from '../constants';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
-const CONNECTION_TIMEOUT_MS = 5000;
+const CONNECTION_TIMEOUT_MS = 30000;
 
 export class RoomStore {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -34,8 +34,9 @@ export class RoomStore {
 
     this.socket = io(SOCKET_URL, {
       autoConnect: false,
-      reconnectionAttempts: 3,
-      timeout: CONNECTION_TIMEOUT_MS,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
+      timeout: 10000,
     });
 
     this.socket.on('connect', () => {
@@ -53,14 +54,6 @@ export class RoomStore {
         this.currentRound = 0;
         this.currentScramble = '';
       });
-    });
-
-    this.socket.on('connect_error', () => {
-      runInAction(() => {
-        this.error = 'errors.connectionFailed';
-        this.isJoining = false;
-      });
-      this.socket.disconnect();
     });
 
     this.socket.on('room-state', (state: RoomState) => {
