@@ -278,7 +278,7 @@ const RoomScreen = observer(function RoomScreen() {
             cursor: 'pointer',
           }}>
           {!isTimerRunning && (
-            <ScrambleDisplay scramble={roomStore.currentScramble} />
+            <ScrambleDisplay scramble={roomStore.currentScramble} eventId={roomStore.eventId} />
           )}
 
           {roomStore.hasSubmittedCurrentRound && mySolve ? (
