@@ -125,35 +125,48 @@ const Timer = observer(function Timer({ disabled = false }: TimerProps) {
     switch (timerStore.timerPhase) {
       case 'ready':
         return '#4caf50';
-      case 'running':
-        return '#FF69B4';
-      case 'stopped':
-        return '#FF69B4';
+      default:
+        return theme.palette.text.primary;
+    }
+  };
+
+  const getAccentColor = (): string => {
+    switch (timerStore.timerPhase) {
+      case 'ready':
+        return '#4caf50';
       default:
         return theme.palette.primary.main;
     }
   };
 
+  const timeStr = formatTime(timerStore.displayTime);
+  const dotIndex = timeStr.lastIndexOf('.');
+  const intPart = dotIndex >= 0 ? timeStr.slice(0, dotIndex) : timeStr;
+  const decPart = dotIndex >= 0 ? timeStr.slice(dotIndex) : '';
+
+  const baseSx = {
+    fontFamily: '"Inter", monospace',
+    fontSize: 'clamp(3rem, 12vw, 8rem)',
+    fontWeight: 900,
+    fontVariantNumeric: 'tabular-nums',
+    textAlign: 'center',
+    userSelect: 'none',
+    lineHeight: 1,
+    letterSpacing: '-0.02em',
+    py: { xs: 2, md: 4 },
+    textShadow:
+      timerStore.timerPhase === 'running'
+        ? '0 0 40px rgba(255, 105, 180, 0.3)'
+        : 'none',
+    transition: 'color 0.15s, text-shadow 0.3s',
+  } as const;
+
   return (
-    <Typography
-      sx={{
-        fontFamily: '"Inter", monospace',
-        fontSize: 'clamp(3rem, 12vw, 8rem)',
-        fontWeight: 900,
-        fontVariantNumeric: 'tabular-nums',
-        textAlign: 'center',
-        color: getColor(),
-        userSelect: 'none',
-        lineHeight: 1,
-        letterSpacing: '-0.02em',
-        py: { xs: 2, md: 4 },
-        textShadow:
-          timerStore.timerPhase === 'running'
-            ? '0 0 40px rgba(255, 105, 180, 0.3)'
-            : 'none',
-        transition: 'color 0.15s, text-shadow 0.3s',
-      }}>
-      {formatTime(timerStore.displayTime)}
+    <Typography sx={{ ...baseSx, color: getColor() }}>
+      {intPart}
+      <Typography component="span" sx={{ ...baseSx, color: getAccentColor(), fontSize: 'inherit', py: 0 }}>
+        {decPart}
+      </Typography>
     </Typography>
   );
 });

@@ -3,9 +3,17 @@ import { io, Socket } from 'socket.io-client';
 import type { ClientToServerEvents, Player, RoomSolve, RoomState, ServerToClientEvents, } from '../types/room';
 import type { Penalty } from '../types/timer';
 import { PLAYER_NAME_KEY } from '../constants';
+import { getEffectiveTime } from '../utils/averages';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
 const CONNECTION_TIMEOUT_MS = 30000;
+
+export interface PbNotification {
+  playerName: string;
+  playerId: string;
+  time: string;
+  isSelf: boolean;
+}
 
 export class RoomStore {
   socket: Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -24,6 +32,11 @@ export class RoomStore {
   playerName = '';
   error: string | null = null;
   isJoining = false;
+
+  // PB tracking
+  pbNotificationQueue: PbNotification[] = [];
+  private previousBestTimes = new Map<string, number>();
+  private processedSolveIds = new Set<string>();
 
   constructor() {
     makeAutoObservable(this, {
@@ -65,6 +78,14 @@ export class RoomStore {
         this.currentRound = state.currentRound;
         this.players = state.players;
         this.solves = state.solves;
+
+        // Detect PBs from solves we haven't processed yet
+        for (const solve of state.solves) {
+          if (!this.processedSolveIds.has(solve.id)) {
+            this.processedSolveIds.add(solve.id);
+            this.checkForPb(solve, state.solves);
+          }
+        }
       });
     });
 
@@ -236,6 +257,9 @@ export class RoomStore {
     this.solves = [];
     this.currentRound = 0;
     this.currentScramble = '';
+    this.pbNotificationQueue = [];
+    this.previousBestTimes.clear();
+    this.processedSolveIds.clear();
   }
 
   submitTime(time: number, dnf = false) {
@@ -260,6 +284,54 @@ export class RoomStore {
 
   resetRoom() {
     this.socket.emit('reset-room');
+  }
+
+  getBestTime(playerId: string): number | null {
+    let best = Infinity;
+    for (const s of this.solves) {
+      if (s.playerId !== playerId) continue;
+      const eff = getEffectiveTime(s);
+      if (eff < best) best = eff;
+    }
+    return isFinite(best) ? best : null;
+  }
+
+  shiftPbNotification(): PbNotification | undefined {
+    return this.pbNotificationQueue.shift();
+  }
+
+  private checkForPb(solve: RoomSolve, _allSolves: RoomSolve[]) {
+    const effTime = getEffectiveTime(solve);
+    if (!isFinite(effTime)) return; // DNF — no PB
+
+    const prevBest = this.previousBestTimes.get(solve.playerId);
+
+    // First solve — set baseline, no notification
+    if (prevBest === undefined) {
+      this.previousBestTimes.set(solve.playerId, effTime);
+      return;
+    }
+
+    if (effTime < prevBest) {
+      // New PB!
+      this.previousBestTimes.set(solve.playerId, effTime);
+
+      const minutes = Math.floor(effTime / 60000);
+      const seconds = (effTime % 60000) / 1000;
+      const timeStr = minutes > 0
+        ? `${minutes}:${seconds.toFixed(2).padStart(5, '0')}`
+        : seconds.toFixed(2);
+
+      this.pbNotificationQueue.push({
+        playerName: solve.playerName,
+        playerId: solve.playerId,
+        time: timeStr,
+        isSelf: solve.playerId === this.socket.id,
+      });
+    } else if (effTime < (this.previousBestTimes.get(solve.playerId) ?? Infinity)) {
+      // Not a PB but update tracking if needed
+      this.previousBestTimes.set(solve.playerId, effTime);
+    }
   }
 
   private loadPlayerName() {

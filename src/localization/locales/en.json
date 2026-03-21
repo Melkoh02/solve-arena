@@ -79,6 +79,9 @@
     "solveDetails": "Solve Details",
     "scrambleLabel": "Scramble",
     "dateTime": "Date & Time",
+    "best": "Best",
+    "pbSelf": "New PB! {{time}}",
+    "pbOther": "{{name}} broke their PB! {{time}}",
     "waitingForPlayers": "Waiting for other players... ({{count}} left)"
   },
   "settings": {
