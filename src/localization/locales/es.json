@@ -34,7 +34,7 @@
     "title": "Recuperar Contraseña",
     "email": "Correo",
     "submitButton": "Enviar link de recuperacion",
-    "backToLogin": "Voler a"
+    "backToLogin": "Volver a"
   },
   "home": {
     "title": "Pantalla de Inicio",
@@ -42,6 +42,7 @@
   },
   "timer": {
     "puzzle": "Rompecabezas",
+    "scrambleLabel": "Mezcla",
     "noSolves": "Sin resoluciones aún. ¡Presiona espacio para comenzar!",
     "columnIndex": "#",
     "columnTime": "Tiempo",
@@ -50,6 +51,7 @@
   },
   "lobby": {
     "title": "Solve Arena",
+    "subtitle": "Cronómetro Multijugador de Speedcubing",
     "playerName": "Tu Nombre",
     "createRoom": "Crear Sala",
     "joinRoom": "Unirse a Sala",
@@ -67,7 +69,9 @@
     "nextScramble": "Siguiente Mezcla",
     "resetRoom": "Reiniciar Sala",
     "playerCount": "{{count}} jugador(es)",
+    "competitor": "Competidor",
     "competitors": "Competidores",
+    "roomLabel": "SALA",
     "current": "Actual",
     "last": "Anterior",
     "yourTime": "Tu Tiempo",

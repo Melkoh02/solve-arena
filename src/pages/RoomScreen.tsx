@@ -98,6 +98,7 @@ const RoomScreen = observer(function RoomScreen() {
   };
 
   const mySolve = roomStore.myCurrentRoundSolve;
+  const isTimerRunning = timerStore.timerPhase === 'running';
 
   return (
     <Box
@@ -110,8 +111,8 @@ const RoomScreen = observer(function RoomScreen() {
         width: '100%',
         overflow: 'hidden',
       }}>
-      {/* ── Sidebar — fully hidden when closed ─────────────── */}
-      {sidebarOpen && (
+      {/* ── Sidebar — fully hidden when closed or timer running ── */}
+      {sidebarOpen && !isTimerRunning && (
         <Box
           sx={{
             width: SIDEBAR_WIDTH,
@@ -153,7 +154,7 @@ const RoomScreen = observer(function RoomScreen() {
                 <Typography
                   variant="caption"
                   sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
-                  {roomStore.isHost ? t('room.host') : 'Competitor'}
+                  {roomStore.isHost ? t('room.host') : t('room.competitor')}
                 </Typography>
               </Box>
               <Box
@@ -216,46 +217,48 @@ const RoomScreen = observer(function RoomScreen() {
           overflow: 'hidden',
           minWidth: 0,
         }}>
-        {/* Top bar */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            px: { xs: 1.5, md: 3 },
-            py: 1,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-          }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            {/* Sidebar toggle — visible when sidebar is closed */}
-            {!sidebarOpen && (
-              <IconButton
-                size="small"
-                onClick={() => setSidebarOpen(true)}
-                sx={{ mr: 0.5 }}>
-                <MenuIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+        {/* Top bar — hidden when timer is running */}
+        {!isTimerRunning && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: { xs: 1.5, md: 3 },
+              py: 1,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+            }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              {/* Sidebar toggle — visible when sidebar is closed */}
+              {!sidebarOpen && (
+                <IconButton
+                  size="small"
+                  onClick={() => setSidebarOpen(true)}
+                  sx={{ mr: 0.5 }}>
+                  <MenuIcon sx={{ fontSize: 20, color: 'text.secondary' }} />
+                </IconButton>
+              )}
+              <Typography
+                sx={{
+                  color: 'primary.main',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  letterSpacing: '0.05em',
+                }}>
+                {t('room.roomLabel')}: {roomStore.roomCode}
+              </Typography>
+              <IconButton size="small" onClick={handleCopyCode} sx={{ p: 0.5 }}>
+                <ContentCopyIcon
+                  sx={{ fontSize: 16, color: 'text.secondary' }}
+                />
               </IconButton>
-            )}
-            <Typography
-              sx={{
-                color: 'primary.main',
-                fontWeight: 800,
-                fontSize: '0.95rem',
-                letterSpacing: '0.05em',
-              }}>
-              ROOM: {roomStore.roomCode}
+            </Stack>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              {t('room.playerCount', { count: roomStore.players.length })}
             </Typography>
-            <IconButton size="small" onClick={handleCopyCode} sx={{ p: 0.5 }}>
-              <ContentCopyIcon
-                sx={{ fontSize: 16, color: 'text.secondary' }}
-              />
-            </IconButton>
-          </Stack>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            {t('room.playerCount', { count: roomStore.players.length })}
-          </Typography>
-        </Box>
+          </Box>
+        )}
 
         {/* Scramble + Timer area — full touch target */}
         <Box
@@ -274,7 +277,9 @@ const RoomScreen = observer(function RoomScreen() {
             WebkitTapHighlightColor: 'transparent',
             cursor: 'pointer',
           }}>
-          <ScrambleDisplay scramble={roomStore.currentScramble} />
+          {!isTimerRunning && (
+            <ScrambleDisplay scramble={roomStore.currentScramble} />
+          )}
 
           {roomStore.hasSubmittedCurrentRound && mySolve ? (
             <Box sx={{ textAlign: 'center' }}>
@@ -300,16 +305,18 @@ const RoomScreen = observer(function RoomScreen() {
           )}
         </Box>
 
-        {/* Results history */}
-        <Box
-          sx={{
-            height: { xs: 160, md: 220 },
-            flexShrink: 0,
-            px: { xs: 1.5, sm: 2, md: 3 },
-            pb: 2,
-          }}>
-          <ResultsTable />
-        </Box>
+        {/* Results history — hidden when timer is running */}
+        {!isTimerRunning && (
+          <Box
+            sx={{
+              height: { xs: 160, md: 220 },
+              flexShrink: 0,
+              px: { xs: 1.5, sm: 2, md: 3 },
+              pb: 2,
+            }}>
+            <ResultsTable />
+          </Box>
+        )}
       </Box>
     </Box>
   );

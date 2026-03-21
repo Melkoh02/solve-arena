@@ -1,4 +1,5 @@
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 interface ScrambleDisplayProps {
   scramble: string;
@@ -9,6 +10,7 @@ export default function ScrambleDisplay({
   scramble,
   isLoading = false,
 }: ScrambleDisplayProps) {
+  const { t } = useTranslation();
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
@@ -28,7 +30,7 @@ export default function ScrambleDisplay({
           color: 'text.secondary',
           mb: 1,
         }}>
-        Scramble
+        {t('timer.scrambleLabel')}
       </Typography>
       <Box
         sx={{

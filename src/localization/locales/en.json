@@ -41,6 +41,7 @@
   },
   "timer": {
     "puzzle": "Puzzle",
+    "scrambleLabel": "Scramble",
     "noSolves": "No solves yet. Press space to start timing!",
     "columnIndex": "#",
     "columnTime": "Time",
@@ -49,6 +50,7 @@
   },
   "lobby": {
     "title": "Solve Arena",
+    "subtitle": "Multiplayer Speedcube Timer",
     "playerName": "Your Name",
     "createRoom": "Create Room",
     "joinRoom": "Join Room",
@@ -66,7 +68,9 @@
     "nextScramble": "Next Scramble",
     "resetRoom": "Reset Room",
     "playerCount": "{{count}} player(s)",
+    "competitor": "Competitor",
     "competitors": "Competitors",
+    "roomLabel": "ROOM",
     "current": "Current",
     "last": "Last",
     "yourTime": "Your Finish Time",
