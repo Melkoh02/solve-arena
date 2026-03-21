@@ -1,7 +1,12 @@
 import { useEffect, useRef } from 'react';
 import { Box } from '@mui/material';
+import type { TwistyPlayerConfig } from 'cubing/twisty';
 
-const EVENT_TO_PUZZLE: Record<string, string> = {
+type TwistyPuzzle = NonNullable<TwistyPlayerConfig['puzzle']>;
+
+const DEFAULT_PUZZLE: TwistyPuzzle = '3x3x3';
+
+const EVENT_TO_PUZZLE: Partial<Record<string, TwistyPuzzle>> = {
   '222': '2x2x2',
   '333': '3x3x3',
   '444': '4x4x4',
@@ -33,7 +38,7 @@ export default function ScramblePreview({
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<HTMLElement | null>(null);
 
-  const puzzleId = EVENT_TO_PUZZLE[eventId] ?? '3x3x3';
+  const puzzleId = EVENT_TO_PUZZLE[eventId] ?? DEFAULT_PUZZLE;
 
   useEffect(() => {
     const container = containerRef.current;
