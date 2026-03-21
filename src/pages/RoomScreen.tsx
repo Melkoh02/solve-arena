@@ -12,6 +12,8 @@ import {
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import { observer } from 'mobx-react-lite';
 import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +36,7 @@ const LABEL_SX = {
 const SIDEBAR_WIDTH = 260;
 
 const RoomScreen = observer(function RoomScreen() {
-  const { timerStore, roomStore } = useStore();
+  const { timerStore, roomStore, themeStore } = useStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const muiTheme = useMuiTheme();
@@ -254,9 +256,22 @@ const RoomScreen = observer(function RoomScreen() {
                 />
               </IconButton>
             </Stack>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {t('room.playerCount', { count: roomStore.players.length })}
-            </Typography>
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {t('room.playerCount', { count: roomStore.players.length })}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={themeStore.toggle}
+                aria-label={t('settings.toggleTheme')}
+                title={t('settings.toggleTheme')}>
+                {themeStore.scheme === 'dark' ? (
+                  <LightModeIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                ) : (
+                  <DarkModeIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                )}
+              </IconButton>
+            </Stack>
           </Box>
         )}
 

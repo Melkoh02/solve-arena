@@ -6,17 +6,20 @@ import {
   Button,
   CircularProgress,
   Divider,
+  IconButton,
   Paper,
   TextField,
   Typography,
 } from '@mui/material';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import { observer } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/hooks/useStore';
 import LanguageSelect from '../components/organisims/LanguageSelect';
 
 const LobbyScreen = observer(function LobbyScreen() {
-  const { roomStore } = useStore();
+  const { roomStore, themeStore } = useStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -82,7 +85,6 @@ const LobbyScreen = observer(function LobbyScreen() {
               {t('lobby.subtitle')}
             </Typography>
           </Box>
-          <LanguageSelect />
         </Box>
 
         {roomStore.error && (
@@ -167,6 +169,28 @@ const LobbyScreen = observer(function LobbyScreen() {
             t('lobby.joinRoom')
           )}
         </Button>
+
+        <Box
+          sx={{
+            mt: 2,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 0.5,
+          }}>
+          <IconButton
+            size="small"
+            onClick={themeStore.toggle}
+            aria-label={t('settings.toggleTheme')}
+            title={t('settings.toggleTheme')}>
+            {themeStore.scheme === 'dark' ? (
+              <LightModeIcon fontSize="small" />
+            ) : (
+              <DarkModeIcon fontSize="small" />
+            )}
+          </IconButton>
+          <LanguageSelect />
+        </Box>
       </Paper>
     </Box>
   );
