@@ -23,6 +23,7 @@ import Timer, { useTimerTouch } from '../components/timer/Timer';
 import HostControls from '../components/room/HostControls';
 import PlayerSidebar from '../components/room/PlayerSidebar';
 import ResultsTable from '../components/room/ResultsTable';
+import LanguageSelect from '../components/organisims/LanguageSelect';
 import { getDisplayTime } from '../lib/utils/formatTime';
 
 const LABEL_SX = {
@@ -271,6 +272,7 @@ const RoomScreen = observer(function RoomScreen() {
                   <DarkModeIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
                 )}
               </IconButton>
+              <LanguageSelect />
             </Stack>
           </Box>
         )}
