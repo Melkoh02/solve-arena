@@ -24,6 +24,7 @@ export class RoomStore {
   playerName = '';
   error: string | null = null;
   isJoining = false;
+  pendingSubmissionRound: number | null = null;
 
   constructor() {
     makeAutoObservable(this, {
@@ -53,6 +54,7 @@ export class RoomStore {
         this.solves = [];
         this.currentRound = 0;
         this.currentScramble = '';
+        this.pendingSubmissionRound = null;
       });
     });
 
@@ -65,6 +67,21 @@ export class RoomStore {
         this.currentRound = state.currentRound;
         this.players = state.players;
         this.solves = state.solves;
+
+        // Clear optimistic submit state once the server reflects our submission
+        // or once the round has advanced.
+        if (
+          this.pendingSubmissionRound !== null &&
+          this.socket.id &&
+          (state.currentRound > this.pendingSubmissionRound ||
+            state.solves.some(
+              s =>
+                s.playerId === this.socket.id &&
+                s.round === this.pendingSubmissionRound,
+            ))
+        ) {
+          this.pendingSubmissionRound = null;
+        }
       });
     });
 
@@ -102,7 +119,15 @@ export class RoomStore {
   }
 
   get submittedPlayersCountCurrentRound(): number {
-    return new Set(this.currentRoundSolves.map(s => s.playerId)).size;
+    const submittedIds = new Set(this.currentRoundSolves.map(s => s.playerId));
+    if (
+      this.pendingSubmissionRound === this.currentRound &&
+      this.socket.id &&
+      !submittedIds.has(this.socket.id)
+    ) {
+      submittedIds.add(this.socket.id);
+    }
+    return submittedIds.size;
   }
 
   get remainingPlayersCountCurrentRound(): number {
@@ -118,8 +143,19 @@ export class RoomStore {
     return this.currentRoundSolves.some(s => s.playerId === this.socket.id);
   }
 
+  get hasSubmittedOrPendingCurrentRound(): boolean {
+    return (
+      this.hasSubmittedCurrentRound ||
+      this.pendingSubmissionRound === this.currentRound
+    );
+  }
+
   get isWaitingForOtherPlayers(): boolean {
-    return this.hasSubmittedCurrentRound && !this.areAllPlayersSubmittedCurrentRound;
+    if (this.players.length <= 1) return false;
+    return (
+      this.hasSubmittedOrPendingCurrentRound &&
+      !this.areAllPlayersSubmittedCurrentRound
+    );
   }
 
   get myCurrentRoundSolve(): RoomSolve | undefined {
@@ -236,9 +272,11 @@ export class RoomStore {
     this.solves = [];
     this.currentRound = 0;
     this.currentScramble = '';
+    this.pendingSubmissionRound = null;
   }
 
   submitTime(time: number, dnf = false) {
+    this.pendingSubmissionRound = this.currentRound;
     this.socket.emit('submit-time', { time, dnf });
   }
 

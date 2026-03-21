@@ -44,7 +44,7 @@ const RoomScreen = observer(function RoomScreen() {
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
-  const isTimerDisabled = roomStore.hasSubmittedCurrentRound;
+  const isTimerDisabled = roomStore.hasSubmittedOrPendingCurrentRound;
   const touchHandlers = useTimerTouch(isTimerDisabled);
 
   useEffect(() => {
