@@ -5,7 +5,7 @@ import type { Scheme } from '../types/theme.ts';
 import { THEME_KEY } from '../constants';
 
 export class ThemeStore {
-  scheme: Scheme = 'light';
+  scheme: Scheme = 'dark';
 
   constructor() {
     makeAutoObservable(this, {
@@ -44,10 +44,8 @@ export class ThemeStore {
         runInAction(() => (this.scheme = saved));
         return;
       }
-      const prefersDark = window.matchMedia?.(
-        '(prefers-color-scheme: dark)',
-      )?.matches;
-      runInAction(() => (this.scheme = prefersDark ? 'dark' : 'light'));
+
+      runInAction(() => (this.scheme = 'dark'));
     } catch {
       // ignore
     }
