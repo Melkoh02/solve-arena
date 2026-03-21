@@ -101,9 +101,25 @@ export class RoomStore {
     return this.solves.filter(s => s.round === this.currentRound);
   }
 
+  get submittedPlayersCountCurrentRound(): number {
+    return new Set(this.currentRoundSolves.map(s => s.playerId)).size;
+  }
+
+  get remainingPlayersCountCurrentRound(): number {
+    return Math.max(0, this.players.length - this.submittedPlayersCountCurrentRound);
+  }
+
+  get areAllPlayersSubmittedCurrentRound(): boolean {
+    return this.players.length > 0 && this.remainingPlayersCountCurrentRound === 0;
+  }
+
   get hasSubmittedCurrentRound(): boolean {
     if (!this.socket.id) return false;
     return this.currentRoundSolves.some(s => s.playerId === this.socket.id);
+  }
+
+  get isWaitingForOtherPlayers(): boolean {
+    return this.hasSubmittedCurrentRound && !this.areAllPlayersSubmittedCurrentRound;
   }
 
   get myCurrentRoundSolve(): RoomSolve | undefined {

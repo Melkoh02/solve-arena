@@ -102,6 +102,7 @@ const RoomScreen = observer(function RoomScreen() {
 
   const mySolve = roomStore.myCurrentRoundSolve;
   const isTimerRunning = timerStore.timerPhase === 'running';
+  const shouldShowWaitingState = roomStore.isWaitingForOtherPlayers && !isTimerRunning;
 
   return (
     <Box
@@ -294,9 +295,21 @@ const RoomScreen = observer(function RoomScreen() {
             WebkitTapHighlightColor: 'transparent',
             cursor: 'pointer',
           }}>
-          {!isTimerRunning && (
-            <ScrambleDisplay scramble={roomStore.currentScramble} eventId={roomStore.eventId} />
-          )}
+          {!isTimerRunning &&
+            (shouldShowWaitingState ? (
+              <Box sx={{ textAlign: 'center', mb: 2 }}>
+                <Typography sx={{ ...LABEL_SX, mb: 0.5 }}>
+                  {t('room.waitingForPlayers', {
+                    count: roomStore.remainingPlayersCountCurrentRound,
+                  })}
+                </Typography>
+              </Box>
+            ) : (
+              <ScrambleDisplay
+                scramble={roomStore.currentScramble}
+                eventId={roomStore.eventId}
+              />
+            ))}
 
           {roomStore.hasSubmittedCurrentRound && mySolve ? (
             <Box sx={{ textAlign: 'center' }}>

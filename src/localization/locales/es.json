@@ -79,7 +79,8 @@
     "round": "Ronda",
     "solveDetails": "Detalles de la Resolución",
     "scrambleLabel": "Mezcla",
-    "dateTime": "Fecha y Hora"
+    "dateTime": "Fecha y Hora",
+    "waitingForPlayers": "Esperando a otros jugadores... (faltan {{count}})"
   },
   "settings": {
     "title": "Pantalla de Configuraciones",

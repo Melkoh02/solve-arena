@@ -78,7 +78,8 @@
     "round": "Round",
     "solveDetails": "Solve Details",
     "scrambleLabel": "Scramble",
-    "dateTime": "Date & Time"
+    "dateTime": "Date & Time",
+    "waitingForPlayers": "Waiting for other players... ({{count}} left)"
   },
   "settings": {
     "title": "Settings Screen",
