@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
+  Stack,
   Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -35,7 +36,7 @@ const SolveDetailModal = observer(function SolveDetailModal({
   onClose,
 }: SolveDetailModalProps) {
   const { roomStore } = useStore();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (!solve) return null;
 
@@ -45,7 +46,7 @@ const SolveDetailModal = observer(function SolveDetailModal({
     <Dialog
       open={!!solve}
       onClose={onClose}
-      maxWidth="xs"
+      maxWidth="sm"
       fullWidth
       slotProps={{
         paper: {
@@ -54,6 +55,7 @@ const SolveDetailModal = observer(function SolveDetailModal({
             border: '1px solid',
             borderColor: 'divider',
             borderRadius: 3,
+            backgroundImage: 'none',
           },
         },
       }}>
@@ -64,33 +66,56 @@ const SolveDetailModal = observer(function SolveDetailModal({
           justifyContent: 'space-between',
           pb: 1,
         }}>
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: 700, color: 'text.primary' }}>
-          {t('room.solveDetails')}
-        </Typography>
+        <Box>
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: 700, color: 'text.primary' }}>
+            {t('room.solveDetails')}
+          </Typography>
+          <Typography
+            sx={{
+              ...LABEL_SX,
+              mb: 0,
+              fontSize: '0.55rem',
+            }}>
+            {t('room.round')} {solve.round}
+          </Typography>
+        </Box>
         <IconButton size="small" onClick={onClose}>
           <CloseIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
         </IconButton>
       </DialogTitle>
       <DialogContent>
-        {/* Time */}
-        <Typography
+        <Box
           sx={{
-            fontFamily: '"Inter", monospace',
-            fontSize: '2.5rem',
-            fontWeight: 900,
-            fontVariantNumeric: 'tabular-nums',
-            color: isMe ? 'primary.main' : 'text.primary',
-            textAlign: 'center',
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 2,
+            bgcolor: 'rgba(255, 105, 180, 0.06)',
+            p: 2,
             mb: 2,
+            textAlign: 'center',
           }}>
-          {getDisplayTime(solve)}
-        </Typography>
+          <Typography sx={{ ...LABEL_SX, mb: 0.75 }}>
+            {t('room.yourTime')}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: '"Inter", monospace',
+              fontSize: 'clamp(2.2rem, 10vw, 3.2rem)',
+              fontWeight: 900,
+              fontVariantNumeric: 'tabular-nums',
+              color: isMe ? 'primary.main' : 'text.primary',
+              lineHeight: 1,
+              letterSpacing: '-0.02em',
+            }}>
+            {getDisplayTime(solve)}
+          </Typography>
+        </Box>
 
         {/* Penalty buttons (own solves only) */}
         {isMe && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2.5 }}>
             <ButtonGroup size="small">
               <Button
                 variant={solve.penalty === '+2' ? 'contained' : 'outlined'}
@@ -112,29 +137,65 @@ const SolveDetailModal = observer(function SolveDetailModal({
           </Box>
         )}
 
-        {/* Details */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {/* Player */}
-          <Box>
-            <Typography sx={LABEL_SX}>{t('room.player')}</Typography>
-            <Typography sx={{ fontWeight: 600 }}>
-              {solve.playerName}
-            </Typography>
+        <Stack spacing={1.25}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+              gap: 1,
+            }}>
+            <Box
+              sx={{
+                p: 1.25,
+                borderRadius: 1.5,
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.default',
+              }}>
+              <Typography sx={LABEL_SX}>{t('room.player')}</Typography>
+              <Typography sx={{ fontWeight: 700, color: 'primary.main' }}>
+                {solve.playerName}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                p: 1.25,
+                borderRadius: 1.5,
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.default',
+              }}>
+              <Typography sx={LABEL_SX}>{t('room.round')}</Typography>
+              <Typography sx={{ fontFamily: 'monospace', fontWeight: 700 }}>
+                {solve.round}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{
+                p: 1.25,
+                borderRadius: 1.5,
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.default',
+              }}>
+              <Typography sx={LABEL_SX}>{t('room.dateTime')}</Typography>
+              <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
+                {new Date(solve.date).toLocaleString(i18n.language)}
+              </Typography>
+            </Box>
           </Box>
 
-          {/* Round */}
-          <Box>
-            <Typography sx={LABEL_SX}>{t('room.round')}</Typography>
-            <Typography sx={{ fontFamily: 'monospace' }}>
-              {solve.round}
-            </Typography>
-          </Box>
-
-          {/* Scramble */}
           <Box>
             <Typography sx={LABEL_SX}>{t('room.scrambleLabel')}</Typography>
-            <Typography
+            <Box
               sx={{
+                p: 1.25,
+                borderRadius: 1.5,
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.default',
                 fontFamily: 'monospace',
                 fontSize: '0.8rem',
                 color: 'text.secondary',
@@ -142,17 +203,9 @@ const SolveDetailModal = observer(function SolveDetailModal({
                 wordBreak: 'break-word',
               }}>
               {solve.scramble}
-            </Typography>
+            </Box>
           </Box>
-
-          {/* Date & time */}
-          <Box>
-            <Typography sx={LABEL_SX}>{t('room.dateTime')}</Typography>
-            <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
-              {new Date(solve.date).toLocaleString()}
-            </Typography>
-          </Box>
-        </Box>
+        </Stack>
       </DialogContent>
     </Dialog>
   );
