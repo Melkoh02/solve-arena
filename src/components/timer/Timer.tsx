@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Typography } from '@mui/material';
+import { Typography, useTheme as useMuiTheme } from '@mui/material';
 import { useStore } from '../../lib/hooks/useStore';
 import { formatTime } from '../../lib/utils/formatTime';
 
@@ -61,6 +61,7 @@ export function useTimerTouch(disabled: boolean) {
 
 const Timer = observer(function Timer({ disabled = false }: TimerProps) {
   const { timerStore } = useStore();
+  const theme = useMuiTheme();
   const rafRef = useRef<number | null>(null);
   const isSpaceDown = useRef(false);
 
@@ -129,7 +130,7 @@ const Timer = observer(function Timer({ disabled = false }: TimerProps) {
       case 'stopped':
         return '#FF69B4';
       default:
-        return '#ffffff';
+        return theme.palette.primary.main;
     }
   };
 
