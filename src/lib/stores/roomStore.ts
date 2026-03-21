@@ -194,11 +194,16 @@ export class RoomStore {
         { roomCode: roomCode.toUpperCase(), playerName: this.playerName },
         response => {
           runInAction(() => {
-            this.isJoining = false;
             if ('error' in response) {
+              this.isJoining = false;
               this.error = response.error;
               resolve(false);
             } else {
+              // Set roomCode immediately so isInRoom is true before
+              // the room-state event arrives, preventing the redirect guard
+              // in RoomScreen from bouncing us back to the lobby.
+              this.roomCode = roomCode.toUpperCase();
+              this.isJoining = false;
               resolve(true);
             }
           });

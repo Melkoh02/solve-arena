@@ -79,7 +79,7 @@ const LobbyScreen = observer(function LobbyScreen() {
                 letterSpacing: '0.15em',
                 fontSize: '0.65rem',
               }}>
-              Multiplayer Speedcube Timer
+              {t('lobby.subtitle')}
             </Typography>
           </Box>
           <LanguageSelect />
@@ -98,6 +98,9 @@ const LobbyScreen = observer(function LobbyScreen() {
           label={t('lobby.playerName')}
           value={roomStore.playerName}
           onChange={e => roomStore.setPlayerName(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleCreate();
+          }}
           fullWidth
           sx={{ mb: 3 }}
         />
@@ -133,6 +136,9 @@ const LobbyScreen = observer(function LobbyScreen() {
           label={t('lobby.roomCode')}
           value={roomCode}
           onChange={e => setRoomCode(e.target.value.toUpperCase())}
+          onKeyDown={e => {
+            if (e.key === 'Enter') handleJoin();
+          }}
           fullWidth
           slotProps={{
             htmlInput: {
