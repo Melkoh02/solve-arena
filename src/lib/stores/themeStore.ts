@@ -5,7 +5,7 @@ import type { Scheme } from '../types/theme.ts';
 import { THEME_KEY } from '../constants';
 
 export class ThemeStore {
-  scheme: Scheme = 'light';
+  scheme: Scheme = 'dark';
 
   constructor() {
     makeAutoObservable(this, {
