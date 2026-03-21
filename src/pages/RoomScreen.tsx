@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
   IconButton,
+  Snackbar,
   Stack,
   Typography,
   useMediaQuery,
@@ -25,6 +26,7 @@ import PlayerSidebar from '../components/room/PlayerSidebar';
 import ResultsTable from '../components/room/ResultsTable';
 import LanguageSelect from '../components/organisims/LanguageSelect';
 import { getDisplayTime } from '../lib/utils/formatTime';
+import type { PbNotification } from '../lib/stores/roomStore';
 
 const LABEL_SX = {
   textTransform: 'uppercase',
@@ -44,8 +46,39 @@ const RoomScreen = observer(function RoomScreen() {
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
+  const [pbSnack, setPbSnack] = useState<PbNotification | null>(null);
+  const pbSnackRef = useRef(pbSnack);
+  pbSnackRef.current = pbSnack;
+
   const isTimerDisabled = roomStore.hasSubmittedOrPendingCurrentRound;
   const touchHandlers = useTimerTouch(isTimerDisabled);
+
+  // Drain PB notification queue when timer is NOT running
+  useEffect(
+    () =>
+      reaction(
+        () => ({
+          phase: timerStore.timerPhase,
+          queueLen: roomStore.pbNotificationQueue.length,
+        }),
+        ({ phase }) => {
+          if (phase === 'running') return;
+          if (pbSnackRef.current) return;
+          const next = roomStore.shiftPbNotification();
+          if (next) setPbSnack(next);
+        },
+      ),
+    [timerStore, roomStore],
+  );
+
+  const handlePbSnackClose = () => {
+    setPbSnack(null);
+    setTimeout(() => {
+      if (timerStore.timerPhase === 'running') return;
+      const next = roomStore.shiftPbNotification();
+      if (next) setPbSnack(next);
+    }, 300);
+  };
 
   useEffect(() => {
     setSidebarOpen(!isMobile);
@@ -316,19 +349,29 @@ const RoomScreen = observer(function RoomScreen() {
               <Typography sx={{ ...LABEL_SX, mb: 1 }}>
                 {t('room.yourTime')}
               </Typography>
-              <Typography
-                sx={{
+              {(() => {
+                const timeStr = getDisplayTime(mySolve);
+                const dotIdx = timeStr.lastIndexOf('.');
+                const intPart = dotIdx >= 0 ? timeStr.slice(0, dotIdx) : timeStr;
+                const decPart = dotIdx >= 0 ? timeStr.slice(dotIdx) : '';
+                const timeSx = {
                   fontFamily: '"Inter", monospace',
                   fontSize: 'clamp(3rem, 12vw, 8rem)',
                   fontWeight: 900,
                   fontVariantNumeric: 'tabular-nums',
-                  color: 'primary.main',
                   lineHeight: 1,
                   letterSpacing: '-0.02em',
                   userSelect: 'none',
-                }}>
-                {getDisplayTime(mySolve)}
-              </Typography>
+                } as const;
+                return (
+                  <Typography sx={{ ...timeSx, color: 'text.primary' }}>
+                    {intPart}
+                    <Typography component="span" sx={{ ...timeSx, color: 'primary.main', fontSize: 'inherit' }}>
+                      {decPart}
+                    </Typography>
+                  </Typography>
+                );
+              })()}
             </Box>
           ) : (
             <Timer disabled={isTimerDisabled} />
@@ -348,6 +391,54 @@ const RoomScreen = observer(function RoomScreen() {
           </Box>
         )}
       </Box>
+
+      {/* PB notification */}
+      <Snackbar
+        open={!!pbSnack}
+        autoHideDuration={3000}
+        onClose={handlePbSnackClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        message={
+          pbSnack && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ flex: 1 }} />
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  color: 'primary.main',
+                }}>
+                {pbSnack.isSelf
+                  ? t('room.pbSelf', { time: pbSnack.time })
+                  : t('room.pbOther', {
+                      name: pbSnack.playerName,
+                      time: pbSnack.time,
+                    })}
+              </Typography>
+              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                <IconButton
+                  size="small"
+                  onClick={handlePbSnackClose}
+                  sx={{ p: 0.25, color: 'text.secondary' }}>
+                  <CloseIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Box>
+            </Box>
+          )
+        }
+        slotProps={{
+          content: {
+            sx: {
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'primary.main',
+              borderRadius: 2,
+              boxShadow: '0 0 16px rgba(255, 105, 180, 0.25), 0 0 4px rgba(255, 105, 180, 0.15)',
+              '& .MuiSnackbarContent-message': { width: '100%', p: 0 },
+            },
+          },
+        }}
+      />
     </Box>
   );
 });

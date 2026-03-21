@@ -9,7 +9,7 @@ import {
 import LogoutIcon from '@mui/icons-material/Logout';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
-import { getDisplayTime } from '../../lib/utils/formatTime';
+import { formatTime, getDisplayTime } from '../../lib/utils/formatTime';
 import { calculateAverage, formatAverage } from '../../lib/utils/averages';
 import type { Penalty } from '../../lib/types/timer';
 import type { RoomSolve } from '../../lib/types/room';
@@ -58,6 +58,7 @@ const PlayerSidebar = observer(function PlayerSidebar() {
         const playerSolves = getPlayerSolves(player.id);
         const ao5 = calculateAverage(playerSolves, 5, 2);
         const ao12 = calculateAverage(playerSolves, 12, 3);
+        const bestTime = roomStore.getBestTime(player.id);
         const hasFinished = !!currentSolve;
 
         return (
@@ -121,7 +122,7 @@ const PlayerSidebar = observer(function PlayerSidebar() {
               />
             </Box>
 
-            {/* Row 2: Current time + Last time */}
+            {/* Row 2: Current + Last + Best */}
             <Box sx={{ display: 'flex', gap: 2, mb: 0.5 }}>
               <Box>
                 <Typography sx={{ ...LABEL_SX, fontSize: '0.5rem', mb: 0.25 }}>
@@ -142,6 +143,15 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                 <Typography
                   sx={{ ...TIME_SX, color: 'text.secondary' }}>
                   {lastSolve ? getDisplayTime(lastSolve) : '—'}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography sx={{ ...LABEL_SX, fontSize: '0.5rem', mb: 0.25 }}>
+                  {t('room.best')}
+                </Typography>
+                <Typography
+                  sx={{ ...TIME_SX, color: 'text.secondary' }}>
+                  {bestTime !== null ? formatTime(bestTime) : '—'}
                 </Typography>
               </Box>
             </Box>
