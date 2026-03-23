@@ -147,16 +147,27 @@ export class SoloStore {
   async generateScramble() {
     this.isLoadingScramble = true;
     try {
-      const { data } = await axios.get(`${SOCKET_URL}/api/scramble/${this.eventId}`);
+      // Primary: generate client-side (works offline)
+      const { randomScrambleForEvent } = await import('cubing/scramble');
+      const scramble = await randomScrambleForEvent(this.eventId);
       runInAction(() => {
-        this.currentScramble = data.scramble;
+        this.currentScramble = scramble.toString();
         this.isLoadingScramble = false;
       });
     } catch {
-      runInAction(() => {
-        this.currentScramble = 'Error generating scramble';
-        this.isLoadingScramble = false;
-      });
+      try {
+        // Fallback: request from server
+        const { data } = await axios.get(`${SOCKET_URL}/api/scramble/${this.eventId}`);
+        runInAction(() => {
+          this.currentScramble = data.scramble;
+          this.isLoadingScramble = false;
+        });
+      } catch {
+        runInAction(() => {
+          this.currentScramble = 'Error generating scramble';
+          this.isLoadingScramble = false;
+        });
+      }
     }
   }
 
