@@ -81,6 +81,7 @@
     "scrambleLabel": "Mezcla",
     "dateTime": "Fecha y Hora",
     "best": "Mejor",
+    "crossColor": "Color de Cruz",
     "pbSelf": "Nuevo PB! {{time}}",
     "pbOther": "{{name}} rompió su PB! {{time}}",
     "waitingForPlayers": "Esperando a otros jugadores... (faltan {{count}})"

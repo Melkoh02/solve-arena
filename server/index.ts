@@ -6,6 +6,7 @@ import { randomScrambleForEvent } from 'cubing/scramble';
 // ── Types ────────────────────────────────────────────────────────────────────
 
 type Penalty = 'none' | '+2' | 'DNF';
+type CrossColor = 'w' | 'y' | 'r' | 'o' | 'b' | 'g';
 
 interface Player {
   id: string;
@@ -22,6 +23,7 @@ interface Solve {
   round: number;
   scramble: string;
   date: number;
+  crossColor?: CrossColor;
 }
 
 interface Room {
@@ -168,6 +170,7 @@ io.on('connection', socket => {
       round: room.currentRound,
       scramble: room.currentScramble,
       date: Date.now(),
+      crossColor: 'w',
     });
 
     // Auto-advance when all players have submitted
@@ -197,6 +200,21 @@ io.on('connection', socket => {
     if (!solve || solve.playerId !== socket.id) return;
 
     solve.penalty = solve.penalty === penalty ? 'none' : penalty;
+    broadcastRoomState(room);
+  });
+
+  socket.on('update-cross-color', ({ solveId, crossColor }) => {
+    if (!currentRoom) return;
+    const room = rooms.get(currentRoom);
+    if (!room) return;
+
+    const solve = room.solves.find(s => s.id === solveId);
+    if (!solve || solve.playerId !== socket.id) return;
+
+    const valid: CrossColor[] = ['w', 'y', 'r', 'o', 'b', 'g'];
+    if (!valid.includes(crossColor)) return;
+
+    solve.crossColor = crossColor;
     broadcastRoomState(room);
   });
 

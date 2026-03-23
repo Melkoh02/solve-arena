@@ -14,8 +14,17 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
-import type { RoomSolve } from '../../lib/types/room';
+import type { CrossColor, RoomSolve } from '../../lib/types/room';
 import type { Penalty } from '../../lib/types/timer';
+
+const CROSS_COLORS: { key: CrossColor; hex: string; label: string }[] = [
+  { key: 'w', hex: '#FFFFFF', label: 'White' },
+  { key: 'y', hex: '#FFD500', label: 'Yellow' },
+  { key: 'r', hex: '#E00000', label: 'Red' },
+  { key: 'o', hex: '#FF8C00', label: 'Orange' },
+  { key: 'b', hex: '#0051BA', label: 'Blue' },
+  { key: 'g', hex: '#009E60', label: 'Green' },
+];
 
 const LABEL_SX = {
   textTransform: 'uppercase',
@@ -134,6 +143,42 @@ const SolveDetailModal = observer(function SolveDetailModal({
                 DNF
               </Button>
             </ButtonGroup>
+          </Box>
+        )}
+
+        {/* Cross color */}
+        {solve.crossColor && (
+          <Box sx={{ mb: 2 }}>
+            <Typography sx={{ ...LABEL_SX, mb: 0.75, textAlign: 'center' }}>
+              {t('room.crossColor')}
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 0.75 }}>
+              {CROSS_COLORS.map(c => {
+                const isSelected = solve.crossColor === c.key;
+                return (
+                  <Box
+                    key={c.key}
+                    onClick={isMe ? () => roomStore.updateCrossColor(solve.id, c.key) : undefined}
+                    title={`${c.label} (${c.key.toUpperCase()})`}
+                    sx={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: '50%',
+                      bgcolor: c.hex,
+                      cursor: isMe ? 'pointer' : 'default',
+                      border: '2px solid',
+                      borderColor: isSelected ? 'primary.main' : 'transparent',
+                      boxShadow: isSelected
+                        ? `0 0 8px ${c.hex}80`
+                        : 'none',
+                      opacity: isSelected ? 1 : 0.5,
+                      transition: 'all 0.15s',
+                      '&:hover': isMe ? { opacity: 1 } : {},
+                    }}
+                  />
+                );
+              })}
+            </Box>
           </Box>
         )}
 

@@ -6,6 +6,8 @@ export interface Player {
   isHost: boolean;
 }
 
+export type CrossColor = 'w' | 'y' | 'r' | 'o' | 'b' | 'g';
+
 export interface RoomSolve {
   id: string;
   playerId: string;
@@ -15,6 +17,7 @@ export interface RoomSolve {
   round: number;
   scramble: string;
   date: number;
+  crossColor?: CrossColor;
 }
 
 export interface RoomState {
@@ -39,6 +42,7 @@ export interface ClientToServerEvents {
   'leave-room': () => void;
   'submit-time': (data: { time: number; dnf?: boolean }) => void;
   'update-penalty': (data: { solveId: string; penalty: Penalty }) => void;
+  'update-cross-color': (data: { solveId: string; crossColor: CrossColor }) => void;
   'change-event': (data: { eventId: string }) => void;
   'kick-player': (data: { playerId: string }) => void;
   'next-scramble': () => void;

@@ -27,6 +27,11 @@ import ResultsTable from '../components/room/ResultsTable';
 import LanguageSelect from '../components/organisims/LanguageSelect';
 import { getDisplayTime } from '../lib/utils/formatTime';
 import type { PbNotification } from '../lib/stores/roomStore';
+import type { CrossColor } from '../lib/types/room';
+
+const CROSS_COLOR_KEYS: Record<string, CrossColor> = {
+  w: 'w', y: 'y', r: 'r', o: 'o', b: 'b', g: 'g',
+};
 
 const LABEL_SX = {
   textTransform: 'uppercase',
@@ -79,6 +84,27 @@ const RoomScreen = observer(function RoomScreen() {
       if (next) setPbSnack(next);
     }, 300);
   };
+
+  // Cross color keyboard shortcut — works on your most recent solve
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (timerStore.timerPhase === 'running') return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+
+      const color = CROSS_COLOR_KEYS[e.key.toLowerCase()];
+      if (!color) return;
+
+      // Find my most recent solve (any round)
+      const mySolves = roomStore.solves.filter(s => s.playerId === roomStore.playerId);
+      const lastSolve = mySolves[mySolves.length - 1];
+      if (!lastSolve) return;
+
+      roomStore.updateCrossColor(lastSolve.id, color);
+    };
+
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [roomStore, timerStore]);
 
   useEffect(() => {
     setSidebarOpen(!isMobile);

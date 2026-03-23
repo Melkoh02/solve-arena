@@ -10,6 +10,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { formatTime, getDisplayTime } from '../../lib/utils/formatTime';
+import CrossColorPicker from './CrossColorPicker';
 import { calculateAverage, formatAverage } from '../../lib/utils/averages';
 import type { Penalty } from '../../lib/types/timer';
 import type { RoomSolve } from '../../lib/types/room';
@@ -188,30 +189,37 @@ const PlayerSidebar = observer(function PlayerSidebar() {
               )}
             </Box>
 
-            {/* Row 4: Penalty buttons (own current-round solve) */}
+            {/* Row 4: Penalty buttons + cross color (own current-round solve) */}
             {currentSolve && isMe && (
-              <ButtonGroup size="small" sx={{ mt: 0.75 }}>
-                <Button
-                  variant={
-                    currentSolve.penalty === '+2' ? 'contained' : 'outlined'
-                  }
-                  sx={{ minWidth: 32, fontSize: '0.65rem', py: 0 }}
-                  onClick={() =>
-                    roomStore.updatePenalty(currentSolve.id, '+2' as Penalty)
-                  }>
-                  +2
-                </Button>
-                <Button
-                  variant={
-                    currentSolve.penalty === 'DNF' ? 'contained' : 'outlined'
-                  }
-                  sx={{ minWidth: 32, fontSize: '0.65rem', py: 0 }}
-                  onClick={() =>
-                    roomStore.updatePenalty(currentSolve.id, 'DNF' as Penalty)
-                  }>
-                  DNF
-                </Button>
-              </ButtonGroup>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.75 }}>
+                <ButtonGroup size="small">
+                  <Button
+                    variant={
+                      currentSolve.penalty === '+2' ? 'contained' : 'outlined'
+                    }
+                    sx={{ minWidth: 32, fontSize: '0.65rem', py: 0 }}
+                    onClick={() =>
+                      roomStore.updatePenalty(currentSolve.id, '+2' as Penalty)
+                    }>
+                    +2
+                  </Button>
+                  <Button
+                    variant={
+                      currentSolve.penalty === 'DNF' ? 'contained' : 'outlined'
+                    }
+                    sx={{ minWidth: 32, fontSize: '0.65rem', py: 0 }}
+                    onClick={() =>
+                      roomStore.updatePenalty(currentSolve.id, 'DNF' as Penalty)
+                    }>
+                    DNF
+                  </Button>
+                </ButtonGroup>
+                <CrossColorPicker
+                  value={currentSolve.crossColor}
+                  onChange={color => roomStore.updateCrossColor(currentSolve.id, color)}
+                  size={20}
+                />
+              </Box>
             )}
           </Box>
         );

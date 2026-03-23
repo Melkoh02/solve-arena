@@ -307,6 +307,10 @@ export class RoomStore {
     this.socket.emit('update-penalty', { solveId, penalty });
   }
 
+  updateCrossColor(solveId: string, crossColor: RoomSolve['crossColor'] & string) {
+    this.socket.emit('update-cross-color', { solveId, crossColor });
+  }
+
   changeEvent(eventId: string) {
     this.socket.emit('change-event', { eventId });
   }

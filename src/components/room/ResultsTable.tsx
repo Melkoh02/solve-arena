@@ -19,6 +19,7 @@ import { getEffectiveTime } from '../../lib/utils/averages';
 import SolveDetailModal from './SolveDetailModal';
 import type { Player, RoomSolve } from '../../lib/types/room';
 import type { Penalty } from '../../lib/types/timer';
+import CrossColorPicker from './CrossColorPicker';
 
 const ResultsTable = observer(function ResultsTable() {
   const { roomStore } = useStore();
@@ -138,50 +139,57 @@ const ResultsTable = observer(function ResultsTable() {
                             {getDisplayTime(solve)}
                           </Typography>
                           {isMe && (
-                            <ButtonGroup size="small">
-                              <Button
-                                size="small"
-                                variant={
-                                  solve.penalty === '+2'
-                                    ? 'contained'
-                                    : 'outlined'
-                                }
-                                sx={{
-                                  minWidth: 24,
-                                  px: 0.3,
-                                  py: 0,
-                                  fontSize: '0.6rem',
-                                }}
-                                onClick={() =>
-                                  roomStore.updatePenalty(
-                                    solve.id,
-                                    '+2' as Penalty,
-                                  )
-                                }>
-                                +2
-                              </Button>
-                              <Button
-                                size="small"
-                                variant={
-                                  solve.penalty === 'DNF'
-                                    ? 'contained'
-                                    : 'outlined'
-                                }
-                                sx={{
-                                  minWidth: 24,
-                                  px: 0.3,
-                                  py: 0,
-                                  fontSize: '0.6rem',
-                                }}
-                                onClick={() =>
-                                  roomStore.updatePenalty(
-                                    solve.id,
-                                    'DNF' as Penalty,
-                                  )
-                                }>
-                                DNF
-                              </Button>
-                            </ButtonGroup>
+                            <>
+                              <ButtonGroup size="small">
+                                <Button
+                                  size="small"
+                                  variant={
+                                    solve.penalty === '+2'
+                                      ? 'contained'
+                                      : 'outlined'
+                                  }
+                                  sx={{
+                                    minWidth: 24,
+                                    px: 0.3,
+                                    py: 0,
+                                    fontSize: '0.6rem',
+                                  }}
+                                  onClick={() =>
+                                    roomStore.updatePenalty(
+                                      solve.id,
+                                      '+2' as Penalty,
+                                    )
+                                  }>
+                                  +2
+                                </Button>
+                                <Button
+                                  size="small"
+                                  variant={
+                                    solve.penalty === 'DNF'
+                                      ? 'contained'
+                                      : 'outlined'
+                                  }
+                                  sx={{
+                                    minWidth: 24,
+                                    px: 0.3,
+                                    py: 0,
+                                    fontSize: '0.6rem',
+                                  }}
+                                  onClick={() =>
+                                    roomStore.updatePenalty(
+                                      solve.id,
+                                      'DNF' as Penalty,
+                                    )
+                                  }>
+                                  DNF
+                                </Button>
+                              </ButtonGroup>
+                              <CrossColorPicker
+                                value={solve.crossColor}
+                                onChange={color => roomStore.updateCrossColor(solve.id, color)}
+                                size={18}
+                              />
+                            </>
                           )}
                         </Box>
                       ) : (
