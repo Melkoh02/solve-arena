@@ -73,8 +73,20 @@ const SoloScreen = observer(function SoloScreen() {
   );
 
   const lastSolve = soloStore.lastSolve;
-  const previousSolves = soloStore.previousSolves;
   const showActions = timerStore.timerPhase === 'stopped' && lastSolve;
+
+  // When timer shows the last solve time (stopped), exclude it from the stack.
+  // When timer is idle/ready (0.00), show all recent solves including the last.
+  const timerShowsLastSolve = timerStore.timerPhase === 'stopped';
+  const previousSolves = (() => {
+    const es = soloStore.eventSolves;
+    if (es.length === 0) return [];
+    if (timerShowsLastSolve) {
+      if (es.length < 2) return [];
+      return es.slice(-5, -1).reverse();
+    }
+    return es.slice(-5).reverse();
+  })();
 
   return (
     <Box
@@ -220,13 +232,11 @@ const SoloScreen = observer(function SoloScreen() {
       {!isTimerRunning && soloStore.eventSolves.length > 0 && (
         <Box
           sx={{
-            flex: 1,
+            flex: '1 1 0',
             minHeight: 0,
-            display: 'flex',
-            flexDirection: 'column',
             borderTop: '1px solid',
             borderColor: 'divider',
-            overflow: 'hidden',
+            overflowY: 'auto',
           }}>
           <Box
             sx={{

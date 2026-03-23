@@ -171,9 +171,6 @@ const SoloHistory = observer(function SoloHistory({
     <TableContainer
       ref={containerRef}
       sx={{
-        flex: 1,
-        minHeight: 0,
-        overflowY: 'auto',
         px: { xs: 1.5, sm: 2, md: 3 },
         pb: 2,
       }}>
