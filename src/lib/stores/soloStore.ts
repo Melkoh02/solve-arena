@@ -1,4 +1,5 @@
 import { makeAutoObservable, runInAction } from 'mobx';
+import axios from 'axios';
 import type { Penalty } from '../types/timer';
 import type { CrossColor } from '../types/room';
 import { getEffectiveTime, calculateAverage } from '../utils/averages';
@@ -6,6 +7,7 @@ import { PLAYER_NAME_KEY } from '../constants';
 
 const SOLO_SOLVES_KEY = 'soloSolves';
 const SOLO_EVENT_KEY = 'soloEventId';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
 
 export interface SoloSolve {
   id: string;
@@ -145,10 +147,9 @@ export class SoloStore {
   async generateScramble() {
     this.isLoadingScramble = true;
     try {
-      const { randomScrambleForEvent } = await import('cubing/scramble');
-      const scramble = await randomScrambleForEvent(this.eventId);
+      const { data } = await axios.get(`${SOCKET_URL}/api/scramble/${this.eventId}`);
       runInAction(() => {
-        this.currentScramble = scramble.toString();
+        this.currentScramble = data.scramble;
         this.isLoadingScramble = false;
       });
     } catch {

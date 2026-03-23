@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { randomScrambleForEvent } from 'cubing/scramble';
@@ -49,12 +50,24 @@ interface RoomState {
 // ── Setup ────────────────────────────────────────────────────────────────────
 
 const app = express();
+app.use(cors());
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: { origin: '*' },
 });
 
 const rooms = new Map<string, Room>();
+
+// ── REST endpoint for scramble generation ────────────────────────────────────
+
+app.get('/api/scramble/:eventId', async (req, res) => {
+  try {
+    const scramble = await generateScramble(req.params.eventId);
+    res.json({ scramble });
+  } catch {
+    res.status(500).json({ error: 'Failed to generate scramble' });
+  }
+});
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
