@@ -55,7 +55,8 @@
     "createRoom": "Create Room",
     "joinRoom": "Join Room",
     "roomCode": "Room Code",
-    "or": "or"
+    "or": "or",
+    "compete": "Compete"
   },
   "room": {
     "title": "Room",

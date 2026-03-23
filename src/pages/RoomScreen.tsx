@@ -15,6 +15,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import { observer } from 'mobx-react-lite';
 import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
@@ -333,6 +334,13 @@ const RoomScreen = observer(function RoomScreen() {
                 )}
               </IconButton>
               <LanguageSelect />
+              <IconButton
+                size="small"
+                onClick={handleLeave}
+                title={t('room.leave')}
+                sx={{ color: 'error.main' }}>
+                <MeetingRoomIcon sx={{ fontSize: 18 }} />
+              </IconButton>
             </Stack>
           </Box>
         )}

@@ -3,15 +3,21 @@ import { observer } from 'mobx-react-lite';
 import { Typography, useTheme as useMuiTheme } from '@mui/material';
 import { useStore } from '../../lib/hooks/useStore';
 import { formatTime } from '../../lib/utils/formatTime';
+import type { CrossColor } from '../../lib/types/room';
 
 const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON']);
 
+const COLOR_KEYS: Record<string, CrossColor> = {
+  w: 'w', y: 'y', r: 'r', o: 'o', b: 'b', g: 'g',
+};
+
 interface TimerProps {
   disabled?: boolean;
+  onColorStart?: (color: CrossColor) => void;
 }
 
 /** Hook that returns touch handlers for the timer area. */
-export function useTimerTouch(disabled: boolean) {
+export function useTimerTouch(disabled: boolean, onColorStart?: (color: CrossColor) => void) {
   const { timerStore } = useStore();
   const rafRef = useRef<number | null>(null);
   const isTouching = useRef(false);
@@ -51,19 +57,22 @@ export function useTimerTouch(disabled: boolean) {
       if (timerStore.timerPhase === 'ready') {
         timerStore.startTimer();
         rafRef.current = requestAnimationFrame(animate);
+        onColorStart?.('w');
       }
     },
-    [timerStore, animate, disabled],
+    [timerStore, animate, disabled, onColorStart],
   );
 
   return { onTouchStart, onTouchEnd };
 }
 
-const Timer = observer(function Timer({ disabled = false }: TimerProps) {
+const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerProps) {
   const { timerStore } = useStore();
   const theme = useMuiTheme();
   const rafRef = useRef<number | null>(null);
-  const isSpaceDown = useRef(false);
+  const isKeyDown = useRef(false);
+  const pendingColorRef = useRef<CrossColor | null>(null);
+  const stopTimestamp = useRef(0);
 
   const animate = useCallback(() => {
     if (timerStore.timerPhase === 'running' && timerStore.startTime !== null) {
@@ -84,30 +93,46 @@ const Timer = observer(function Timer({ disabled = false }: TimerProps) {
       if (timerStore.timerPhase === 'running') {
         e.preventDefault();
         timerStore.stopTimer(e.code === 'Escape');
+        stopTimestamp.current = Date.now();
+        // Mark key as down so the subsequent keyup from this same press is absorbed
+        isKeyDown.current = true;
         return;
       }
 
-      // Only spacebar starts the ready/start flow
-      if (e.code !== 'Space') return;
+      // Spacebar or color keys start the ready/start flow
+      const colorKey = COLOR_KEYS[e.key.toLowerCase()];
+      const isSpace = e.code === 'Space';
+      if (!isSpace && !colorKey) return;
       e.preventDefault();
 
-      if (!isSpaceDown.current) {
-        isSpaceDown.current = true;
-        timerStore.setReady();
+      // Guard: ignore presses within 300ms of stopping
+      if (Date.now() - stopTimestamp.current < 300) return;
+
+      if (!isKeyDown.current) {
+        isKeyDown.current = true;
+        pendingColorRef.current = colorKey ?? 'w';
+        if (timerStore.timerPhase === 'stopped') {
+          timerStore.readyFromStopped();
+        } else {
+          timerStore.setReady();
+        }
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.code !== 'Space') return;
+      const colorKey = COLOR_KEYS[e.key.toLowerCase()];
+      const isSpace = e.code === 'Space';
+      if (!isSpace && !colorKey) return;
       if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
       if (disabled) return;
       e.preventDefault();
 
-      isSpaceDown.current = false;
+      isKeyDown.current = false;
 
       if (timerStore.timerPhase === 'ready') {
         timerStore.startTimer();
         rafRef.current = requestAnimationFrame(animate);
+        onColorStart?.(pendingColorRef.current ?? 'w');
       }
     };
 
@@ -119,7 +144,7 @@ const Timer = observer(function Timer({ disabled = false }: TimerProps) {
       window.removeEventListener('keyup', handleKeyUp);
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
-  }, [timerStore, animate, disabled]);
+  }, [timerStore, animate, disabled, onColorStart]);
 
   const getColor = (): string => {
     switch (timerStore.timerPhase) {
@@ -153,7 +178,7 @@ const Timer = observer(function Timer({ disabled = false }: TimerProps) {
     userSelect: 'none',
     lineHeight: 1,
     letterSpacing: '-0.02em',
-    py: { xs: 2, md: 4 },
+    py: { xs: 1, md: 2 },
     textShadow:
       timerStore.timerPhase === 'running'
         ? '0 0 40px rgba(255, 105, 180, 0.3)'

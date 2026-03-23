@@ -1,30 +1,39 @@
-import { MenuItem, Select, type SelectChangeEvent } from '@mui/material';
+import { useState } from 'react';
+import { IconButton, Menu, MenuItem } from '@mui/material';
+import LanguageIcon from '@mui/icons-material/Language';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { SUPPORTED_LANGUAGES } from '../../lib/constants/languages';
 
-type Props = { size?: 'small' | 'medium' };
-
-export default function LanguageSelect({ size = 'small' }: Props) {
+export default function LanguageSelect() {
   const { languageStore } = useStore();
   const { i18n, t } = useTranslation();
-
-  const handleChange = (e: SelectChangeEvent<string>) => {
-    languageStore.setLanguage(e.target.value as string);
-  };
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   return (
-    <Select
-      size={size}
-      value={i18n.language}
-      onChange={handleChange}
-      aria-label={t('modals.selectLanguageModal.title') || 'Language'}
-      sx={{ minWidth: 140 }}>
-      {SUPPORTED_LANGUAGES.map(opt => (
-        <MenuItem key={opt.id} value={opt.id}>
-          {t(opt.labelKey)}
-        </MenuItem>
-      ))}
-    </Select>
+    <>
+      <IconButton
+        size="small"
+        onClick={e => setAnchorEl(e.currentTarget)}
+        title={t('modals.selectLanguageModal.title') || 'Language'}>
+        <LanguageIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+      </IconButton>
+      <Menu
+        anchorEl={anchorEl}
+        open={!!anchorEl}
+        onClose={() => setAnchorEl(null)}>
+        {SUPPORTED_LANGUAGES.map(opt => (
+          <MenuItem
+            key={opt.id}
+            selected={i18n.language === opt.id}
+            onClick={() => {
+              languageStore.setLanguage(opt.id);
+              setAnchorEl(null);
+            }}>
+            {t(opt.labelKey)}
+          </MenuItem>
+        ))}
+      </Menu>
+    </>
   );
 }

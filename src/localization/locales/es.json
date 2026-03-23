@@ -56,7 +56,8 @@
     "createRoom": "Crear Sala",
     "joinRoom": "Unirse a Sala",
     "roomCode": "Código de Sala",
-    "or": "o"
+    "or": "o",
+    "compete": "Competir"
   },
   "room": {
     "title": "Sala",

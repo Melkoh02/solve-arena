@@ -20,6 +20,14 @@ export class TimerStore {
     }
   }
 
+  /** Transition from stopped → ready for solo mode (hold space to start next solve) */
+  readyFromStopped() {
+    if (this.timerPhase === 'stopped') {
+      this.displayTime = 0;
+      this.timerPhase = 'ready';
+    }
+  }
+
   startTimer() {
     if (this.timerPhase === 'ready') {
       this.startTime = Date.now();
