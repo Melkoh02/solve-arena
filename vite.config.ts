@@ -16,14 +16,13 @@ function workerPreloadFix(): Plugin {
         if (chunk.type !== 'chunk') continue;
         if (!fileName.includes('preload-helper')) continue;
 
-        // Wrap the entire preload helper: if document doesn't exist (worker),
-        // export a no-op that just executes the import callback.
-        chunk.code =
-          `const __workerSafe = typeof document === "undefined";\n` +
-          chunk.code.replace(
-            /export\{(\w+) as _\}/,
-            'export{__workerSafe ? (i)=>i() : $1 as _}',
-          );
+        // The preload helper uses `document` which crashes in Web Workers.
+        // Replace the export so it wraps the original function with a guard:
+        // in worker scope (no document), just execute the import directly.
+        chunk.code = chunk.code.replace(
+          /export\{(\w+) as _\}/,
+          'const __viteWorkerSafe = typeof document === "undefined" ? (i)=>i() : $1; export{__viteWorkerSafe as _}',
+        );
       }
     },
   };
