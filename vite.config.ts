@@ -2,10 +2,10 @@ import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 
 /**
- * Vite plugin that patches the preload helper inside Web Worker bundles.
- * The default preload helper references `document` which doesn't exist
- * in worker scopes, causing "document is not defined" errors at runtime.
- * This replaces it with a no-op that just executes the dynamic import.
+ * Vite plugin that patches the preload helper to be safe inside Web Workers.
+ * The default preload helper references `document` which doesn't exist in
+ * worker scopes. This patches the helper file itself so that when `document`
+ * is unavailable, it falls back to just executing the dynamic import directly.
  */
 function workerPreloadFix(): Plugin {
   return {
@@ -14,13 +14,16 @@ function workerPreloadFix(): Plugin {
     generateBundle(_, bundle) {
       for (const [fileName, chunk] of Object.entries(bundle)) {
         if (chunk.type !== 'chunk') continue;
-        // Patch any worker entry that imports the preload helper
-        if (!fileName.includes('search-worker-entry')) continue;
+        if (!fileName.includes('preload-helper')) continue;
 
-        chunk.code = chunk.code.replace(
-          /import\{_ as (\w+)\}from"\.\/preload-helper[^"]*\.js";/,
-          'const $1=(i)=>i();',
-        );
+        // Wrap the entire preload helper: if document doesn't exist (worker),
+        // export a no-op that just executes the import callback.
+        chunk.code =
+          `const __workerSafe = typeof document === "undefined";\n` +
+          chunk.code.replace(
+            /export\{(\w+) as _\}/,
+            'export{__workerSafe ? (i)=>i() : $1 as _}',
+          );
       }
     },
   };
