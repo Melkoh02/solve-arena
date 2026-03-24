@@ -31,7 +31,7 @@ function workerPreloadFix(): Plugin {
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), workerPreloadFix()],
-  base: '/solve-arena/',
+  base: '/',
   optimizeDeps: {
     exclude: ['cubing'],
   },
