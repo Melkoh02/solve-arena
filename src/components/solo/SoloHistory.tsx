@@ -214,6 +214,14 @@ const SoloHistory = observer(function SoloHistory({
               </TableCell>
               <TableCell>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ width: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {row.solve.online && (
+                      <GroupsIcon
+                        titleAccess={t('solo.onlineTooltip')}
+                        sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.5 }}
+                      />
+                    )}
+                  </Box>
                   <Typography
                     component="span"
                     onClick={() => onSelectSolve(row.solve)}
@@ -230,12 +238,6 @@ const SoloHistory = observer(function SoloHistory({
                     }}>
                     {getDisplayTime(row.solve)}
                   </Typography>
-                  {row.solve.online && (
-                    <GroupsIcon
-                      titleAccess={t('solo.onlineTooltip')}
-                      sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.5 }}
-                    />
-                  )}
                   <ButtonGroup size="small">
                     <Button
                       size="small"
