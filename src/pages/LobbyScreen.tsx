@@ -16,7 +16,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import { observer } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/hooks/useStore';
-import LanguageSelect from '../components/organisims/LanguageSelect';
+import LanguageSelect from '../components/organisms/LanguageSelect';
 
 const LobbyScreen = observer(function LobbyScreen() {
   const { roomStore, themeStore } = useStore();
