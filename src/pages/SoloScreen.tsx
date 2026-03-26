@@ -2,12 +2,18 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
+  Snackbar,
   Stack,
   Typography,
   useMediaQuery,
   useTheme as useMuiTheme,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import GroupsIcon from '@mui/icons-material/Groups';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
@@ -20,6 +26,7 @@ import ScrambleDisplay from '../components/timer/ScrambleDisplay';
 import Timer, { useTimerTouch } from '../components/timer/Timer';
 import PuzzleSelector from '../components/timer/PuzzleSelector';
 import JoinRoomPopover from '../components/room/JoinRoomDialog';
+import ServerStatusDot from '../components/room/ServerStatusDot';
 import SoloHistory from '../components/solo/SoloHistory';
 import SoloSolveDetailModal from '../components/solo/SoloSolveDetailModal';
 import AverageDetailModal from '../components/solo/AverageDetailModal';
@@ -49,10 +56,18 @@ const SoloScreen = observer(function SoloScreen() {
   const pendingColorRef = useRef<CrossColor>('w');
 
   const isTimerRunning = timerStore.timerPhase === 'running';
-  const isTimerActive = timerStore.timerPhase === 'running' || timerStore.timerPhase === 'ready';
+  const isTimerActive = timerStore.timerPhase === 'running' || timerStore.timerPhase === 'ready' || timerStore.timerPhase === 'preparing';
 
   const handleColorStart = useCallback((color: CrossColor) => {
-    pendingColorRef.current = color;
+    // Check phase via direct access (not reactive dependency)
+    const phase = timerStore.timerPhase;
+    if (phase === 'running') {
+      pendingColorRef.current = color;
+    } else {
+      const last = soloStore.lastSolve;
+      if (last) soloStore.updateCrossColor(last.id, color);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const touchHandlers = useTimerTouch(false, handleColorStart);
@@ -71,6 +86,27 @@ const SoloScreen = observer(function SoloScreen() {
       ),
     [timerStore, soloStore],
   );
+
+  // Delete shortcuts: Backspace/Delete = delete last solve, Ctrl+Shift+Backspace/Delete = clear all
+  const [deleteConfirm, setDeleteConfirm] = useState<'last' | 'all' | null>(null);
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (isTimerActive) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        e.preventDefault();
+        if (e.ctrlKey && e.shiftKey) {
+          if (soloStore.eventSolves.length > 0) setDeleteConfirm('all');
+        } else {
+          if (soloStore.lastSolve) setDeleteConfirm('last');
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [soloStore, isTimerActive]);
 
   const lastSolve = soloStore.lastSolve;
   const showActions = timerStore.timerPhase === 'stopped' && lastSolve;
@@ -144,9 +180,9 @@ const SoloScreen = observer(function SoloScreen() {
               variant="outlined"
               size="small"
               startIcon={!isMobile ? <GroupsIcon sx={{ fontSize: 18 }} /> : undefined}
+              endIcon={<ServerStatusDot />}
               onClick={e => setCompetAnchor(e.currentTarget)}
               sx={{
-                ml: 1,
                 textTransform: 'none',
                 fontWeight: 700,
                 fontSize: '0.75rem',
@@ -184,15 +220,16 @@ const SoloScreen = observer(function SoloScreen() {
             scramble={soloStore.currentScramble}
             eventId={soloStore.eventId}
             isLoading={soloStore.isLoadingScramble}
+            isCustom={soloStore.isCustomScramble}
+            onSetCustom={s => soloStore.setCustomScramble(s)}
+            onClearCustom={() => soloStore.clearCustomScramble()}
+            onManualTime={ms => soloStore.addManualSolve(ms)}
           />
         )}
 
-        {/* Stats bar */}
+        {/* Stats bar (rolling averages) */}
         {!isTimerRunning && soloStore.eventSolves.length > 0 && (
           <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
-            <Typography sx={{ ...LABEL_SX, fontSize: '0.65rem' }}>
-              {t('room.best')}: {soloStore.bestTime !== null ? formatTime(soloStore.bestTime) : '-'}
-            </Typography>
             <Typography sx={{ ...LABEL_SX, fontSize: '0.65rem' }}>
               ao5: {formatAverage(soloStore.ao5)}
             </Typography>
@@ -246,16 +283,28 @@ const SoloScreen = observer(function SoloScreen() {
               px: { xs: 1.5, sm: 2, md: 3 },
               pt: 1,
             }}>
-            <Typography
-              sx={{
-                textTransform: 'uppercase',
-                letterSpacing: '0.12em',
-                fontSize: '0.6rem',
-                fontWeight: 700,
-                color: 'text.secondary',
-              }}>
-              {t('room.history')} ({soloStore.eventSolves.length})
-            </Typography>
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Typography
+                sx={{
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                  color: 'text.secondary',
+                }}>
+                {t('room.history')} ({soloStore.eventSolves.length})
+              </Typography>
+              {soloStore.bestTime !== null && (
+                <Typography sx={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'text.secondary' }}>
+                  {t('room.best')}: {formatTime(soloStore.bestTime)}
+                </Typography>
+              )}
+              {soloStore.globalAverage !== null && (
+                <Typography sx={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'text.secondary' }}>
+                  Avg: {formatTime(soloStore.globalAverage)}
+                </Typography>
+              )}
+            </Stack>
             <IconButton
               size="small"
               onClick={() => soloStore.clearSolves()}
@@ -291,6 +340,108 @@ const SoloScreen = observer(function SoloScreen() {
         solves={aoSolves}
         size={aoSize}
         onClose={() => setAoSolves(null)}
+      />
+
+      {/* Delete confirmation dialog (keyboard shortcuts) */}
+      <Dialog
+        open={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (deleteConfirm === 'all') soloStore.clearSolves();
+            else soloStore.deleteLastSolve();
+            setDeleteConfirm(null);
+          }
+        }}
+        maxWidth="xs"
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              backgroundImage: 'none',
+            },
+          },
+        }}>
+        <DialogTitle sx={{ pb: 0.5, fontSize: '0.95rem', fontWeight: 700 }}>
+          {deleteConfirm === 'all' ? t('solo.clearAll') : t('solo.deleteSolve')}
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+            {deleteConfirm === 'all'
+              ? t('solo.clearAllConfirm')
+              : t('solo.deleteSolveConfirm', { time: lastSolve ? getDisplayTime(lastSolve) : '' })}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            size="small"
+            onClick={() => setDeleteConfirm(null)}
+            sx={{ textTransform: 'none' }}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            color="error"
+            onClick={() => {
+              if (deleteConfirm === 'all') {
+                soloStore.clearSolves();
+              } else {
+                soloStore.deleteLastSolve();
+              }
+              setDeleteConfirm(null);
+            }}
+            sx={{ textTransform: 'none' }}>
+            {t('common.confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* PB notification */}
+      <Snackbar
+        open={!!soloStore.pbNotification}
+        autoHideDuration={3000}
+        onClose={() => soloStore.clearPbNotification()}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        message={
+          soloStore.pbNotification && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box sx={{ flex: 1 }} />
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.85rem',
+                  color: 'primary.main',
+                }}>
+                {t('room.pbSelf', { time: soloStore.pbNotification })}
+              </Typography>
+              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                <IconButton
+                  size="small"
+                  onClick={() => soloStore.clearPbNotification()}
+                  sx={{ p: 0.25, color: 'text.secondary' }}>
+                  <CloseIcon sx={{ fontSize: 16 }} />
+                </IconButton>
+              </Box>
+            </Box>
+          )
+        }
+        slotProps={{
+          content: {
+            sx: {
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'primary.main',
+              borderRadius: 2,
+              boxShadow: '0 0 16px rgba(255, 105, 180, 0.25), 0 0 4px rgba(255, 105, 180, 0.15)',
+              '& .MuiSnackbarContent-message': { width: '100%', p: 0 },
+            },
+          },
+        }}
       />
     </Box>
   );

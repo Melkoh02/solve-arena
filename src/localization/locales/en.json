@@ -42,6 +42,10 @@
   "timer": {
     "puzzle": "Puzzle",
     "scrambleLabel": "Scramble",
+    "customScramble": "Custom Scramble",
+    "enterCustomScramble": "Enter a custom scramble",
+    "clearCustom": "Back to random scramble",
+    "enterManualTime": "Enter time manually",
     "noSolves": "No solves yet. Press space to start timing!",
     "columnIndex": "#",
     "columnTime": "Time",
@@ -105,6 +109,18 @@
         "es": "Spanish"
       }
     }
+  },
+  "solo": {
+    "deleteSolve": "Delete Solve",
+    "deleteSolveConfirm": "Delete solve {{time}}?",
+    "clearAll": "Clear All Solves",
+    "clearAllConfirm": "Delete all solves for this puzzle? This cannot be undone."
+  },
+  "server": {
+    "offline": "Server offline — click to retry",
+    "waking": "Server starting...",
+    "online": "Server online",
+    "wakingMessage": "Setting up the arena... ({{seconds}}s)"
   },
   "errors": {
     "connectionFailed": "Could not connect to the server.",

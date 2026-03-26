@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Alert,
@@ -6,6 +6,7 @@ import {
   Button,
   CircularProgress,
   Divider,
+  LinearProgress,
   Popover,
   Stack,
   TextField,
@@ -14,6 +15,7 @@ import {
 import { observer } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
+import ServerStatusDot from './ServerStatusDot';
 
 interface JoinRoomPopoverProps {
   anchorEl: HTMLElement | null;
@@ -24,16 +26,36 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
   anchorEl,
   onClose,
 }: JoinRoomPopoverProps) {
-  const { roomStore } = useStore();
+  const { roomStore, serverStore } = useStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [roomCode, setRoomCode] = useState('');
+  const [action, setAction] = useState<'create' | 'join' | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+
+  const isWaking = serverStore.status === 'waking';
+
+  // Elapsed counter while server is waking
+  useEffect(() => {
+    if (!isWaking) {
+      setElapsed(0);
+      return;
+    }
+    const start = Date.now();
+    const timer = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - start) / 1000));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [isWaking]);
 
   const canSubmit = roomStore.playerName.trim().length > 0;
+  const isBusy = roomStore.isJoining;
 
   const handleCreate = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || isBusy) return;
+    setAction('create');
     const code = await roomStore.createRoom();
+    setAction(null);
     if (code) {
       onClose();
       navigate(`/room/${code}`);
@@ -41,8 +63,10 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
   };
 
   const handleJoin = async () => {
-    if (!canSubmit || !roomCode.trim()) return;
+    if (!canSubmit || !roomCode.trim() || isBusy) return;
+    setAction('join');
     const success = await roomStore.joinRoom(roomCode.trim());
+    setAction(null);
     if (success) {
       onClose();
       navigate(`/room/${roomCode.trim().toUpperCase()}`);
@@ -70,6 +94,33 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
         },
       }}>
       <Box sx={{ p: 2.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>
+            {t('lobby.compete')}
+          </Typography>
+          <ServerStatusDot />
+        </Box>
+
+        {isWaking && (
+          <Box
+            sx={{
+              mb: 1.5,
+              p: 1.5,
+              borderRadius: 1.5,
+              border: '1px solid',
+              borderColor: 'rgba(255, 165, 0, 0.3)',
+              bgcolor: 'rgba(255, 165, 0, 0.06)',
+            }}>
+            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.75 }}>
+              {t('server.wakingMessage', { seconds: elapsed })}
+            </Typography>
+            <LinearProgress
+              color="warning"
+              sx={{ borderRadius: 1, height: 3 }}
+            />
+          </Box>
+        )}
+
         {roomStore.error && (
           <Alert
             severity="error"
@@ -98,9 +149,9 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
           color="primary"
           fullWidth
           onClick={handleCreate}
-          disabled={!canSubmit || roomStore.isJoining}
+          disabled={!canSubmit || isBusy}
           sx={{ py: 1, fontSize: '0.8rem' }}>
-          {roomStore.isJoining ? (
+          {action === 'create' ? (
             <CircularProgress size={18} sx={{ color: 'inherit' }} />
           ) : (
             t('lobby.createRoom')
@@ -147,9 +198,9 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
             variant="outlined"
             color="primary"
             onClick={handleJoin}
-            disabled={!canSubmit || !roomCode.trim() || roomStore.isJoining}
+            disabled={!canSubmit || !roomCode.trim() || isBusy}
             sx={{ fontSize: '0.75rem', minWidth: 70 }}>
-            {roomStore.isJoining ? (
+            {action === 'join' ? (
               <CircularProgress size={18} sx={{ color: 'inherit' }} />
             ) : (
               t('lobby.joinRoom')

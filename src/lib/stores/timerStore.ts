@@ -6,6 +6,8 @@ export class TimerStore {
   startTime: number | null = null;
   displayTime = 0;
   lastStopWasDnf = false;
+  /** Phase to return to if preparing is cancelled */
+  private phaseBeforePreparing: TimerPhase = 'idle';
 
   constructor() {
     makeAutoObservable(this, {
@@ -13,18 +15,26 @@ export class TimerStore {
     });
   }
 
+  /** Enter preparing state (red). Remembers previous phase for cancel. */
+  setPreparing() {
+    if (this.timerPhase === 'idle' || this.timerPhase === 'stopped') {
+      this.phaseBeforePreparing = this.timerPhase;
+      this.timerPhase = 'preparing';
+    }
+  }
+
+  /** Transition from preparing → ready (green) after hold threshold */
   setReady() {
-    if (this.timerPhase === 'idle') {
+    if (this.timerPhase === 'preparing') {
       this.displayTime = 0;
       this.timerPhase = 'ready';
     }
   }
 
-  /** Transition from stopped → ready for solo mode (hold space to start next solve) */
-  readyFromStopped() {
-    if (this.timerPhase === 'stopped') {
-      this.displayTime = 0;
-      this.timerPhase = 'ready';
+  /** Cancel preparing or ready and return to previous state */
+  cancelPreparing() {
+    if (this.timerPhase === 'preparing' || this.timerPhase === 'ready') {
+      this.timerPhase = this.phaseBeforePreparing;
     }
   }
 

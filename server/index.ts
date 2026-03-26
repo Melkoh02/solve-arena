@@ -58,6 +58,12 @@ const io = new Server(httpServer, {
 
 const rooms = new Map<string, Room>();
 
+// ── Health check ─────────────────────────────────────────────────────────────
+
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // ── REST endpoint for scramble generation ────────────────────────────────────
 
 app.get('/api/scramble/:eventId', async (req, res) => {

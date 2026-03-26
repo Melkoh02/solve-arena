@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -30,10 +30,6 @@ import { getDisplayTime } from '../lib/utils/formatTime';
 import type { PbNotification } from '../lib/stores/roomStore';
 import type { CrossColor } from '../lib/types/room';
 
-const CROSS_COLOR_KEYS: Record<string, CrossColor> = {
-  w: 'w', y: 'y', r: 'r', o: 'o', b: 'b', g: 'g',
-};
-
 const LABEL_SX = {
   textTransform: 'uppercase',
   letterSpacing: '0.12em',
@@ -45,7 +41,7 @@ const LABEL_SX = {
 const SIDEBAR_WIDTH = 260;
 
 const RoomScreen = observer(function RoomScreen() {
-  const { timerStore, roomStore, themeStore } = useStore();
+  const { timerStore, roomStore, soloStore, themeStore } = useStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const muiTheme = useMuiTheme();
@@ -56,8 +52,21 @@ const RoomScreen = observer(function RoomScreen() {
   const pbSnackRef = useRef(pbSnack);
   pbSnackRef.current = pbSnack;
 
+  const pendingColorRef = useRef<CrossColor>('w');
+  const handleColorStart = useCallback((color: CrossColor) => {
+    const phase = timerStore.timerPhase;
+    if (phase === 'running') {
+      pendingColorRef.current = color;
+    } else {
+      const mySolves = roomStore.solves.filter(s => s.playerId === roomStore.playerId);
+      const lastSolve = mySolves[mySolves.length - 1];
+      if (lastSolve) roomStore.updateCrossColor(lastSolve.id, color);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const isTimerDisabled = roomStore.hasSubmittedOrPendingCurrentRound;
-  const touchHandlers = useTimerTouch(isTimerDisabled);
+  const touchHandlers = useTimerTouch(isTimerDisabled, handleColorStart);
 
   // Drain PB notification queue when timer is NOT running
   useEffect(
@@ -86,31 +95,11 @@ const RoomScreen = observer(function RoomScreen() {
     }, 300);
   };
 
-  // Cross color keyboard shortcut — works on your most recent solve
-  useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
-      if (timerStore.timerPhase === 'running') return;
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
-
-      const color = CROSS_COLOR_KEYS[e.key.toLowerCase()];
-      if (!color) return;
-
-      // Find my most recent solve (any round)
-      const mySolves = roomStore.solves.filter(s => s.playerId === roomStore.playerId);
-      const lastSolve = mySolves[mySolves.length - 1];
-      if (!lastSolve) return;
-
-      roomStore.updateCrossColor(lastSolve.id, color);
-    };
-
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
-  }, [roomStore, timerStore]);
-
   useEffect(() => {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
 
+  // Submit time and apply pending cross color
   useEffect(
     () =>
       reaction(
@@ -118,6 +107,20 @@ const RoomScreen = observer(function RoomScreen() {
         phase => {
           if (phase === 'stopped' && !roomStore.hasSubmittedCurrentRound) {
             roomStore.submitTime(timerStore.displayTime, timerStore.lastStopWasDnf);
+            // Apply the pending color after a short delay (wait for room-state with the new solve)
+            const color = pendingColorRef.current;
+            if (color !== 'w') {
+              const checkAndApply = () => {
+                const mySolves = roomStore.solves.filter(s => s.playerId === roomStore.playerId);
+                const lastSolve = mySolves[mySolves.length - 1];
+                if (lastSolve && lastSolve.round === roomStore.currentRound) {
+                  roomStore.updateCrossColor(lastSolve.id, color);
+                }
+              };
+              // The solve might not be in room-state yet, retry briefly
+              setTimeout(checkAndApply, 500);
+            }
+            pendingColorRef.current = 'w';
           }
         },
       ),
@@ -133,6 +136,23 @@ const RoomScreen = observer(function RoomScreen() {
         },
       ),
     [timerStore, roomStore],
+  );
+
+  // Sync my solves to soloStore so they persist locally
+  useEffect(
+    () =>
+      reaction(
+        () => roomStore.solves.map(s => `${s.id}:${s.penalty}:${s.crossColor}`).join(),
+        () => {
+          const myId = roomStore.playerId;
+          if (!myId) return;
+          for (const solve of roomStore.solves) {
+            if (solve.playerId !== myId) continue;
+            soloStore.syncFromRoom(solve, roomStore.eventId);
+          }
+        },
+      ),
+    [roomStore, soloStore],
   );
 
   useEffect(() => {
@@ -375,6 +395,11 @@ const RoomScreen = observer(function RoomScreen() {
               <ScrambleDisplay
                 scramble={roomStore.currentScramble}
                 eventId={roomStore.eventId}
+                onManualTime={ms => {
+                  if (!roomStore.hasSubmittedCurrentRound) {
+                    roomStore.submitTime(ms, false);
+                  }
+                }}
               />
             ))}
 
@@ -408,7 +433,7 @@ const RoomScreen = observer(function RoomScreen() {
               })()}
             </Box>
           ) : (
-            <Timer disabled={isTimerDisabled} />
+            <Timer disabled={isTimerDisabled} onColorStart={handleColorStart} />
           )}
         </Box>
 

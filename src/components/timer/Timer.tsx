@@ -66,6 +66,8 @@ export function useTimerTouch(disabled: boolean, onColorStart?: (color: CrossCol
   return { onTouchStart, onTouchEnd };
 }
 
+const HOLD_THRESHOLD = 1000;
+
 const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerProps) {
   const { timerStore } = useStore();
   const theme = useMuiTheme();
@@ -73,6 +75,7 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
   const isKeyDown = useRef(false);
   const pendingColorRef = useRef<CrossColor | null>(null);
   const stopTimestamp = useRef(0);
+  const holdTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const animate = useCallback(() => {
     if (timerStore.timerPhase === 'running' && timerStore.startTime !== null) {
@@ -80,6 +83,13 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       rafRef.current = requestAnimationFrame(animate);
     }
   }, [timerStore]);
+
+  const clearHoldTimer = () => {
+    if (holdTimerRef.current !== null) {
+      clearTimeout(holdTimerRef.current);
+      holdTimerRef.current = null;
+    }
+  };
 
   // ── Keyboard handlers ──────────────────────────────────
 
@@ -89,17 +99,26 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
       if (disabled) return;
 
+      // Escape cancels preparing or ready
+      if (e.code === 'Escape' && (timerStore.timerPhase === 'preparing' || timerStore.timerPhase === 'ready')) {
+        e.preventDefault();
+        clearHoldTimer();
+        timerStore.cancelPreparing();
+        isKeyDown.current = false;
+        return;
+      }
+
       // Any key stops a running timer; Escape also flags as DNF
       if (timerStore.timerPhase === 'running') {
         e.preventDefault();
         timerStore.stopTimer(e.code === 'Escape');
         stopTimestamp.current = Date.now();
-        // Mark key as down so the subsequent keyup from this same press is absorbed
         isKeyDown.current = true;
+        clearHoldTimer();
         return;
       }
 
-      // Spacebar or color keys start the ready/start flow
+      // Spacebar or color keys start the preparing/ready/start flow
       const colorKey = COLOR_KEYS[e.key.toLowerCase()];
       const isSpace = e.code === 'Space';
       if (!isSpace && !colorKey) return;
@@ -111,11 +130,15 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       if (!isKeyDown.current) {
         isKeyDown.current = true;
         pendingColorRef.current = colorKey ?? 'w';
-        if (timerStore.timerPhase === 'stopped') {
-          timerStore.readyFromStopped();
-        } else {
+
+        // Enter preparing (red) immediately
+        timerStore.setPreparing();
+
+        // After hold threshold, transition to ready (green)
+        clearHoldTimer();
+        holdTimerRef.current = setTimeout(() => {
           timerStore.setReady();
-        }
+        }, HOLD_THRESHOLD);
       }
     };
 
@@ -128,11 +151,19 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       e.preventDefault();
 
       isKeyDown.current = false;
+      clearHoldTimer();
 
       if (timerStore.timerPhase === 'ready') {
+        // Held long enough → start timer
         timerStore.startTimer();
         rafRef.current = requestAnimationFrame(animate);
         onColorStart?.(pendingColorRef.current ?? 'w');
+      } else if (timerStore.timerPhase === 'preparing') {
+        // Released too early → cancel, assign color to last solve
+        timerStore.cancelPreparing();
+        if (colorKey) {
+          onColorStart?.(colorKey);
+        }
       }
     };
 
@@ -143,11 +174,14 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+      clearHoldTimer();
     };
   }, [timerStore, animate, disabled, onColorStart]);
 
   const getColor = (): string => {
     switch (timerStore.timerPhase) {
+      case 'preparing':
+        return '#f44336';
       case 'ready':
         return '#4caf50';
       default:
@@ -157,6 +191,8 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
 
   const getAccentColor = (): string => {
     switch (timerStore.timerPhase) {
+      case 'preparing':
+        return '#f44336';
       case 'ready':
         return '#4caf50';
       default:

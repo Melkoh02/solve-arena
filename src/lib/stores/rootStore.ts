@@ -4,6 +4,7 @@ import { ThemeStore } from './themeStore.ts';
 import { TimerStore } from './timerStore.ts';
 import { RoomStore } from './roomStore.ts';
 import { SoloStore } from './soloStore.ts';
+import { ServerStore } from './serverStore.ts';
 
 export class RootStore {
   userStore: UserStore;
@@ -12,6 +13,7 @@ export class RootStore {
   timerStore: TimerStore;
   roomStore: RoomStore;
   soloStore: SoloStore;
+  serverStore: ServerStore;
 
   constructor() {
     this.userStore = new UserStore();
@@ -20,6 +22,7 @@ export class RootStore {
     this.timerStore = new TimerStore();
     this.roomStore = new RoomStore();
     this.soloStore = new SoloStore();
+    this.serverStore = new ServerStore();
   }
 }
 
