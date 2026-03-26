@@ -177,11 +177,14 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       if (!isSpace && !colorKey) return;
       if (isInsideOverlay(e.target)) return;
       if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
-      if (disabled) return;
-      e.preventDefault();
 
+      // Always reset key state on release, even when disabled,
+      // to prevent stale isKeyDown blocking the next press.
       isKeyDown.current = false;
       clearHoldTimer();
+
+      if (disabled) return;
+      e.preventDefault();
 
       if (timerStore.timerPhase === 'ready') {
         // Held long enough → start timer
