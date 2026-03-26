@@ -2,6 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Box,
+  Button,
+  ButtonGroup,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -13,7 +20,6 @@ import {
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { Button, ButtonGroup, Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
@@ -21,15 +27,6 @@ import { formatAverage } from '../../lib/utils/averages';
 import CrossColorPicker from '../room/CrossColorPicker';
 import type { SoloSolve } from '../../lib/stores/soloStore';
 import type { Penalty } from '../../lib/types/timer';
-
-const CROSS_COLOR_HEX: Record<string, string> = {
-  w: '#FFFFFF',
-  y: '#FFD500',
-  r: '#E00000',
-  o: '#FF8C00',
-  b: '#0051BA',
-  g: '#009E60',
-};
 
 const PAGE_SIZE = 50;
 
@@ -99,13 +96,12 @@ const SoloHistory = observer(function SoloHistory({
   const rows = soloStore.historyRows;
 
   const sortedRows = useMemo(() => {
-    const sorted = [...rows].sort((a, b) => {
+    return [...rows].sort((a, b) => {
       const va = getSortValue(a, sortKey);
       const vb = getSortValue(b, sortKey);
       if (va === vb) return 0;
       return sortDir === 'asc' ? (va < vb ? -1 : 1) : va > vb ? -1 : 1;
     });
-    return sorted;
   }, [rows, sortKey, sortDir]);
 
   const visibleRows = useMemo(
@@ -124,7 +120,7 @@ const SoloHistory = observer(function SoloHistory({
     const container = containerRef.current;
     if (!sentinel || !container) return;
 
-    const observer = new IntersectionObserver(
+    const io = new IntersectionObserver(
       entries => {
         if (entries[0]?.isIntersecting) {
           setVisibleCount(prev => {
@@ -136,18 +132,21 @@ const SoloHistory = observer(function SoloHistory({
       { root: container, threshold: 0.1 },
     );
 
-    observer.observe(sentinel);
-    return () => observer.disconnect();
+    io.observe(sentinel);
+    return () => io.disconnect();
   }, [sortedRows.length]);
 
-  const handleSort = useCallback((key: SortKey) => {
-    if (key === sortKey) {
-      setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
-    } else {
-      setSortKey(key);
-      setSortDir('desc');
-    }
-  }, [sortKey]);
+  const handleSort = useCallback(
+    (key: SortKey) => {
+      if (key === sortKey) {
+        setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+      } else {
+        setSortKey(key);
+        setSortDir('desc');
+      }
+    },
+    [sortKey],
+  );
 
   const getAoSolves = useCallback(
     (row: HistoryRow, size: number): SoloSolve[] => {
@@ -179,11 +178,14 @@ const SoloHistory = observer(function SoloHistory({
       <Table stickyHeader size="small">
         <TableHead>
           <TableRow>
-            <TableCell sx={{ ...HEADER_SX, width: 40 }} onClick={() => handleSort('index')}>
+            <TableCell
+              sx={{ ...HEADER_SX, width: 40 }}
+              onClick={() => handleSort('index')}>
               #{renderSortIcon('index')}
             </TableCell>
             <TableCell sx={HEADER_SX} onClick={() => handleSort('time')}>
-              {t('timer.columnTime')}{renderSortIcon('time')}
+              {t('timer.columnTime')}
+              {renderSortIcon('time')}
             </TableCell>
             <TableCell sx={HEADER_SX} onClick={() => handleSort('ao5')}>
               ao5{renderSortIcon('ao5')}
@@ -192,7 +194,8 @@ const SoloHistory = observer(function SoloHistory({
               ao12{renderSortIcon('ao12')}
             </TableCell>
             <TableCell sx={HEADER_SX} onClick={() => handleSort('date')}>
-              {t('room.dateTime').replace('& ', '')}{renderSortIcon('date')}
+              {t('room.dateTime').replace('& ', '')}
+              {renderSortIcon('date')}
             </TableCell>
           </TableRow>
         </TableHead>
@@ -200,7 +203,11 @@ const SoloHistory = observer(function SoloHistory({
           {visibleRows.map(row => (
             <TableRow key={row.solve.id} hover>
               <TableCell
-                sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                sx={{
+                  color: 'text.secondary',
+                  fontFamily: 'monospace',
+                  fontSize: '0.75rem',
+                }}>
                 {row.index}
               </TableCell>
               <TableCell>
@@ -224,35 +231,52 @@ const SoloHistory = observer(function SoloHistory({
                   <ButtonGroup size="small">
                     <Button
                       size="small"
-                      variant={row.solve.penalty === '+2' ? 'contained' : 'outlined'}
+                      variant={
+                        row.solve.penalty === '+2' ? 'contained' : 'outlined'
+                      }
                       sx={{ minWidth: 24, px: 0.3, py: 0, fontSize: '0.6rem' }}
-                      onClick={() => soloStore.updatePenalty(row.solve.id, '+2' as Penalty)}>
+                      onClick={() =>
+                        soloStore.updatePenalty(row.solve.id, '+2' as Penalty)
+                      }>
                       +2
                     </Button>
                     <Button
                       size="small"
-                      variant={row.solve.penalty === 'DNF' ? 'contained' : 'outlined'}
+                      variant={
+                        row.solve.penalty === 'DNF' ? 'contained' : 'outlined'
+                      }
                       sx={{ minWidth: 24, px: 0.3, py: 0, fontSize: '0.6rem' }}
-                      onClick={() => soloStore.updatePenalty(row.solve.id, 'DNF' as Penalty)}>
+                      onClick={() =>
+                        soloStore.updatePenalty(row.solve.id, 'DNF' as Penalty)
+                      }>
                       DNF
                     </Button>
                   </ButtonGroup>
                   <CrossColorPicker
                     value={row.solve.crossColor}
-                    onChange={color => soloStore.updateCrossColor(row.solve.id, color)}
+                    onChange={color =>
+                      soloStore.updateCrossColor(row.solve.id, color)
+                    }
                     size={18}
                   />
                   <IconButton
                     size="small"
                     onClick={() => setDeleteTarget(row.solve)}
-                    sx={{ p: 0.25, color: 'text.secondary', opacity: 0.4, '&:hover': { opacity: 1, color: 'error.main' } }}>
+                    sx={{
+                      p: 0.25,
+                      color: 'text.secondary',
+                      opacity: 0.4,
+                      '&:hover': { opacity: 1, color: 'error.main' },
+                    }}>
                     <DeleteOutlineIcon sx={{ fontSize: 14 }} />
                   </IconButton>
                 </Box>
               </TableCell>
               <TableCell
                 onClick={
-                  row.ao5 !== null ? () => onSelectAo(getAoSolves(row, 5), 5) : undefined
+                  row.ao5 !== null
+                    ? () => onSelectAo(getAoSolves(row, 5), 5)
+                    : undefined
                 }
                 sx={{
                   fontFamily: 'monospace',
@@ -265,7 +289,9 @@ const SoloHistory = observer(function SoloHistory({
               </TableCell>
               <TableCell
                 onClick={
-                  row.ao12 !== null ? () => onSelectAo(getAoSolves(row, 12), 12) : undefined
+                  row.ao12 !== null
+                    ? () => onSelectAo(getAoSolves(row, 12), 12)
+                    : undefined
                 }
                 sx={{
                   fontFamily: 'monospace',
@@ -318,7 +344,9 @@ const SoloHistory = observer(function SoloHistory({
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
-            {t('solo.deleteSolveConfirm', { time: deleteTarget ? getDisplayTime(deleteTarget) : '' })}
+            {t('solo.deleteSolveConfirm', {
+              time: deleteTarget ? getDisplayTime(deleteTarget) : '',
+            })}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>

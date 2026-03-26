@@ -124,9 +124,6 @@ const SoloScreen = observer(function SoloScreen() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [soloStore, isTimerActive]);
 
-  const lastSolve = soloStore.lastSolve;
-  const showActions = timerStore.timerPhase === 'stopped' && lastSolve;
-
   // When timer shows the last solve time (stopped), exclude it from the stack.
   // When timer is idle/ready (0.00), show all recent solves including the last.
   const timerShowsLastSolve = timerStore.timerPhase === 'stopped';
