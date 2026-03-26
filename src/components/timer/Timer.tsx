@@ -94,9 +94,19 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
   // ── Keyboard handlers ──────────────────────────────────
 
   useEffect(() => {
+    const isInsideOverlay = (target: EventTarget | null) =>
+      !!(target as HTMLElement)?.closest?.('[role="dialog"], [role="presentation"], .MuiPopover-root');
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
-      if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
+      if (isInsideOverlay(e.target)) return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (e.code === 'Space' && tag === 'BUTTON') {
+        e.preventDefault();
+        (e.target as HTMLElement).blur();
+      } else if (INTERACTIVE_TAGS.has(tag)) {
+        return;
+      }
       if (disabled) return;
 
       // Escape cancels preparing or ready
@@ -149,6 +159,7 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       const colorKey = COLOR_KEYS[e.key.toLowerCase()];
       const isSpace = e.code === 'Space';
       if (!isSpace && !colorKey) return;
+      if (isInsideOverlay(e.target)) return;
       if (INTERACTIVE_TAGS.has((e.target as HTMLElement).tagName)) return;
       if (disabled) return;
       e.preventDefault();
