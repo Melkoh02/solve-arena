@@ -20,6 +20,7 @@ import {
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
@@ -197,6 +198,7 @@ const SoloHistory = observer(function SoloHistory({
               {t('room.dateTime').replace('& ', '')}
               {renderSortIcon('date')}
             </TableCell>
+            <TableCell sx={{ ...HEADER_SX, width: 32 }} />
           </TableRow>
         </TableHead>
         <TableBody>
@@ -228,6 +230,12 @@ const SoloHistory = observer(function SoloHistory({
                     }}>
                     {getDisplayTime(row.solve)}
                   </Typography>
+                  {row.solve.online && (
+                    <GroupsIcon
+                      titleAccess={t('solo.onlineTooltip')}
+                      sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.5 }}
+                    />
+                  )}
                   <ButtonGroup size="small">
                     <Button
                       size="small"
@@ -259,17 +267,6 @@ const SoloHistory = observer(function SoloHistory({
                     }
                     size={18}
                   />
-                  <IconButton
-                    size="small"
-                    onClick={() => setDeleteTarget(row.solve)}
-                    sx={{
-                      p: 0.25,
-                      color: 'text.secondary',
-                      opacity: 0.4,
-                      '&:hover': { opacity: 1, color: 'error.main' },
-                    }}>
-                    <DeleteOutlineIcon sx={{ fontSize: 14 }} />
-                  </IconButton>
                 </Box>
               </TableCell>
               <TableCell
@@ -309,6 +306,19 @@ const SoloHistory = observer(function SoloHistory({
                   color: 'text.secondary',
                 }}>
                 {formatShortDate(row.solve.date)}
+              </TableCell>
+              <TableCell sx={{ p: 0, textAlign: 'center' }}>
+                <IconButton
+                  size="small"
+                  onClick={() => setDeleteTarget(row.solve)}
+                  sx={{
+                    p: 0.25,
+                    color: 'text.secondary',
+                    opacity: 0.4,
+                    '&:hover': { opacity: 1, color: 'error.main' },
+                  }}>
+                  <DeleteOutlineIcon sx={{ fontSize: 14 }} />
+                </IconButton>
               </TableCell>
             </TableRow>
           ))}

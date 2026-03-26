@@ -115,7 +115,9 @@
     "deleteSolve": "Eliminar Tiempo",
     "deleteSolveConfirm": "Eliminar tiempo {{time}}?",
     "clearAll": "Eliminar Todos los Tiempos",
-    "clearAllConfirm": "Eliminar todos los tiempos de este puzzle? Esta acción no se puede deshacer."
+    "clearAllConfirm": "Eliminar todos los tiempos de este puzzle? Esta acción no se puede deshacer.",
+    "onlineRoom": "Registrado en sala en línea",
+    "onlineTooltip": "Registrado en una sala en línea"
   },
   "server": {
     "offline": "Servidor offline — click para reintentar",

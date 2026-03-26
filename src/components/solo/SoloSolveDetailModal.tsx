@@ -13,6 +13,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
@@ -161,6 +162,25 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
               {new Date(liveSolve.date).toLocaleString(i18n.language)}
             </Typography>
           </Box>
+
+          {liveSolve.online && (
+            <Box
+              sx={{
+                p: 1.25,
+                borderRadius: 1.5,
+                border: '1px solid',
+                borderColor: 'divider',
+                bgcolor: 'background.default',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}>
+              <GroupsIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+              <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
+                {t('solo.onlineRoom')}
+              </Typography>
+            </Box>
+          )}
 
           <Box>
             <Typography sx={LABEL_SX}>{t('room.scrambleLabel')}</Typography>

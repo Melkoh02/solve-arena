@@ -18,6 +18,7 @@ export interface SoloSolve {
   event: string;
   date: number;
   crossColor: CrossColor;
+  online?: boolean;
 }
 
 export class SoloStore {
@@ -132,6 +133,7 @@ export class SoloStore {
       event: eventId,
       date: roomSolve.date,
       crossColor: roomSolve.crossColor ?? 'w',
+      online: true,
     });
     this.saveToStorage();
   }

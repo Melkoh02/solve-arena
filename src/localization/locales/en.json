@@ -114,7 +114,9 @@
     "deleteSolve": "Delete Solve",
     "deleteSolveConfirm": "Delete solve {{time}}?",
     "clearAll": "Clear All Solves",
-    "clearAllConfirm": "Delete all solves for this puzzle? This cannot be undone."
+    "clearAllConfirm": "Delete all solves for this puzzle? This cannot be undone.",
+    "onlineRoom": "Recorded in online room",
+    "onlineTooltip": "Recorded in an online room"
   },
   "server": {
     "offline": "Server offline — click to retry",
