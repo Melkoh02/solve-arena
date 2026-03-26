@@ -44,8 +44,9 @@ const SolveDetailModal = observer(function SolveDetailModal({
   solve,
   onClose,
 }: SolveDetailModalProps) {
-  const { roomStore } = useStore();
+  const { roomStore, settingsStore } = useStore();
   const { t, i18n } = useTranslation();
+  const precision = settingsStore.timerPrecision;
 
   if (!solve) return null;
 
@@ -118,7 +119,7 @@ const SolveDetailModal = observer(function SolveDetailModal({
               lineHeight: 1,
               letterSpacing: '-0.02em',
             }}>
-            {getDisplayTime(solve)}
+            {getDisplayTime(solve, precision)}
           </Typography>
         </Box>
 

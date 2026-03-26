@@ -22,8 +22,9 @@ import type { Penalty } from '../../lib/types/timer';
 import CrossColorPicker from './CrossColorPicker';
 
 const ResultsTable = observer(function ResultsTable() {
-  const { roomStore } = useStore();
+  const { roomStore, settingsStore } = useStore();
   const { t } = useTranslation();
+  const precision = settingsStore.timerPrecision;
   const [selectedSolve, setSelectedSolve] = useState<RoomSolve | null>(null);
 
   const completedRounds = useMemo(() => {
@@ -136,7 +137,7 @@ const ResultsTable = observer(function ResultsTable() {
                                 opacity: 0.8,
                               },
                             }}>
-                            {getDisplayTime(solve)}
+                            {getDisplayTime(solve, precision)}
                           </Typography>
                           {isMe && (
                             <>

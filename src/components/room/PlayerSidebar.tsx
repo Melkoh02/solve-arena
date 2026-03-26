@@ -31,8 +31,9 @@ const TIME_SX = {
 } as const;
 
 const PlayerSidebar = observer(function PlayerSidebar() {
-  const { roomStore } = useStore();
+  const { roomStore, settingsStore } = useStore();
   const { t } = useTranslation();
+  const precision = settingsStore.timerPrecision;
   const roundSolves = roomStore.currentRoundSolves;
   const prevRound = roomStore.currentRound - 1;
 
@@ -134,7 +135,7 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                     ...TIME_SX,
                     color: hasFinished ? 'text.primary' : 'text.secondary',
                   }}>
-                  {currentSolve ? getDisplayTime(currentSolve) : '—'}
+                  {currentSolve ? getDisplayTime(currentSolve, precision) : '—'}
                 </Typography>
               </Box>
               <Box>
@@ -143,7 +144,7 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                 </Typography>
                 <Typography
                   sx={{ ...TIME_SX, color: 'text.secondary' }}>
-                  {lastSolve ? getDisplayTime(lastSolve) : '—'}
+                  {lastSolve ? getDisplayTime(lastSolve, precision) : '—'}
                 </Typography>
               </Box>
               <Box>
@@ -152,7 +153,7 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                 </Typography>
                 <Typography
                   sx={{ ...TIME_SX, color: 'text.secondary' }}>
-                  {bestTime !== null ? formatTime(bestTime) : '—'}
+                  {bestTime !== null ? formatTime(bestTime, precision) : '—'}
                 </Typography>
               </Box>
             </Box>
@@ -168,12 +169,12 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                 <Typography
                   variant="caption"
                   sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                  ao5: {formatAverage(ao5)}
+                  ao5: {formatAverage(ao5, precision)}
                 </Typography>
                 <Typography
                   variant="caption"
                   sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                  ao12: {formatAverage(ao12)}
+                  ao12: {formatAverage(ao12, precision)}
                 </Typography>
               </Box>
               {roomStore.isHost && !isMe && (

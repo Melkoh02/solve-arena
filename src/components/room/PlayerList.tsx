@@ -25,8 +25,9 @@ import type { Penalty } from '../../lib/types/timer';
 import type { RoomSolve } from '../../lib/types/room';
 
 const PlayerList = observer(function PlayerList() {
-  const { roomStore } = useStore();
+  const { roomStore, settingsStore } = useStore();
   const { t } = useTranslation();
+  const precision = settingsStore.timerPrecision;
   const roundSolves = roomStore.currentRoundSolves;
 
   /** Get a player's solves sorted newest-first (for average calculations). */
@@ -78,7 +79,7 @@ const PlayerList = observer(function PlayerList() {
                 </TableCell>
                 <TableCell sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
                   {solve ? (
-                    getDisplayTime(solve)
+                    getDisplayTime(solve, precision)
                   ) : (
                     <Typography
                       variant="body2"
@@ -89,10 +90,10 @@ const PlayerList = observer(function PlayerList() {
                   )}
                 </TableCell>
                 <TableCell sx={{ fontFamily: 'monospace' }}>
-                  {formatAverage(ao5)}
+                  {formatAverage(ao5, precision)}
                 </TableCell>
                 <TableCell sx={{ fontFamily: 'monospace' }}>
-                  {formatAverage(ao12)}
+                  {formatAverage(ao12, precision)}
                 </TableCell>
                 <TableCell align="right">
                   {solve && isMe && (
