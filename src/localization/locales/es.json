@@ -92,10 +92,22 @@
     "waitingForPlayers": "Esperando a otros jugadores... (faltan {{count}})"
   },
   "settings": {
-    "title": "Pantalla de Configuraciones",
+    "title": "Configuraciones",
     "language": "Idioma",
+    "searchLanguage": "Buscar idiomas...",
     "switchLanguage": "Cambiar Idioma",
+    "theme": "Tema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
     "toggleTheme": "Cambiar Tema",
+    "timerSection": "Cronómetro",
+    "colorKeyHoldTime": "Tiempo de presión para teclas de color",
+    "spacebarRequiresHold": "Espacio requiere presión",
+    "displaySection": "Pantalla",
+    "timerPrecision": "Precisión del cronómetro",
+    "timeFormatExport": "Formato de copia/exportación",
+    "timeFormatAuto": "Auto",
+    "resetToDefault": "Restablecer",
     "logout": "Cerrar Sesion"
   },
   "modals": {

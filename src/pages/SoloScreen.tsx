@@ -18,6 +18,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { observer } from 'mobx-react-lite';
 import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
@@ -31,6 +32,7 @@ import SoloHistory from '../components/solo/SoloHistory';
 import SoloSolveDetailModal from '../components/solo/SoloSolveDetailModal';
 import AverageDetailModal from '../components/solo/AverageDetailModal';
 import LanguageSelect from '../components/organisims/LanguageSelect';
+import SettingsDialog from '../components/settings/SettingsDialog';
 import { formatTime, getDisplayTime } from '../lib/utils/formatTime';
 import { formatAverage } from '../lib/utils/averages';
 import type { SoloSolve } from '../lib/stores/soloStore';
@@ -45,7 +47,7 @@ const LABEL_SX = {
 } as const;
 
 const SoloScreen = observer(function SoloScreen() {
-  const { timerStore, soloStore, themeStore } = useStore();
+  const { timerStore, soloStore, themeStore, settingsStore } = useStore();
   const { t } = useTranslation();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
@@ -53,8 +55,10 @@ const SoloScreen = observer(function SoloScreen() {
   const [selectedSolve, setSelectedSolve] = useState<SoloSolve | null>(null);
   const [aoSolves, setAoSolves] = useState<SoloSolve[] | null>(null);
   const [aoSize, setAoSize] = useState(5);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const pendingColorRef = useRef<CrossColor>('w');
 
+  const precision = settingsStore.timerPrecision;
   const isTimerRunning = timerStore.timerPhase === 'running';
   const isTimerActive =
     timerStore.timerPhase === 'running' ||
@@ -180,6 +184,12 @@ const SoloScreen = observer(function SoloScreen() {
           <Stack direction="row" spacing={0.5} alignItems="center">
             <IconButton
               size="small"
+              onClick={() => setSettingsOpen(true)}
+              title={t('settings.title')}>
+              <SettingsIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+            </IconButton>
+            <IconButton
+              size="small"
               onClick={themeStore.toggle}
               title={t('settings.toggleTheme')}>
               {themeStore.scheme === 'dark' ? (
@@ -250,10 +260,10 @@ const SoloScreen = observer(function SoloScreen() {
         {!isTimerRunning && soloStore.eventSolves.length > 0 && (
           <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
             <Typography sx={{ ...LABEL_SX, fontSize: '0.65rem' }}>
-              ao5: {formatAverage(soloStore.ao5)}
+              ao5: {formatAverage(soloStore.ao5, precision)}
             </Typography>
             <Typography sx={{ ...LABEL_SX, fontSize: '0.65rem' }}>
-              ao12: {formatAverage(soloStore.ao12)}
+              ao12: {formatAverage(soloStore.ao12, precision)}
             </Typography>
           </Stack>
         )}
@@ -277,7 +287,7 @@ const SoloScreen = observer(function SoloScreen() {
                   lineHeight: 1.7,
                   userSelect: 'none',
                 }}>
-                {getDisplayTime(solve)}
+                {getDisplayTime(solve, precision)}
               </Typography>
             ))}
           </Box>
@@ -320,7 +330,7 @@ const SoloScreen = observer(function SoloScreen() {
                     fontSize: '0.65rem',
                     color: 'text.secondary',
                   }}>
-                  {t('room.best')}: {formatTime(soloStore.bestTime)}
+                  {t('room.best')}: {formatTime(soloStore.bestTime, precision)}
                 </Typography>
               )}
               {soloStore.globalAverage !== null && (
@@ -330,7 +340,7 @@ const SoloScreen = observer(function SoloScreen() {
                     fontSize: '0.65rem',
                     color: 'text.secondary',
                   }}>
-                  Avg: {formatTime(soloStore.globalAverage)}
+                  Avg: {formatTime(soloStore.globalAverage, precision)}
                 </Typography>
               )}
             </Stack>
@@ -357,6 +367,9 @@ const SoloScreen = observer(function SoloScreen() {
         anchorEl={competAnchor}
         onClose={() => setCompetAnchor(null)}
       />
+
+      {/* Settings dialog */}
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       {/* Solve detail modal */}
       <SoloSolveDetailModal

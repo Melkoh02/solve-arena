@@ -91,10 +91,22 @@
     "waitingForPlayers": "Waiting for other players... ({{count}} left)"
   },
   "settings": {
-    "title": "Settings Screen",
+    "title": "Settings",
     "language": "Language",
+    "searchLanguage": "Search languages...",
     "switchLanguage": "Switch Language",
+    "theme": "Theme",
+    "themeLight": "Light",
+    "themeDark": "Dark",
     "toggleTheme": "Toggle Theme",
+    "timerSection": "Timer",
+    "colorKeyHoldTime": "Color key hold time",
+    "spacebarRequiresHold": "Spacebar requires hold",
+    "displaySection": "Display",
+    "timerPrecision": "Timer precision",
+    "timeFormatExport": "Copy/export format",
+    "timeFormatAuto": "Auto",
+    "resetToDefault": "Reset",
     "logout": "Log Out"
   },
   "modals": {

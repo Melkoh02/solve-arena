@@ -59,8 +59,9 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
   solve,
   onClose,
 }: Props) {
-  const { soloStore } = useStore();
+  const { soloStore, settingsStore } = useStore();
   const { t, i18n } = useTranslation();
+  const precision = settingsStore.timerPrecision;
 
   if (!solve) return null;
 
@@ -120,7 +121,7 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
               lineHeight: 1,
               letterSpacing: '-0.02em',
             }}>
-            {getDisplayTime(liveSolve)}
+            {getDisplayTime(liveSolve, precision)}
           </Typography>
         </Box>
 
@@ -210,7 +211,7 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
             startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
             onClick={() => {
               const text = [
-                `Time: ${getDisplayTime(liveSolve)}`,
+                `Time: ${getDisplayTime(liveSolve, precision)}`,
                 `Scramble: ${liveSolve.scramble}`,
                 `Cross: ${CROSS_COLOR_LABEL[liveSolve.crossColor] ?? liveSolve.crossColor}`,
                 `Date: ${formatDateFull(liveSolve.date)}`,
@@ -228,7 +229,7 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
             startIcon={<FileDownloadIcon sx={{ fontSize: 16 }} />}
             onClick={() => {
               const header = 'Time,Penalty,Scramble,CrossColor,Date';
-              const time = getDisplayTime(liveSolve);
+              const time = getDisplayTime(liveSolve, precision);
               const penalty = liveSolve.penalty === 'none' ? '' : liveSolve.penalty;
               const scramble = `"${liveSolve.scramble.replace(/"/g, '""')}"`;
               const cross = CROSS_COLOR_LABEL[liveSolve.crossColor] ?? liveSolve.crossColor;

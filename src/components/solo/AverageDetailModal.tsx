@@ -11,8 +11,10 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import { observer } from 'mobx-react-lite';
 import { getDisplayTime } from '../../lib/utils/formatTime';
 import { calculateAverage, formatAverage, getEffectiveTime } from '../../lib/utils/averages';
+import { useStore } from '../../lib/hooks/useStore';
 import type { SoloSolve } from '../../lib/stores/soloStore';
 
 const CROSS_COLOR_HEX: Record<string, string> = {
@@ -64,7 +66,10 @@ function formatDateFull(ts: number): string {
   return `${y}-${mo}-${da} ${h}:${mi}:${s}`;
 }
 
-export default function AverageDetailModal({ solves, size, onClose }: AverageDetailModalProps) {
+const AverageDetailModal = observer(function AverageDetailModal({ solves, size, onClose }: AverageDetailModalProps) {
+  const { settingsStore } = useStore();
+  const precision = settingsStore.timerPrecision;
+
   if (!solves || solves.length === 0) return null;
 
   // solves come oldest-first from eventSolves slice, reverse for newest-first for calculateAverage
@@ -77,19 +82,19 @@ export default function AverageDetailModal({ solves, size, onClose }: AverageDet
     const window = solves.slice(0, size);
     const timesLine = window
       .map((s, i) => {
-        const display = getDisplayTime(s);
+        const display = getDisplayTime(s, precision);
         return i === bestIdx || i === worstIdx ? `(${display})` : display;
       })
       .join(' - ');
 
     const scrambleLines = window.map((s, i) => {
-      const display = getDisplayTime(s);
+      const display = getDisplayTime(s, precision);
       const timeStr = i === bestIdx || i === worstIdx ? `(${display})` : display;
       return `${i + 1}. ${timeStr}   ${s.scramble}`;
     });
 
     const text = [
-      `Ao${size}: ${formatAverage(avg)}`,
+      `Ao${size}: ${formatAverage(avg, precision)}`,
       `Times: ${timesLine}`,
       '',
       'Scrambles:',
@@ -104,7 +109,7 @@ export default function AverageDetailModal({ solves, size, onClose }: AverageDet
   const handleExportCsv = () => {
     const header = '#,Time,Penalty,Scramble,CrossColor,Date';
     const csvRows = solves.slice(0, size).map((s, i) => {
-      const time = getDisplayTime(s);
+      const time = getDisplayTime(s, precision);
       const penalty = s.penalty === 'none' ? '' : s.penalty;
       const scramble = `"${s.scramble.replace(/"/g, '""')}"`;
       const cross = CROSS_COLOR_LABEL[s.crossColor] ?? s.crossColor;
@@ -175,14 +180,14 @@ export default function AverageDetailModal({ solves, size, onClose }: AverageDet
               lineHeight: 1,
               letterSpacing: '-0.02em',
             }}>
-            {formatAverage(avg)}
+            {formatAverage(avg, precision)}
           </Typography>
         </Box>
 
         {/* Solve list */}
         <Stack spacing={0.5} sx={{ mb: 2 }}>
           {solves.slice(0, size).map((s, i) => {
-            const display = getDisplayTime(s);
+            const display = getDisplayTime(s, precision);
             const isBest = i === bestIdx;
             const isWorst = i === worstIdx;
             const trimmed = isBest || isWorst;
@@ -268,4 +273,6 @@ export default function AverageDetailModal({ solves, size, onClose }: AverageDet
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+export default AverageDetailModal;

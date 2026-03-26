@@ -83,8 +83,9 @@ const SoloHistory = observer(function SoloHistory({
   onSelectSolve,
   onSelectAo,
 }: SoloHistoryProps) {
-  const { soloStore } = useStore();
+  const { soloStore, settingsStore } = useStore();
   const { t } = useTranslation();
+  const precision = settingsStore.timerPrecision;
 
   const [sortKey, setSortKey] = useState<SortKey>('index');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -236,7 +237,7 @@ const SoloHistory = observer(function SoloHistory({
                       textAlign: 'right',
                       '&:hover': { color: 'primary.main' },
                     }}>
-                    {getDisplayTime(row.solve)}
+                    {getDisplayTime(row.solve, precision)}
                   </Typography>
                   <ButtonGroup size="small">
                     <Button
@@ -284,7 +285,7 @@ const SoloHistory = observer(function SoloHistory({
                   cursor: row.ao5 !== null ? 'pointer' : 'default',
                   '&:hover': row.ao5 !== null ? { color: 'primary.main' } : {},
                 }}>
-                {formatAverage(row.ao5)}
+                {formatAverage(row.ao5, precision)}
               </TableCell>
               <TableCell
                 onClick={
@@ -299,7 +300,7 @@ const SoloHistory = observer(function SoloHistory({
                   cursor: row.ao12 !== null ? 'pointer' : 'default',
                   '&:hover': row.ao12 !== null ? { color: 'primary.main' } : {},
                 }}>
-                {formatAverage(row.ao12)}
+                {formatAverage(row.ao12, precision)}
               </TableCell>
               <TableCell
                 sx={{
@@ -357,7 +358,7 @@ const SoloHistory = observer(function SoloHistory({
         <DialogContent>
           <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
             {t('solo.deleteSolveConfirm', {
-              time: deleteTarget ? getDisplayTime(deleteTarget) : '',
+              time: deleteTarget ? getDisplayTime(deleteTarget, precision) : '',
             })}
           </Typography>
         </DialogContent>
