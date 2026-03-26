@@ -9,14 +9,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import SectionResetButton from './SectionResetButton';
+import { SETTINGS_LABEL_SX as LABEL_SX, SETTINGS_SECTION_HEADER_SX } from './styles';
 import type { TimerPrecision, TimeFormat } from '../../lib/constants/settingsDefaults';
-
-const LABEL_SX = {
-  fontSize: '0.75rem',
-  fontWeight: 600,
-  color: 'text.secondary',
-  mb: 0.75,
-} as const;
 
 const DisplaySection = observer(function DisplaySection() {
   const { settingsStore } = useStore();
@@ -25,7 +19,7 @@ const DisplaySection = observer(function DisplaySection() {
   return (
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-        <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'text.secondary' }}>
+        <Typography sx={SETTINGS_SECTION_HEADER_SX}>
           {t('settings.displaySection')}
         </Typography>
         <SectionResetButton

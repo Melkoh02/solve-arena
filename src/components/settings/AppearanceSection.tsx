@@ -12,13 +12,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { SUPPORTED_LANGUAGES } from '../../lib/constants/languages';
-
-const LABEL_SX = {
-  fontSize: '0.75rem',
-  fontWeight: 600,
-  color: 'text.secondary',
-  mb: 0.75,
-} as const;
+import { SETTINGS_LABEL_SX as LABEL_SX } from './styles';
 
 const AppearanceSection = observer(function AppearanceSection() {
   const { themeStore, languageStore } = useStore();

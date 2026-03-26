@@ -9,12 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import SectionResetButton from './SectionResetButton';
-
-const LABEL_SX = {
-  fontSize: '0.75rem',
-  fontWeight: 600,
-  color: 'text.secondary',
-} as const;
+import { SETTINGS_LABEL_SX as LABEL_SX, SETTINGS_SECTION_HEADER_SX } from './styles';
 
 const TimerSection = observer(function TimerSection() {
   const { settingsStore } = useStore();
@@ -23,7 +18,7 @@ const TimerSection = observer(function TimerSection() {
   return (
     <Box>
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-        <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'text.secondary' }}>
+        <Typography sx={SETTINGS_SECTION_HEADER_SX}>
           {t('settings.timerSection')}
         </Typography>
         <SectionResetButton

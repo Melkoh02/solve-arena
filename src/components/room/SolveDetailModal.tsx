@@ -14,7 +14,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
-import type { CrossColor, RoomSolve } from '../../lib/types/room';
+import type { RoomSolve } from '../../lib/types/room';
 import type { Penalty } from '../../lib/types/timer';
 
 import { CROSS_COLORS } from '../../lib/constants/crossColors';
