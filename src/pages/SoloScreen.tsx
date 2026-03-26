@@ -113,7 +113,7 @@ const SoloScreen = observer(function SoloScreen() {
 
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
-        if (e.ctrlKey && e.shiftKey) {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
           if (soloStore.eventSolves.length > 0) setDeleteConfirm(true);
         } else {
           if (soloStore.lastSolve) soloStore.deleteLastSolve();
