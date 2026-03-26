@@ -1,8 +1,12 @@
 import { action, makeAutoObservable, observable, runInAction } from 'mobx';
 import { lightTheme } from '../../themes/light';
 import { darkTheme } from '../../themes/dark';
+import { glassTheme } from '../../themes/glass';
 import type { Scheme } from '../types/theme.ts';
 import { THEME_KEY } from '../constants';
+
+const SCHEME_ORDER: Scheme[] = ['light', 'dark', 'glass'];
+const VALID_SCHEMES = new Set<string>(SCHEME_ORDER);
 
 export class ThemeStore {
   scheme: Scheme = 'dark';
@@ -30,18 +34,20 @@ export class ThemeStore {
   }
 
   toggle() {
-    this.setScheme(this.scheme === 'light' ? 'dark' : 'light');
+    const idx = SCHEME_ORDER.indexOf(this.scheme);
+    this.setScheme(SCHEME_ORDER[(idx + 1) % SCHEME_ORDER.length]);
   }
 
   get theme() {
+    if (this.scheme === 'glass') return glassTheme;
     return this.scheme === 'light' ? lightTheme : darkTheme;
   }
 
   private loadScheme() {
     try {
-      const saved = localStorage.getItem(THEME_KEY) as Scheme | null;
-      if (saved === 'light' || saved === 'dark') {
-        runInAction(() => (this.scheme = saved));
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved && VALID_SCHEMES.has(saved)) {
+        runInAction(() => (this.scheme = saved as Scheme));
         return;
       }
       const prefersDark = window.matchMedia?.(

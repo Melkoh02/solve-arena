@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { SUPPORTED_LANGUAGES } from '../../lib/constants/languages';
@@ -37,6 +38,10 @@ const AppearanceSection = observer(function AppearanceSection() {
         <ToggleButton value="dark" sx={{ textTransform: 'none', gap: 0.5, px: 2 }}>
           <DarkModeIcon sx={{ fontSize: 16 }} />
           {t('settings.themeDark')}
+        </ToggleButton>
+        <ToggleButton value="glass" sx={{ textTransform: 'none', gap: 0.5, px: 2 }}>
+          <AutoAwesomeIcon sx={{ fontSize: 16 }} />
+          {t('settings.themeGlass')}
         </ToggleButton>
       </ToggleButtonGroup>
 

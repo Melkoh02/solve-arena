@@ -98,6 +98,7 @@
     "theme": "Theme",
     "themeLight": "Light",
     "themeDark": "Dark",
+    "themeGlass": "Glass",
     "toggleTheme": "Toggle Theme",
     "timerSection": "Timer",
     "colorKeyHoldTime": "Color key hold time",

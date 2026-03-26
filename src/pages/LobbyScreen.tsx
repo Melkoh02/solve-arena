@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import LightModeIcon from '@mui/icons-material/LightMode';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { observer } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/hooks/useStore';
@@ -183,11 +184,9 @@ const LobbyScreen = observer(function LobbyScreen() {
             onClick={themeStore.toggle}
             aria-label={t('settings.toggleTheme')}
             title={t('settings.toggleTheme')}>
-            {themeStore.scheme === 'dark' ? (
-              <LightModeIcon fontSize="small" />
-            ) : (
-              <DarkModeIcon fontSize="small" />
-            )}
+            {themeStore.scheme === 'light' && <DarkModeIcon fontSize="small" />}
+            {themeStore.scheme === 'dark' && <AutoAwesomeIcon fontSize="small" />}
+            {themeStore.scheme === 'glass' && <LightModeIcon fontSize="small" />}
           </IconButton>
           <LanguageSelect />
         </Box>
