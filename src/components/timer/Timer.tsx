@@ -6,6 +6,7 @@ import { formatTime } from '../../lib/utils/formatTime';
 import type { CrossColor } from '../../lib/types/room';
 
 const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON']);
+const MAX_TIME_MS = 3_599_990; // 59:59.99
 
 const COLOR_KEYS: Record<string, CrossColor> = {
   w: 'w', y: 'y', r: 'r', o: 'o', b: 'b', g: 'g',
@@ -24,7 +25,12 @@ export function useTimerTouch(disabled: boolean, onColorStart?: (color: CrossCol
 
   const animate = useCallback(() => {
     if (timerStore.timerPhase === 'running' && timerStore.startTime !== null) {
-      timerStore.updateDisplayTime(Date.now() - timerStore.startTime);
+      const elapsed = Date.now() - timerStore.startTime;
+      if (elapsed >= MAX_TIME_MS) {
+        timerStore.stopTimer();
+        return;
+      }
+      timerStore.updateDisplayTime(elapsed);
       rafRef.current = requestAnimationFrame(animate);
     }
   }, [timerStore]);
@@ -77,7 +83,12 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
 
   const animate = useCallback(() => {
     if (timerStore.timerPhase === 'running' && timerStore.startTime !== null) {
-      timerStore.updateDisplayTime(Date.now() - timerStore.startTime);
+      const elapsed = Date.now() - timerStore.startTime;
+      if (elapsed >= MAX_TIME_MS) {
+        timerStore.stopTimer();
+        return;
+      }
+      timerStore.updateDisplayTime(elapsed);
       rafRef.current = requestAnimationFrame(animate);
     }
   }, [timerStore]);

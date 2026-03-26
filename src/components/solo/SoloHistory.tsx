@@ -176,6 +176,7 @@ const SoloHistory = observer(function SoloHistory({
       sx={{
         px: { xs: 1.5, sm: 2, md: 3 },
         pb: 2,
+        overflow: 'visible',
       }}>
       <Table stickyHeader size="small">
         <TableHead>

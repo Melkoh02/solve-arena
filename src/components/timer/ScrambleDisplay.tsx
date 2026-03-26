@@ -23,36 +23,41 @@ import ScramblePreview from './ScramblePreview';
  *   75 → 0.75s (750ms), 1080 → 10.80s (10800ms), 12540 → 1:25.40 (85400ms)
  * With decimal: treated as seconds: 0.75 → 750ms, 10.80 → 10800ms
  */
+const MAX_TIME_MS = 3_599_990; // 59:59.99
+
 function parseTimeInput(input: string): number | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
+
+  let ms: number;
 
   // If has a decimal point, treat as seconds
   if (trimmed.includes('.')) {
     const secs = parseFloat(trimmed);
     if (isNaN(secs) || secs <= 0) return null;
-    return Math.round(secs * 1000);
-  }
-
-  // If has a colon, parse as m:ss.cc
-  if (trimmed.includes(':')) {
+    ms = Math.round(secs * 1000);
+  } else if (trimmed.includes(':')) {
+    // If has a colon, parse as m:ss.cc
     const parts = trimmed.split(':');
     if (parts.length !== 2) return null;
     const mins = parseInt(parts[0], 10);
     const rest = parseFloat(parts[1]);
     if (isNaN(mins) || isNaN(rest)) return null;
-    return Math.round((mins * 60 + rest) * 1000);
+    ms = Math.round((mins * 60 + rest) * 1000);
+  } else {
+    // Raw digits → last 2 are centiseconds, next 2 seconds, rest minutes
+    const digits = trimmed.replace(/\D/g, '');
+    if (!digits || digits === '0') return null;
+    const num = parseInt(digits, 10);
+    const cs = num % 100;
+    const secs = Math.floor(num / 100) % 100;
+    const mins = Math.floor(num / 10000);
+    ms = (mins * 60000) + (secs * 1000) + (cs * 10);
   }
 
-  // Raw digits → last 2 are centiseconds, next 2 seconds, rest minutes
-  const digits = trimmed.replace(/\D/g, '');
-  if (!digits || digits === '0') return null;
-  const num = parseInt(digits, 10);
-  const cs = num % 100;
-  const secs = Math.floor(num / 100) % 100;
-  const mins = Math.floor(num / 10000);
-  const totalMs = (mins * 60000) + (secs * 1000) + (cs * 10);
-  return totalMs > 0 ? totalMs : null;
+  if (ms <= 0) return null;
+  if (ms > MAX_TIME_MS) return null;
+  return ms;
 }
 
 const PREVIEW_KEY = 'scramblePreviewVisible';
