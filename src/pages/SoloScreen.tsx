@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -56,7 +56,10 @@ const SoloScreen = observer(function SoloScreen() {
   const pendingColorRef = useRef<CrossColor>('w');
 
   const isTimerRunning = timerStore.timerPhase === 'running';
-  const isTimerActive = timerStore.timerPhase === 'running' || timerStore.timerPhase === 'ready' || timerStore.timerPhase === 'preparing';
+  const isTimerActive =
+    timerStore.timerPhase === 'running' ||
+    timerStore.timerPhase === 'ready' ||
+    timerStore.timerPhase === 'preparing';
 
   const handleColorStart = useCallback((color: CrossColor) => {
     // Check phase via direct access (not reactive dependency)
@@ -77,9 +80,17 @@ const SoloScreen = observer(function SoloScreen() {
     () =>
       reaction(
         () => timerStore.timerPhase,
-        phase => {
-          if (phase === 'stopped' && timerStore.displayTime > 0) {
-            soloStore.addSolve(timerStore.displayTime, timerStore.lastStopWasDnf, pendingColorRef.current);
+        (phase, prevPhase) => {
+          if (
+            phase === 'stopped' &&
+            prevPhase === 'running' &&
+            timerStore.displayTime > 0
+          ) {
+            soloStore.addSolve(
+              timerStore.displayTime,
+              timerStore.lastStopWasDnf,
+              pendingColorRef.current,
+            );
             pendingColorRef.current = 'w';
           }
         },
@@ -88,19 +99,24 @@ const SoloScreen = observer(function SoloScreen() {
   );
 
   // Delete shortcuts: Backspace/Delete = delete last solve, Ctrl+Shift+Backspace/Delete = clear all
-  const [deleteConfirm, setDeleteConfirm] = useState<'last' | 'all' | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       if (isTimerActive) return;
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+      if (
+        ['INPUT', 'TEXTAREA', 'SELECT'].includes(
+          (e.target as HTMLElement).tagName,
+        )
+      )
+        return;
 
       if (e.key === 'Backspace' || e.key === 'Delete') {
         e.preventDefault();
         if (e.ctrlKey && e.shiftKey) {
-          if (soloStore.eventSolves.length > 0) setDeleteConfirm('all');
+          if (soloStore.eventSolves.length > 0) setDeleteConfirm(true);
         } else {
-          if (soloStore.lastSolve) setDeleteConfirm('last');
+          if (soloStore.lastSolve) soloStore.deleteLastSolve();
         }
       }
     };
@@ -179,7 +195,9 @@ const SoloScreen = observer(function SoloScreen() {
             <Button
               variant="outlined"
               size="small"
-              startIcon={!isMobile ? <GroupsIcon sx={{ fontSize: 18 }} /> : undefined}
+              startIcon={
+                !isMobile ? <GroupsIcon sx={{ fontSize: 18 }} /> : undefined
+              }
               endIcon={<ServerStatusDot />}
               onClick={e => setCompetAnchor(e.currentTarget)}
               sx={{
@@ -190,7 +208,11 @@ const SoloScreen = observer(function SoloScreen() {
                 color: 'primary.main',
                 minWidth: isMobile ? 36 : undefined,
               }}>
-              {isMobile ? <GroupsIcon sx={{ fontSize: 18 }} /> : t('lobby.compete')}
+              {isMobile ? (
+                <GroupsIcon sx={{ fontSize: 18 }} />
+              ) : (
+                t('lobby.compete')
+              )}
             </Button>
           </Stack>
         </Box>
@@ -295,19 +317,29 @@ const SoloScreen = observer(function SoloScreen() {
                 {t('room.history')} ({soloStore.eventSolves.length})
               </Typography>
               {soloStore.bestTime !== null && (
-                <Typography sx={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'text.secondary' }}>
+                <Typography
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontSize: '0.65rem',
+                    color: 'text.secondary',
+                  }}>
                   {t('room.best')}: {formatTime(soloStore.bestTime)}
                 </Typography>
               )}
               {soloStore.globalAverage !== null && (
-                <Typography sx={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'text.secondary' }}>
+                <Typography
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontSize: '0.65rem',
+                    color: 'text.secondary',
+                  }}>
                   Avg: {formatTime(soloStore.globalAverage)}
                 </Typography>
               )}
             </Stack>
             <IconButton
               size="small"
-              onClick={() => soloStore.clearSolves()}
+              onClick={() => setDeleteConfirm(true)}
               title={t('room.resetRoom')}
               sx={{ color: 'text.secondary', p: 0.25 }}>
               <DeleteOutlineIcon sx={{ fontSize: 16 }} />
@@ -342,16 +374,15 @@ const SoloScreen = observer(function SoloScreen() {
         onClose={() => setAoSolves(null)}
       />
 
-      {/* Delete confirmation dialog (keyboard shortcuts) */}
+      {/* Clear all solves confirmation dialog */}
       <Dialog
-        open={!!deleteConfirm}
-        onClose={() => setDeleteConfirm(null)}
+        open={deleteConfirm}
+        onClose={() => setDeleteConfirm(false)}
         onKeyDown={e => {
           if (e.key === 'Enter') {
             e.preventDefault();
-            if (deleteConfirm === 'all') soloStore.clearSolves();
-            else soloStore.deleteLastSolve();
-            setDeleteConfirm(null);
+            soloStore.clearSolves();
+            setDeleteConfirm(false);
           }
         }}
         maxWidth="xs"
@@ -367,19 +398,17 @@ const SoloScreen = observer(function SoloScreen() {
           },
         }}>
         <DialogTitle sx={{ pb: 0.5, fontSize: '0.95rem', fontWeight: 700 }}>
-          {deleteConfirm === 'all' ? t('solo.clearAll') : t('solo.deleteSolve')}
+          {t('solo.clearAll')}
         </DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
-            {deleteConfirm === 'all'
-              ? t('solo.clearAllConfirm')
-              : t('solo.deleteSolveConfirm', { time: lastSolve ? getDisplayTime(lastSolve) : '' })}
+            {t('solo.clearAllConfirm')}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button
             size="small"
-            onClick={() => setDeleteConfirm(null)}
+            onClick={() => setDeleteConfirm(false)}
             sx={{ textTransform: 'none' }}>
             {t('common.cancel')}
           </Button>
@@ -388,12 +417,8 @@ const SoloScreen = observer(function SoloScreen() {
             variant="contained"
             color="error"
             onClick={() => {
-              if (deleteConfirm === 'all') {
-                soloStore.clearSolves();
-              } else {
-                soloStore.deleteLastSolve();
-              }
-              setDeleteConfirm(null);
+              soloStore.clearSolves();
+              setDeleteConfirm(false);
             }}
             sx={{ textTransform: 'none' }}>
             {t('common.confirm')}
@@ -419,7 +444,8 @@ const SoloScreen = observer(function SoloScreen() {
                 }}>
                 {t('room.pbSelf', { time: soloStore.pbNotification })}
               </Typography>
-              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              <Box
+                sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
                 <IconButton
                   size="small"
                   onClick={() => soloStore.clearPbNotification()}
@@ -437,7 +463,8 @@ const SoloScreen = observer(function SoloScreen() {
               border: '1px solid',
               borderColor: 'primary.main',
               borderRadius: 2,
-              boxShadow: '0 0 16px rgba(255, 105, 180, 0.25), 0 0 4px rgba(255, 105, 180, 0.15)',
+              boxShadow:
+                '0 0 16px rgba(255, 105, 180, 0.25), 0 0 4px rgba(255, 105, 180, 0.15)',
               '& .MuiSnackbarContent-message': { width: '100%', p: 0 },
             },
           },

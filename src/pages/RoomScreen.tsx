@@ -104,8 +104,8 @@ const RoomScreen = observer(function RoomScreen() {
     () =>
       reaction(
         () => timerStore.timerPhase,
-        phase => {
-          if (phase === 'stopped' && !roomStore.hasSubmittedCurrentRound) {
+        (phase, prevPhase) => {
+          if (phase === 'stopped' && prevPhase === 'running' && !roomStore.hasSubmittedCurrentRound) {
             roomStore.submitTime(timerStore.displayTime, timerStore.lastStopWasDnf);
             // Apply the pending color after a short delay (wait for room-state with the new solve)
             const color = pendingColorRef.current;
