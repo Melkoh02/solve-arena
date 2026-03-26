@@ -17,14 +17,7 @@ import { getDisplayTime } from '../../lib/utils/formatTime';
 import type { CrossColor, RoomSolve } from '../../lib/types/room';
 import type { Penalty } from '../../lib/types/timer';
 
-const CROSS_COLORS: { key: CrossColor; hex: string; label: string }[] = [
-  { key: 'w', hex: '#FFFFFF', label: 'White' },
-  { key: 'y', hex: '#FFD500', label: 'Yellow' },
-  { key: 'r', hex: '#E00000', label: 'Red' },
-  { key: 'o', hex: '#FF8C00', label: 'Orange' },
-  { key: 'b', hex: '#0051BA', label: 'Blue' },
-  { key: 'g', hex: '#009E60', label: 'Green' },
-];
+import { CROSS_COLORS } from '../../lib/constants/crossColors';
 
 const LABEL_SX = {
   textTransform: 'uppercase',

@@ -15,25 +15,8 @@ import { observer } from 'mobx-react-lite';
 import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
 import { calculateAverage, formatAverage, getEffectiveTime } from '../../lib/utils/averages';
 import { useStore } from '../../lib/hooks/useStore';
+import { CROSS_COLOR_HEX, CROSS_COLOR_LABEL } from '../../lib/constants/crossColors';
 import type { SoloSolve } from '../../lib/stores/soloStore';
-
-const CROSS_COLOR_HEX: Record<string, string> = {
-  w: '#FFFFFF',
-  y: '#FFD500',
-  r: '#E00000',
-  o: '#FF8C00',
-  b: '#0051BA',
-  g: '#009E60',
-};
-
-const CROSS_COLOR_LABEL: Record<string, string> = {
-  w: 'White',
-  y: 'Yellow',
-  r: 'Red',
-  o: 'Orange',
-  b: 'Blue',
-  g: 'Green',
-};
 
 export interface AverageDetailModalProps {
   solves: SoloSolve[] | null;

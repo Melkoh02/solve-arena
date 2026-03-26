@@ -19,16 +19,8 @@ import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
 import CrossColorPicker from '../room/CrossColorPicker';
 import type { SoloSolve } from '../../lib/stores/soloStore';
+import { CROSS_COLOR_LABEL } from '../../lib/constants/crossColors';
 import type { Penalty } from '../../lib/types/timer';
-
-const CROSS_COLOR_LABEL: Record<string, string> = {
-  w: 'White',
-  y: 'Yellow',
-  r: 'Red',
-  o: 'Orange',
-  b: 'Blue',
-  g: 'Green',
-};
 
 function formatDateFull(ts: number): string {
   const d = new Date(ts);

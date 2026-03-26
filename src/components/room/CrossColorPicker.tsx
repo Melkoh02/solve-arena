@@ -1,15 +1,7 @@
 import { useState } from 'react';
 import { Box, Popover } from '@mui/material';
+import { CROSS_COLORS } from '../../lib/constants/crossColors';
 import type { CrossColor } from '../../lib/types/room';
-
-const COLORS: { key: CrossColor; hex: string }[] = [
-  { key: 'w', hex: '#FFFFFF' },
-  { key: 'y', hex: '#FFD500' },
-  { key: 'r', hex: '#E00000' },
-  { key: 'o', hex: '#FF8C00' },
-  { key: 'b', hex: '#0051BA' },
-  { key: 'g', hex: '#009E60' },
-];
 
 interface CrossColorPickerProps {
   value?: CrossColor;
@@ -24,7 +16,7 @@ export default function CrossColorPicker({
 }: CrossColorPickerProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
-  const currentHex = COLORS.find(c => c.key === value)?.hex ?? '#FFFFFF';
+  const currentHex = CROSS_COLORS.find(c => c.key === value)?.hex ?? '#FFFFFF';
 
   return (
     <>
@@ -67,7 +59,7 @@ export default function CrossColorPicker({
           },
         }}>
         <Box sx={{ display: 'flex', gap: 0.75 }}>
-          {COLORS.map(c => (
+          {CROSS_COLORS.map(c => (
             <Box
               key={c.key}
               onClick={e => {
