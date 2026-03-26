@@ -185,7 +185,9 @@ const SoloHistory = observer(function SoloHistory({
               onClick={() => handleSort('index')}>
               #{renderSortIcon('index')}
             </TableCell>
-            <TableCell sx={{ ...HEADER_SX, pl: 'calc(16px + 14px + 8px)' }} onClick={() => handleSort('time')}>
+            <TableCell
+              sx={{ ...HEADER_SX, pl: 'calc(16px + 14px + 8px)' }}
+              onClick={() => handleSort('time')}>
               {t('timer.columnTime')}
               {renderSortIcon('time')}
             </TableCell>
@@ -215,11 +217,22 @@ const SoloHistory = observer(function SoloHistory({
               </TableCell>
               <TableCell>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Box sx={{ width: 14, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Box
+                    sx={{
+                      width: 14,
+                      flexShrink: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}>
                     {row.solve.online && (
                       <GroupsIcon
                         titleAccess={t('solo.onlineTooltip')}
-                        sx={{ fontSize: 14, color: 'text.secondary', opacity: 0.5 }}
+                        sx={{
+                          fontSize: 14,
+                          color: 'text.secondary',
+                          opacity: 0.5,
+                        }}
                       />
                     )}
                   </Box>
@@ -232,6 +245,10 @@ const SoloHistory = observer(function SoloHistory({
                       fontSize: '0.8rem',
                       fontWeight: 600,
                       cursor: 'pointer',
+                      width: '9ch',
+                      flexShrink: 0,
+                      display: 'inline-block',
+                      textAlign: 'left',
                       '&:hover': { color: 'primary.main' },
                     }}>
                     {getDisplayTime(row.solve, precision)}
