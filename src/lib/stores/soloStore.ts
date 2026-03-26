@@ -91,15 +91,16 @@ export class SoloStore {
 
   /**
    * Returns history rows for the table: each solve with its rolling ao5/ao12.
-   * Newest first.
+   * Newest first. Uses small fixed-size windows instead of full-array copies.
    */
   get historyRows(): { solve: SoloSolve; index: number; ao5: number | null; ao12: number | null }[] {
     const es = this.eventSolves;
     const rows: { solve: SoloSolve; index: number; ao5: number | null; ao12: number | null }[] = [];
 
     for (let i = es.length - 1; i >= 0; i--) {
-      // For rolling averages, slice the solves up to and including index i, newest first
-      const window = es.slice(0, i + 1).reverse();
+      // Only slice the small window needed (max 12 elements), newest-first
+      const windowStart = Math.max(0, i - 11);
+      const window = es.slice(windowStart, i + 1).reverse();
       rows.push({
         solve: es[i],
         index: i + 1,
