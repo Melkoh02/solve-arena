@@ -6,6 +6,7 @@ export class TimerStore {
   startTime: number | null = null;
   displayTime = 0;
   lastStopWasDnf = false;
+  showDnf = false;
   /** Phase to return to if preparing is cancelled */
   private phaseBeforePreparing: TimerPhase = 'idle';
 
@@ -62,9 +63,14 @@ export class TimerStore {
     this.displayTime = time;
   }
 
+  setShowDnf(val: boolean) {
+    this.showDnf = val;
+  }
+
   resetToIdle() {
     this.timerPhase = 'idle';
     this.displayTime = 0;
     this.lastStopWasDnf = false;
+    this.showDnf = false;
   }
 }

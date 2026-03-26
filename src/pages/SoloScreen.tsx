@@ -99,6 +99,36 @@ const SoloScreen = observer(function SoloScreen() {
     [timerStore, soloStore],
   );
 
+  // Keep timer display in sync with last solve (penalty changes, deletion)
+  useEffect(
+    () =>
+      reaction(
+        () => {
+          if (timerStore.timerPhase !== 'stopped') return null;
+          const last = soloStore.lastSolve;
+          if (!last) return 'deleted';
+          return `${last.id}:${last.time}:${last.penalty}`;
+        },
+        val => {
+          if (val === 'deleted') {
+            timerStore.resetToIdle();
+            return;
+          }
+          if (val === null) return;
+          const last = soloStore.lastSolve;
+          if (!last) return;
+          if (last.penalty === 'DNF') {
+            timerStore.setShowDnf(true);
+          } else {
+            timerStore.setShowDnf(false);
+            const effTime = last.penalty === '+2' ? last.time + 2000 : last.time;
+            timerStore.updateDisplayTime(effTime);
+          }
+        },
+      ),
+    [timerStore, soloStore],
+  );
+
   // Delete shortcuts: Backspace/Delete = delete last solve, Ctrl+Shift+Backspace/Delete = clear all
   const [deleteConfirm, setDeleteConfirm] = useState(false);
 
