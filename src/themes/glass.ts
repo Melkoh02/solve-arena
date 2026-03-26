@@ -2,8 +2,12 @@ import { createTheme } from '@mui/material/styles';
 import { sharedColors } from './sharedColors';
 
 // ── Glass design tokens ──────────────────────────────────
+const PRIMARY = '#FF69B4';
+const TEXT_SECONDARY = '#a0a0c8';
 const BLUR = '20px';
+const BLUR_LIGHT = '12px';
 const SURFACE_BG = 'rgba(255, 255, 255, 0.07)';
+const SURFACE_BG_SOLID = 'rgba(20, 20, 50, 0.85)';
 const BORDER = 'rgba(255, 255, 255, 0.13)';
 const BORDER_ACCENT = 'rgba(255, 105, 180, 0.25)';
 const RADIUS = 20;
@@ -16,9 +20,8 @@ const glassSurface = {
   backgroundColor: SURFACE_BG,
   border: `1px solid ${BORDER}`,
   backgroundImage: 'none',
-  // Fallback for browsers without backdrop-filter
   '@supports not (backdrop-filter: blur(1px))': {
-    backgroundColor: 'rgba(20, 20, 50, 0.92)',
+    backgroundColor: SURFACE_BG_SOLID,
   },
 } as const;
 
@@ -34,9 +37,12 @@ export const glassTheme = createTheme({
   },
   palette: {
     mode: 'dark',
-    primary: { main: '#FF69B4', dark: '#db5a9c', light: '#ff8cc8' },
-    background: { default: '#0f0c29', paper: SURFACE_BG },
-    text: { primary: '#ffffffee', secondary: '#a0a0c8' },
+    primary: { main: PRIMARY, dark: '#db5a9c', light: '#ff8cc8' },
+    // Use a solid dark for background.paper so non-Paper elements using
+    // bgcolor: 'background.paper' remain readable. The glassSurface
+    // override on MuiPaper adds the translucency + blur.
+    background: { default: '#0f0c29', paper: '#1a1a3e' },
+    text: { primary: '#ffffffee', secondary: TEXT_SECONDARY },
     divider: 'rgba(255, 255, 255, 0.10)',
     success: { main: '#4caf50' },
     error: { main: '#f44336' },
@@ -49,19 +55,18 @@ export const glassTheme = createTheme({
     // ── Body wallpaper ──────────────────────────────────
     MuiCssBaseline: {
       styleOverrides: {
+        // Use a fixed pseudo-element for the wallpaper so it doesn't
+        // conflict with MUI's CssBaseline body styles.
         body: {
-          background: WALLPAPER,
-          backgroundAttachment: 'fixed',
-          minHeight: '100vh',
-          backgroundImage: 'none !important',
+          backgroundColor: '#0f0c29',
         },
-        // Reset the !important for background shorthand
         'body::before': {
           content: '""',
           position: 'fixed',
           inset: 0,
           zIndex: -1,
           background: WALLPAPER,
+          backgroundAttachment: 'fixed',
         },
       },
     },
@@ -80,7 +85,17 @@ export const glassTheme = createTheme({
       styleOverrides: {
         paper: {
           ...glassSurface,
+          backdropFilter: `blur(${BLUR_LIGHT})`,
+          WebkitBackdropFilter: `blur(${BLUR_LIGHT})`,
           borderRadius: RADIUS + 4,
+        },
+      },
+    },
+
+    MuiBackdrop: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(0, 0, 0, 0.3)',
         },
       },
     },
@@ -103,6 +118,22 @@ export const glassTheme = createTheme({
       },
     },
 
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          '&:hover': {
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+          },
+          '&.Mui-selected': {
+            backgroundColor: 'rgba(255, 105, 180, 0.12)',
+            '&:hover': {
+              backgroundColor: 'rgba(255, 105, 180, 0.18)',
+            },
+          },
+        },
+      },
+    },
+
     // ── Buttons ─────────────────────────────────────────
     MuiButton: {
       styleOverrides: {
@@ -111,8 +142,6 @@ export const glassTheme = createTheme({
           textTransform: 'none' as const,
         },
         containedPrimary: {
-          backdropFilter: `blur(12px)`,
-          WebkitBackdropFilter: `blur(12px)`,
           background: 'rgba(255, 105, 180, 0.30)',
           color: '#fff',
           fontWeight: 700,
@@ -128,9 +157,9 @@ export const glassTheme = createTheme({
         },
         outlinedPrimary: {
           borderColor: BORDER_ACCENT,
-          color: '#FF69B4',
+          color: PRIMARY,
           '&:hover': {
-            borderColor: '#FF69B4',
+            borderColor: PRIMARY,
             backgroundColor: 'rgba(255, 105, 180, 0.10)',
           },
         },
@@ -159,10 +188,9 @@ export const glassTheme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: RADIUS_SM,
-          border: `1px solid ${BORDER}`,
           ...glassSurface,
-          padding: 2,
-          gap: 2,
+          padding: '4px',
+          gap: '4px',
         },
       },
     },
@@ -172,11 +200,11 @@ export const glassTheme = createTheme({
         root: {
           borderRadius: `${RADIUS_SM - 2}px !important`,
           border: 'none !important',
-          color: '#a0a0c8',
+          color: TEXT_SECONDARY,
           textTransform: 'none' as const,
           '&.Mui-selected': {
             backgroundColor: 'rgba(255, 105, 180, 0.18)',
-            color: '#FF69B4',
+            color: PRIMARY,
             '&:hover': {
               backgroundColor: 'rgba(255, 105, 180, 0.25)',
             },
@@ -212,13 +240,13 @@ export const glassTheme = createTheme({
               borderColor: 'rgba(255, 255, 255, 0.25)',
             },
             '&.Mui-focused fieldset': {
-              borderColor: '#FF69B4',
+              borderColor: PRIMARY,
             },
           },
           '& .MuiInputLabel-root': {
-            color: '#a0a0c8',
+            color: TEXT_SECONDARY,
             '&.Mui-focused': {
-              color: '#FF69B4',
+              color: PRIMARY,
             },
           },
         },
@@ -236,7 +264,7 @@ export const glassTheme = createTheme({
             borderColor: 'rgba(255, 255, 255, 0.25)',
           },
           '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#FF69B4',
+            borderColor: PRIMARY,
           },
         },
       },
@@ -263,9 +291,7 @@ export const glassTheme = createTheme({
           textTransform: 'uppercase' as const,
           letterSpacing: '0.06em',
           fontSize: '0.7rem',
-          color: '#a0a0c8',
-          backdropFilter: `blur(${BLUR})`,
-          WebkitBackdropFilter: `blur(${BLUR})`,
+          color: TEXT_SECONDARY,
           backgroundColor: 'rgba(255, 255, 255, 0.05)',
         },
       },
@@ -294,8 +320,6 @@ export const glassTheme = createTheme({
       styleOverrides: {
         outlined: {
           borderColor: BORDER,
-          backdropFilter: `blur(8px)`,
-          WebkitBackdropFilter: `blur(8px)`,
         },
       },
     },
@@ -320,6 +344,18 @@ export const glassTheme = createTheme({
       },
     },
 
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: {
+          backdropFilter: `blur(${BLUR_LIGHT})`,
+          WebkitBackdropFilter: `blur(${BLUR_LIGHT})`,
+          backgroundColor: 'rgba(20, 20, 50, 0.85)',
+          border: `1px solid ${BORDER}`,
+          borderRadius: 8,
+        },
+      },
+    },
+
     MuiSwitch: {
       styleOverrides: {
         track: {
@@ -331,14 +367,10 @@ export const glassTheme = createTheme({
     MuiSlider: {
       styleOverrides: {
         track: {
-          backgroundColor: '#FF69B4',
+          backgroundColor: PRIMARY,
         },
         rail: {
           backgroundColor: 'rgba(255, 255, 255, 0.15)',
-        },
-        thumb: {
-          backdropFilter: `blur(8px)`,
-          WebkitBackdropFilter: `blur(8px)`,
         },
       },
     },
