@@ -66,7 +66,7 @@ export function useTimerTouch(disabled: boolean, onColorStart?: (color: CrossCol
   return { onTouchStart, onTouchEnd };
 }
 
-const HOLD_THRESHOLD = 1000;
+const HOLD_THRESHOLD = 500;
 
 const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerProps) {
   const { timerStore } = useStore();
@@ -131,14 +131,17 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
         isKeyDown.current = true;
         pendingColorRef.current = colorKey ?? 'w';
 
-        // Enter preparing (red) immediately
-        timerStore.setPreparing();
-
-        // After hold threshold, transition to ready (green)
-        clearHoldTimer();
-        holdTimerRef.current = setTimeout(() => {
+        if (isSpace) {
+          // Space key goes straight to ready (green) with no delay
           timerStore.setReady();
-        }, HOLD_THRESHOLD);
+        } else {
+          // Color keys enter preparing (red), then ready (green) after hold threshold
+          timerStore.setPreparing();
+          clearHoldTimer();
+          holdTimerRef.current = setTimeout(() => {
+            timerStore.setReady();
+          }, HOLD_THRESHOLD);
+        }
       }
     };
 

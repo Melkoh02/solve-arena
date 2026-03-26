@@ -124,7 +124,7 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
         </Box>
 
         {/* Penalty + cross color */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, mb: 2.5 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
           <ButtonGroup size="small">
             <Button
               variant={liveSolve.penalty === '+2' ? 'contained' : 'outlined'}

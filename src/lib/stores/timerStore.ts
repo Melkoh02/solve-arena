@@ -23,9 +23,12 @@ export class TimerStore {
     }
   }
 
-  /** Transition from preparing → ready (green) after hold threshold */
+  /** Transition to ready (green) from preparing, idle, or stopped */
   setReady() {
-    if (this.timerPhase === 'preparing') {
+    if (this.timerPhase === 'preparing' || this.timerPhase === 'idle' || this.timerPhase === 'stopped') {
+      if (this.timerPhase !== 'preparing') {
+        this.phaseBeforePreparing = this.timerPhase;
+      }
       this.displayTime = 0;
       this.timerPhase = 'ready';
     }
