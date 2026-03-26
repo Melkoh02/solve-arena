@@ -185,7 +185,7 @@ const SoloHistory = observer(function SoloHistory({
               onClick={() => handleSort('index')}>
               #{renderSortIcon('index')}
             </TableCell>
-            <TableCell sx={HEADER_SX} onClick={() => handleSort('time')}>
+            <TableCell sx={{ ...HEADER_SX, pl: 'calc(16px + 14px + 8px)' }} onClick={() => handleSort('time')}>
               {t('timer.columnTime')}
               {renderSortIcon('time')}
             </TableCell>
@@ -232,9 +232,6 @@ const SoloHistory = observer(function SoloHistory({
                       fontSize: '0.8rem',
                       fontWeight: 600,
                       cursor: 'pointer',
-                      minWidth: '4.5em',
-                      display: 'inline-block',
-                      textAlign: 'right',
                       '&:hover': { color: 'primary.main' },
                     }}>
                     {getDisplayTime(row.solve, precision)}
