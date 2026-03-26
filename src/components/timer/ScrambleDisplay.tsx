@@ -117,14 +117,14 @@ export default function ScrambleDisplay({
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 90, mb: 2 }}>
         <CircularProgress size={20} sx={{ color: 'primary.main' }} />
       </Box>
     );
   }
 
   return (
-    <Box sx={{ textAlign: 'center', mb: 2, maxWidth: '100%' }}>
+    <Box sx={{ textAlign: 'center', mb: 2, maxWidth: '100%', minHeight: 90 }}>
       <Box
         sx={{
           display: 'flex',

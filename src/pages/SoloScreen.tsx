@@ -135,7 +135,7 @@ const SoloScreen = observer(function SoloScreen() {
       if (es.length < 2) return [];
       return es.slice(-5, -1).reverse();
     }
-    return es.slice(-5).reverse();
+    return es.slice(-4).reverse();
   })();
 
   return (
