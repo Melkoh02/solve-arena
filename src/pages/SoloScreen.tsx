@@ -296,7 +296,11 @@ const SoloScreen = observer(function SoloScreen() {
               alignItems: 'center',
               justifyContent: 'space-between',
               px: { xs: 1.5, sm: 2, md: 3 },
-              pt: 1,
+              py: 1,
+              position: 'sticky',
+              top: 0,
+              zIndex: 2,
+              bgcolor: 'background.default',
             }}>
             <Stack direction="row" spacing={1.5} alignItems="center">
               <Typography

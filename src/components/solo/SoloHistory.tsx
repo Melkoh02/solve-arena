@@ -46,6 +46,8 @@ export interface SoloHistoryProps {
   onSelectAo: (solves: SoloSolve[], size: number) => void;
 }
 
+const HISTORY_BAR_HEIGHT = 36;
+
 const HEADER_SX = {
   bgcolor: 'background.paper',
   fontWeight: 700,
@@ -53,6 +55,7 @@ const HEADER_SX = {
   cursor: 'pointer',
   userSelect: 'none',
   whiteSpace: 'nowrap',
+  top: HISTORY_BAR_HEIGHT,
 } as const;
 
 function getSortValue(row: HistoryRow, key: SortKey): number {
@@ -174,7 +177,6 @@ const SoloHistory = observer(function SoloHistory({
     <TableContainer
       ref={containerRef}
       sx={{
-        px: { xs: 1.5, sm: 2, md: 3 },
         pb: 2,
         overflow: 'visible',
       }}>
