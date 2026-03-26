@@ -5,6 +5,7 @@ import { TimerStore } from './timerStore.ts';
 import { RoomStore } from './roomStore.ts';
 import { SoloStore } from './soloStore.ts';
 import { ServerStore } from './serverStore.ts';
+import { SettingsStore } from './settingsStore.ts';
 
 export class RootStore {
   userStore: UserStore;
@@ -14,6 +15,7 @@ export class RootStore {
   roomStore: RoomStore;
   soloStore: SoloStore;
   serverStore: ServerStore;
+  settingsStore: SettingsStore;
 
   constructor() {
     this.userStore = new UserStore();
@@ -23,6 +25,7 @@ export class RootStore {
     this.roomStore = new RoomStore();
     this.soloStore = new SoloStore();
     this.serverStore = new ServerStore();
+    this.settingsStore = new SettingsStore();
   }
 }
 

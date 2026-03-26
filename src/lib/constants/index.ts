@@ -4,3 +4,4 @@ export const USER_STORAGE_KEY = '@M003:user-store';
 export const SOLVES_STORAGE_KEY = '@M003:solves';
 export const SELECTED_EVENT_KEY = '@M003:selected-event';
 export const PLAYER_NAME_KEY = '@M003:player-name';
+export const SETTINGS_KEY = '@M003:settings';
