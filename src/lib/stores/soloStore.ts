@@ -3,6 +3,7 @@ import axios from 'axios';
 import type { Penalty } from '../types/timer';
 import type { CrossColor } from '../types/room';
 import { getEffectiveTime, calculateAverage } from '../utils/averages';
+import { formatTime } from '../utils/formatTime';
 import { PLAYER_NAME_KEY } from '../constants';
 
 const SOLO_SOLVES_KEY = 'soloSolves';
@@ -24,6 +25,8 @@ export class SoloStore {
   eventId = '333';
   currentScramble = '';
   isLoadingScramble = false;
+  isCustomScramble = false;
+  pbNotification: string | null = null;
 
   constructor() {
     makeAutoObservable(this);
@@ -66,6 +69,14 @@ export class SoloStore {
     return calculateAverage(this.recentSolves, 12, 3);
   }
 
+  get globalAverage(): number | null {
+    const es = this.eventSolves;
+    if (es.length === 0) return null;
+    const times = es.map(s => getEffectiveTime(s)).filter(t => isFinite(t));
+    if (times.length === 0) return null;
+    return times.reduce((a, b) => a + b, 0) / times.length;
+  }
+
   get lastSolve(): SoloSolve | undefined {
     const es = this.eventSolves;
     return es[es.length - 1];
@@ -99,7 +110,53 @@ export class SoloStore {
     return rows;
   }
 
+  /** Sync a solve from a multiplayer room into local storage */
+  syncFromRoom(roomSolve: { id: string; time: number; penalty: string; scramble: string; date: number; crossColor?: CrossColor }, eventId: string) {
+    const existing = this.solves.find(s => s.id === roomSolve.id);
+    if (existing) {
+      // Update penalty and crossColor if changed
+      const newPenalty = (roomSolve.penalty as 'none' | '+2' | 'DNF') || 'none';
+      const newCrossColor = roomSolve.crossColor ?? 'w';
+      if (existing.penalty !== newPenalty || existing.crossColor !== newCrossColor) {
+        existing.penalty = newPenalty;
+        existing.crossColor = newCrossColor;
+        this.saveToStorage();
+      }
+      return;
+    }
+    this.solves.push({
+      id: roomSolve.id,
+      time: roomSolve.time,
+      penalty: (roomSolve.penalty as 'none' | '+2' | 'DNF') || 'none',
+      scramble: roomSolve.scramble,
+      event: eventId,
+      date: roomSolve.date,
+      crossColor: roomSolve.crossColor ?? 'w',
+    });
+    this.saveToStorage();
+  }
+
+  addManualSolve(timeMs: number) {
+    const prevBest = this.bestTime;
+    const solve: SoloSolve = {
+      id: crypto.randomUUID(),
+      time: timeMs,
+      penalty: 'none',
+      scramble: this.currentScramble,
+      event: this.eventId,
+      date: Date.now(),
+      crossColor: 'w',
+    };
+    this.solves.push(solve);
+    this.saveToStorage();
+    this.checkPb(timeMs, prevBest);
+    this.isCustomScramble = false;
+    this.generateScramble();
+  }
+
   addSolve(time: number, dnf: boolean, crossColor: CrossColor = 'w') {
+    const prevBest = this.bestTime;
+    const effTime = dnf ? Infinity : time;
     const solve: SoloSolve = {
       id: crypto.randomUUID(),
       time,
@@ -111,7 +168,21 @@ export class SoloStore {
     };
     this.solves.push(solve);
     this.saveToStorage();
+    this.checkPb(effTime, prevBest);
+    this.isCustomScramble = false;
     this.generateScramble();
+  }
+
+  private checkPb(effTime: number, prevBest: number | null) {
+    if (!isFinite(effTime)) return;
+    if (prevBest === null) return;
+    if (effTime < prevBest) {
+      this.pbNotification = formatTime(effTime);
+    }
+  }
+
+  clearPbNotification() {
+    this.pbNotification = null;
   }
 
   updatePenalty(solveId: string, penalty: Penalty) {
@@ -126,6 +197,28 @@ export class SoloStore {
     if (!solve) return;
     solve.crossColor = crossColor;
     this.saveToStorage();
+  }
+
+  deleteSolve(solveId: string) {
+    this.solves = this.solves.filter(s => s.id !== solveId);
+    this.saveToStorage();
+  }
+
+  deleteLastSolve(): boolean {
+    const last = this.lastSolve;
+    if (!last) return false;
+    this.deleteSolve(last.id);
+    return true;
+  }
+
+  setCustomScramble(scramble: string) {
+    this.currentScramble = scramble.trim();
+    this.isCustomScramble = true;
+  }
+
+  clearCustomScramble() {
+    this.isCustomScramble = false;
+    this.generateScramble();
   }
 
   changeEvent(eventId: string) {

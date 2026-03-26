@@ -12,7 +12,8 @@ import {
 } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import { Button, ButtonGroup } from '@mui/material';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { Button, ButtonGroup, Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
@@ -90,6 +91,7 @@ const SoloHistory = observer(function SoloHistory({
   const [sortKey, setSortKey] = useState<SortKey>('index');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [deleteTarget, setDeleteTarget] = useState<SoloSolve | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -240,6 +242,12 @@ const SoloHistory = observer(function SoloHistory({
                     onChange={color => soloStore.updateCrossColor(row.solve.id, color)}
                     size={18}
                   />
+                  <IconButton
+                    size="small"
+                    onClick={() => setDeleteTarget(row.solve)}
+                    sx={{ p: 0.25, color: 'text.secondary', opacity: 0.4, '&:hover': { opacity: 1, color: 'error.main' } }}>
+                    <DeleteOutlineIcon sx={{ fontSize: 14 }} />
+                  </IconButton>
                 </Box>
               </TableCell>
               <TableCell
@@ -281,6 +289,58 @@ const SoloHistory = observer(function SoloHistory({
         </TableBody>
       </Table>
       <Box ref={sentinelRef} sx={{ height: 1 }} />
+
+      {/* Delete confirmation dialog */}
+      <Dialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            if (deleteTarget) soloStore.deleteSolve(deleteTarget.id);
+            setDeleteTarget(null);
+          }
+        }}
+        maxWidth="xs"
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              backgroundImage: 'none',
+            },
+          },
+        }}>
+        <DialogTitle sx={{ pb: 0.5, fontSize: '0.95rem', fontWeight: 700 }}>
+          {t('solo.deleteSolve')}
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+            {t('solo.deleteSolveConfirm', { time: deleteTarget ? getDisplayTime(deleteTarget) : '' })}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            size="small"
+            onClick={() => setDeleteTarget(null)}
+            sx={{ textTransform: 'none' }}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            size="small"
+            variant="contained"
+            color="error"
+            onClick={() => {
+              if (deleteTarget) soloStore.deleteSolve(deleteTarget.id);
+              setDeleteTarget(null);
+            }}
+            sx={{ textTransform: 'none' }}>
+            {t('common.confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </TableContainer>
   );
 });

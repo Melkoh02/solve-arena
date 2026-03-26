@@ -43,6 +43,10 @@
   "timer": {
     "puzzle": "Rompecabezas",
     "scrambleLabel": "Mezcla",
+    "customScramble": "Mezcla Personalizada",
+    "enterCustomScramble": "Ingresa una mezcla personalizada",
+    "clearCustom": "Volver a mezcla aleatoria",
+    "enterManualTime": "Ingresar tiempo manualmente",
     "noSolves": "Sin resoluciones aún. ¡Presiona espacio para comenzar!",
     "columnIndex": "#",
     "columnTime": "Tiempo",
@@ -106,6 +110,18 @@
         "es": "Español"
       }
     }
+  },
+  "solo": {
+    "deleteSolve": "Eliminar Tiempo",
+    "deleteSolveConfirm": "Eliminar tiempo {{time}}?",
+    "clearAll": "Eliminar Todos los Tiempos",
+    "clearAllConfirm": "Eliminar todos los tiempos de este puzzle? Esta acción no se puede deshacer."
+  },
+  "server": {
+    "offline": "Servidor offline — click para reintentar",
+    "waking": "Servidor iniciando...",
+    "online": "Servidor online",
+    "wakingMessage": "Preparando la arena... ({{seconds}}s)"
   },
   "errors": {
     "connectionFailed": "No se pudo conectar al servidor.",
