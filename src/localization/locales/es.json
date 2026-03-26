@@ -99,6 +99,7 @@
     "theme": "Tema",
     "themeLight": "Claro",
     "themeDark": "Oscuro",
+    "themeGlass": "Cristal",
     "toggleTheme": "Cambiar Tema",
     "timerSection": "Cronómetro",
     "colorKeyHoldTime": "Tiempo de presión para teclas de color",
