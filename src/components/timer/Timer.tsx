@@ -118,11 +118,15 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       }
       if (disabled) return;
 
-      // Escape cancels preparing or ready
-      if (e.code === 'Escape' && (timerStore.timerPhase === 'preparing' || timerStore.timerPhase === 'ready')) {
+      // Escape cancels preparing, ready, or resets stopped to idle
+      if (e.code === 'Escape' && (timerStore.timerPhase === 'preparing' || timerStore.timerPhase === 'ready' || timerStore.timerPhase === 'stopped')) {
         e.preventDefault();
         clearHoldTimer();
-        timerStore.cancelPreparing();
+        if (timerStore.timerPhase === 'stopped') {
+          timerStore.resetToIdle();
+        } else {
+          timerStore.cancelPreparing();
+        }
         isKeyDown.current = false;
         return;
       }
@@ -247,6 +251,14 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
         : 'none',
     transition: 'color 0.15s, text-shadow 0.3s',
   } as const;
+
+  if (timerStore.showDnf && timerStore.timerPhase === 'stopped') {
+    return (
+      <Typography sx={{ ...baseSx, color: '#f44336' }}>
+        DNF
+      </Typography>
+    );
+  }
 
   return (
     <Typography sx={{ ...baseSx, color: getColor() }}>
