@@ -66,10 +66,8 @@ export function useTimerTouch(disabled: boolean, onColorStart?: (color: CrossCol
   return { onTouchStart, onTouchEnd };
 }
 
-const HOLD_THRESHOLD = 500;
-
 const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerProps) {
-  const { timerStore } = useStore();
+  const { timerStore, settingsStore } = useStore();
   const theme = useMuiTheme();
   const rafRef = useRef<number | null>(null);
   const isKeyDown = useRef(false);
@@ -141,16 +139,16 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
         isKeyDown.current = true;
         pendingColorRef.current = colorKey ?? 'w';
 
-        if (isSpace) {
+        if (isSpace && !settingsStore.spacebarRequiresHold) {
           // Space key goes straight to ready (green) with no delay
           timerStore.setReady();
         } else {
-          // Color keys enter preparing (red), then ready (green) after hold threshold
+          // Enter preparing (red), then ready (green) after hold threshold
           timerStore.setPreparing();
           clearHoldTimer();
           holdTimerRef.current = setTimeout(() => {
             timerStore.setReady();
-          }, HOLD_THRESHOLD);
+          }, settingsStore.colorKeyHoldThreshold);
         }
       }
     };
@@ -190,7 +188,7 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       clearHoldTimer();
     };
-  }, [timerStore, animate, disabled, onColorStart]);
+  }, [timerStore, settingsStore.colorKeyHoldThreshold, settingsStore.spacebarRequiresHold, animate, disabled, onColorStart]);
 
   const getColor = (): string => {
     switch (timerStore.timerPhase) {
@@ -214,7 +212,7 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
     }
   };
 
-  const timeStr = formatTime(timerStore.displayTime);
+  const timeStr = formatTime(timerStore.displayTime, settingsStore.timerPrecision);
   const dotIndex = timeStr.lastIndexOf('.');
   const intPart = dotIndex >= 0 ? timeStr.slice(0, dotIndex) : timeStr;
   const decPart = dotIndex >= 0 ? timeStr.slice(dotIndex) : '';
