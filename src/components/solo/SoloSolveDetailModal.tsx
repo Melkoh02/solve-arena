@@ -16,7 +16,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
-import { getDisplayTime } from '../../lib/utils/formatTime';
+import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
 import CrossColorPicker from '../room/CrossColorPicker';
 import type { SoloSolve } from '../../lib/stores/soloStore';
 import type { Penalty } from '../../lib/types/timer';
@@ -210,8 +210,9 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
             variant="outlined"
             startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
             onClick={() => {
+              const exportFmt = settingsStore.timeFormat;
               const text = [
-                `Time: ${getDisplayTime(liveSolve, precision)}`,
+                `Time: ${getDisplayTimeForExport(liveSolve, precision, exportFmt)}`,
                 `Scramble: ${liveSolve.scramble}`,
                 `Cross: ${CROSS_COLOR_LABEL[liveSolve.crossColor] ?? liveSolve.crossColor}`,
                 `Date: ${formatDateFull(liveSolve.date)}`,
@@ -228,8 +229,9 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
             variant="outlined"
             startIcon={<FileDownloadIcon sx={{ fontSize: 16 }} />}
             onClick={() => {
+              const exportFmt2 = settingsStore.timeFormat;
               const header = 'Time,Penalty,Scramble,CrossColor,Date';
-              const time = getDisplayTime(liveSolve, precision);
+              const time = getDisplayTimeForExport(liveSolve, precision, exportFmt2);
               const penalty = liveSolve.penalty === 'none' ? '' : liveSolve.penalty;
               const scramble = `"${liveSolve.scramble.replace(/"/g, '""')}"`;
               const cross = CROSS_COLOR_LABEL[liveSolve.crossColor] ?? liveSolve.crossColor;

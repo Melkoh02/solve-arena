@@ -12,7 +12,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { observer } from 'mobx-react-lite';
-import { getDisplayTime } from '../../lib/utils/formatTime';
+import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
 import { calculateAverage, formatAverage, getEffectiveTime } from '../../lib/utils/averages';
 import { useStore } from '../../lib/hooks/useStore';
 import type { SoloSolve } from '../../lib/stores/soloStore';
@@ -79,16 +79,17 @@ const AverageDetailModal = observer(function AverageDetailModal({ solves, size, 
   const { bestIdx, worstIdx } = getTrimmedIndices(solves, size);
 
   const handleCopy = () => {
+    const exportFmt = settingsStore.timeFormat;
     const window = solves.slice(0, size);
     const timesLine = window
       .map((s, i) => {
-        const display = getDisplayTime(s, precision);
+        const display = getDisplayTimeForExport(s, precision, exportFmt);
         return i === bestIdx || i === worstIdx ? `(${display})` : display;
       })
       .join(' - ');
 
     const scrambleLines = window.map((s, i) => {
-      const display = getDisplayTime(s, precision);
+      const display = getDisplayTimeForExport(s, precision, exportFmt);
       const timeStr = i === bestIdx || i === worstIdx ? `(${display})` : display;
       return `${i + 1}. ${timeStr}   ${s.scramble}`;
     });
@@ -107,9 +108,10 @@ const AverageDetailModal = observer(function AverageDetailModal({ solves, size, 
   };
 
   const handleExportCsv = () => {
+    const exportFmt = settingsStore.timeFormat;
     const header = '#,Time,Penalty,Scramble,CrossColor,Date';
     const csvRows = solves.slice(0, size).map((s, i) => {
-      const time = getDisplayTime(s, precision);
+      const time = getDisplayTimeForExport(s, precision, exportFmt);
       const penalty = s.penalty === 'none' ? '' : s.penalty;
       const scramble = `"${s.scramble.replace(/"/g, '""')}"`;
       const cross = CROSS_COLOR_LABEL[s.crossColor] ?? s.crossColor;

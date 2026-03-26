@@ -47,7 +47,7 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           pb: 0.5,
         }}>
         {t('settings.title')}
-        <IconButton size="small" onClick={onClose} sx={{ color: 'text.secondary' }}>
+        <IconButton size="small" onClick={onClose} aria-label={t('common.cancel')} sx={{ color: 'text.secondary' }}>
           <CloseIcon sx={{ fontSize: 18 }} />
         </IconButton>
       </DialogTitle>

@@ -10,7 +10,7 @@ interface SectionResetButtonProps {
 export default function SectionResetButton({ visible, onClick }: SectionResetButtonProps) {
   const { t } = useTranslation();
   return (
-    <Fade in={visible}>
+    <Fade in={visible} unmountOnExit>
       <Button
         size="small"
         variant="text"
@@ -22,7 +22,6 @@ export default function SectionResetButton({ visible, onClick }: SectionResetBut
           color: 'text.secondary',
           minWidth: 0,
           px: 1,
-          visibility: visible ? 'visible' : 'hidden',
         }}>
         {t('settings.resetToDefault')}
       </Button>

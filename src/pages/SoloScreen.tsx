@@ -15,8 +15,6 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import GroupsIcon from '@mui/icons-material/Groups';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { observer } from 'mobx-react-lite';
@@ -31,7 +29,6 @@ import ServerStatusDot from '../components/room/ServerStatusDot';
 import SoloHistory from '../components/solo/SoloHistory';
 import SoloSolveDetailModal from '../components/solo/SoloSolveDetailModal';
 import AverageDetailModal from '../components/solo/AverageDetailModal';
-import LanguageSelect from '../components/organisims/LanguageSelect';
 import SettingsDialog from '../components/settings/SettingsDialog';
 import { formatTime, getDisplayTime } from '../lib/utils/formatTime';
 import { formatAverage } from '../lib/utils/averages';
@@ -47,7 +44,7 @@ const LABEL_SX = {
 } as const;
 
 const SoloScreen = observer(function SoloScreen() {
-  const { timerStore, soloStore, themeStore, settingsStore } = useStore();
+  const { timerStore, soloStore, settingsStore } = useStore();
   const { t } = useTranslation();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
@@ -188,17 +185,6 @@ const SoloScreen = observer(function SoloScreen() {
               title={t('settings.title')}>
               <SettingsIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
             </IconButton>
-            <IconButton
-              size="small"
-              onClick={themeStore.toggle}
-              title={t('settings.toggleTheme')}>
-              {themeStore.scheme === 'dark' ? (
-                <LightModeIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-              ) : (
-                <DarkModeIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-              )}
-            </IconButton>
-            <LanguageSelect />
             <Button
               variant="outlined"
               size="small"

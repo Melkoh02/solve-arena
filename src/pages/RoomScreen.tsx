@@ -13,9 +13,8 @@ import {
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
-import LightModeIcon from '@mui/icons-material/LightMode';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { observer } from 'mobx-react-lite';
 import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +24,7 @@ import Timer, { useTimerTouch } from '../components/timer/Timer';
 import HostControls from '../components/room/HostControls';
 import PlayerSidebar from '../components/room/PlayerSidebar';
 import ResultsTable from '../components/room/ResultsTable';
-import LanguageSelect from '../components/organisims/LanguageSelect';
+import SettingsDialog from '../components/settings/SettingsDialog';
 import { getDisplayTime } from '../lib/utils/formatTime';
 import type { PbNotification } from '../lib/stores/roomStore';
 import type { CrossColor } from '../lib/types/room';
@@ -41,7 +40,7 @@ const LABEL_SX = {
 const SIDEBAR_WIDTH = 260;
 
 const RoomScreen = observer(function RoomScreen() {
-  const { timerStore, roomStore, soloStore, themeStore } = useStore();
+  const { timerStore, roomStore, soloStore } = useStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const muiTheme = useMuiTheme();
@@ -49,6 +48,7 @@ const RoomScreen = observer(function RoomScreen() {
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
   const [pbSnack, setPbSnack] = useState<PbNotification | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const pbSnackRef = useRef(pbSnack);
   pbSnackRef.current = pbSnack;
 
@@ -344,16 +344,10 @@ const RoomScreen = observer(function RoomScreen() {
               </Typography>
               <IconButton
                 size="small"
-                onClick={themeStore.toggle}
-                aria-label={t('settings.toggleTheme')}
-                title={t('settings.toggleTheme')}>
-                {themeStore.scheme === 'dark' ? (
-                  <LightModeIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                ) : (
-                  <DarkModeIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-                )}
+                onClick={() => setSettingsOpen(true)}
+                title={t('settings.title')}>
+                <SettingsIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
               </IconButton>
-              <LanguageSelect />
               <IconButton
                 size="small"
                 onClick={handleLeave}
@@ -450,6 +444,9 @@ const RoomScreen = observer(function RoomScreen() {
           </Box>
         )}
       </Box>
+
+      {/* Settings dialog */}
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
 
       {/* PB notification */}
       <Snackbar
