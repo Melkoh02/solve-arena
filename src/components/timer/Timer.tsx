@@ -121,7 +121,10 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
         e.preventDefault();
         timerStore.stopTimer(e.code === 'Escape');
         stopTimestamp.current = Date.now();
-        isKeyDown.current = true;
+        // Only mark key as down if it's a key we handle on keyup (space/color).
+        // Otherwise the keyup won't reset it and the next press gets blocked.
+        const stopColorKey = COLOR_KEYS[e.key.toLowerCase()];
+        isKeyDown.current = e.code === 'Space' || !!stopColorKey;
         clearHoldTimer();
         return;
       }
