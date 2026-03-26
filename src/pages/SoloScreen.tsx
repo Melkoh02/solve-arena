@@ -121,7 +121,8 @@ const SoloScreen = observer(function SoloScreen() {
             timerStore.setShowDnf(true);
           } else {
             timerStore.setShowDnf(false);
-            const effTime = last.penalty === '+2' ? last.time + 2000 : last.time;
+            const effTime =
+              last.penalty === '+2' ? last.time + 2000 : last.time;
             timerStore.updateDisplayTime(effTime);
           }
         },
@@ -275,11 +276,11 @@ const SoloScreen = observer(function SoloScreen() {
 
         {/* Stats bar (rolling averages) */}
         {!isTimerRunning && soloStore.eventSolves.length > 0 && (
-          <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
-            <Typography sx={{ ...LABEL_SX, fontSize: '0.65rem' }}>
+          <Stack direction="row" spacing={3}>
+            <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
               ao5: {formatAverage(soloStore.ao5, precision)}
             </Typography>
-            <Typography sx={{ ...LABEL_SX, fontSize: '0.65rem' }}>
+            <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
               ao12: {formatAverage(soloStore.ao12, precision)}
             </Typography>
           </Stack>
@@ -390,7 +391,10 @@ const SoloScreen = observer(function SoloScreen() {
       />
 
       {/* Settings dialog */}
-      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsDialog
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+      />
 
       {/* Solve detail modal */}
       <SoloSolveDetailModal
