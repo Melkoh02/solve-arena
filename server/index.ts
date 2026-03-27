@@ -285,6 +285,13 @@ io.on('connection', socket => {
     broadcastRoomState(room);
   });
 
+  socket.on('timer-start', () => {
+    if (!currentRoom) return;
+    const room = rooms.get(currentRoom);
+    if (!room) return;
+    socket.to(room.code).emit('player-solving', { playerId: socket.id });
+  });
+
   socket.on('leave-room', () => handleLeave());
   socket.on('disconnect', () => handleLeave());
 

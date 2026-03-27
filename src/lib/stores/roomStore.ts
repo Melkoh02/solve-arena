@@ -33,6 +33,7 @@ export class RoomStore {
   error: string | null = null;
   isJoining = false;
   pendingSubmissionRound: number | null = null;
+  solvingPlayerIds: Set<string> = new Set();
 
   // PB tracking
   pbNotificationQueue: PbNotification[] = [];
@@ -68,6 +69,7 @@ export class RoomStore {
         this.currentRound = 0;
         this.currentScramble = '';
         this.pendingSubmissionRound = null;
+        this.solvingPlayerIds.clear();
       });
     });
 
@@ -80,6 +82,19 @@ export class RoomStore {
         this.currentRound = state.currentRound;
         this.players = state.players;
         this.solves = state.solves;
+
+        // Clear solving players who have submitted or when round advances
+        const currentRoundSolveIds = new Set(
+          state.solves.filter(s => s.round === state.currentRound).map(s => s.playerId),
+        );
+        for (const id of this.solvingPlayerIds) {
+          if (currentRoundSolveIds.has(id)) {
+            this.solvingPlayerIds.delete(id);
+          }
+        }
+        if (state.currentRound !== this.currentRound) {
+          this.solvingPlayerIds.clear();
+        }
 
         // Clear optimistic submit state once the server reflects our submission
         // or once the round has advanced.
@@ -113,6 +128,12 @@ export class RoomStore {
         this.error = 'errors.kicked';
       });
       this.socket.disconnect();
+    });
+
+    this.socket.on('player-solving', ({ playerId }) => {
+      runInAction(() => {
+        this.solvingPlayerIds.add(playerId);
+      });
     });
 
     this.socket.on('error', ({ message }) => {
@@ -298,7 +319,13 @@ export class RoomStore {
     this.pendingSubmissionRound = null;
   }
 
+  emitTimerStart() {
+    this.solvingPlayerIds.add(this.socket.id);
+    this.socket.emit('timer-start');
+  }
+
   submitTime(time: number, dnf = false) {
+    this.solvingPlayerIds.delete(this.socket.id);
     this.pendingSubmissionRound = this.currentRound;
     this.socket.emit('submit-time', { time, dnf });
   }

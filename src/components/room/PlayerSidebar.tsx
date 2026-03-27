@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Box,
@@ -7,11 +8,13 @@ import {
   Typography,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { formatTime, getDisplayTime } from '../../lib/utils/formatTime';
 import CrossColorPicker from './CrossColorPicker';
-import { calculateAverage, formatAverage } from '../../lib/utils/averages';
+import { CROSS_COLORS } from '../../lib/constants/crossColors';
+import { calculateAverage, formatAverage, getEffectiveTime } from '../../lib/utils/averages';
 import type { Penalty } from '../../lib/types/timer';
 import type { RoomSolve } from '../../lib/types/room';
 
@@ -47,8 +50,34 @@ const PlayerSidebar = observer(function PlayerSidebar() {
       s => s.playerId === playerId && s.round === prevRound,
     );
 
+  // Count wins per player (rounds where they had the fastest effective time)
+  const winsByPlayer = useMemo(() => {
+    const wins = new Map<string, number>();
+    const completedRounds = new Set<number>();
+    for (const s of roomStore.solves) {
+      if (s.round < roomStore.currentRound) completedRounds.add(s.round);
+    }
+    for (const round of completedRounds) {
+      const roundSolves = roomStore.solves.filter(s => s.round === round);
+      if (roundSolves.length === 0) continue;
+      let bestId: string | null = null;
+      let bestTime = Infinity;
+      for (const s of roundSolves) {
+        const eff = getEffectiveTime(s);
+        if (eff < bestTime) {
+          bestTime = eff;
+          bestId = s.playerId;
+        }
+      }
+      if (bestId && bestTime < Infinity) {
+        wins.set(bestId, (wins.get(bestId) ?? 0) + 1);
+      }
+    }
+    return wins;
+  }, [roomStore.solves, roomStore.currentRound]);
+
   return (
-    <Box sx={{ px: 1.5, overflow: 'auto', flex: 1 }}>
+    <Box sx={{ px: 1.5, overflow: 'auto', flex: 1, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
       <Typography sx={{ ...LABEL_SX, px: 0.5, mb: 1 }}>
         {t('room.competitors')}
       </Typography>
@@ -63,6 +92,12 @@ const PlayerSidebar = observer(function PlayerSidebar() {
         const bestTime = roomStore.getBestTime(player.id);
         const globalAvg = roomStore.getGlobalAverage(player.id);
         const hasFinished = !!currentSolve;
+        const isSolving = !hasFinished && roomStore.solvingPlayerIds.has(player.id);
+        const winCount = winsByPlayer.get(player.id) ?? 0;
+
+        // Dot color: green = finished, yellow = solving, gray = idle
+        const dotColor = hasFinished ? '#4caf50' : isSolving ? '#ffb300' : undefined;
+        const dotOpacity = hasFinished || isSolving ? 1 : 0.3;
 
         return (
           <Box
@@ -108,6 +143,23 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                     {t('room.host')}
                   </Typography>
                 )}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.25,
+                    color: winCount > 0 ? 'primary.main' : 'text.secondary',
+                    opacity: winCount > 0 ? 1 : 0.5,
+                  }}>
+                  <EmojiEventsIcon sx={{ fontSize: 14 }} />
+                  <Typography
+                    sx={{
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                    }}>
+                    {winCount}
+                  </Typography>
+                </Box>
               </Box>
               <Box
                 sx={{
@@ -115,11 +167,13 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                   height: 8,
                   borderRadius: '50%',
                   flexShrink: 0,
-                  bgcolor: hasFinished ? 'primary.main' : 'text.secondary',
-                  opacity: hasFinished ? 1 : 0.3,
+                  bgcolor: dotColor ?? 'text.secondary',
+                  opacity: dotOpacity,
                   boxShadow: hasFinished
-                    ? '0 0 6px rgba(255, 105, 180, 0.5)'
-                    : 'none',
+                    ? '0 0 6px rgba(76, 175, 80, 0.5)'
+                    : isSolving
+                      ? '0 0 6px rgba(255, 179, 0, 0.5)'
+                      : 'none',
                   transition: 'all 0.2s',
                 }}
               />
@@ -196,7 +250,7 @@ const PlayerSidebar = observer(function PlayerSidebar() {
               )}
             </Box>
 
-            {/* Row 4: Penalty buttons + cross color (own current-round solve) */}
+            {/* Row 4: Penalty buttons + cross color (own solve) / read-only cross color (others) */}
             {currentSolve && isMe && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.75 }}>
                 <ButtonGroup size="small">
@@ -225,6 +279,21 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                   value={currentSolve.crossColor}
                   onChange={color => roomStore.updateCrossColor(currentSolve.id, color)}
                   size={20}
+                />
+              </Box>
+            )}
+            {currentSolve && !isMe && currentSolve.crossColor && (
+              <Box sx={{ mt: 0.75 }}>
+                <Box
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 0.75,
+                    bgcolor: CROSS_COLORS.find(c => c.key === currentSolve.crossColor)?.hex ?? '#FFFFFF',
+                    border: '2px solid',
+                    borderColor: 'divider',
+                    flexShrink: 0,
+                  }}
                 />
               </Box>
             )}

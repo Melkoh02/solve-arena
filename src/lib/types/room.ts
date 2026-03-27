@@ -47,10 +47,12 @@ export interface ClientToServerEvents {
   'kick-player': (data: { playerId: string }) => void;
   'next-scramble': () => void;
   'reset-room': () => void;
+  'timer-start': () => void;
 }
 
 export interface ServerToClientEvents {
   'room-state': (state: RoomState) => void;
+  'player-solving': (data: { playerId: string }) => void;
   kicked: () => void;
   error: (data: { message: string }) => void;
 }

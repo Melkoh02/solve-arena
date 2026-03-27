@@ -20,6 +20,15 @@ import SolveDetailModal from './SolveDetailModal';
 import type { Player, RoomSolve } from '../../lib/types/room';
 import type { Penalty } from '../../lib/types/timer';
 import CrossColorPicker from './CrossColorPicker';
+import { CROSS_COLORS } from '../../lib/constants/crossColors';
+
+const HEADER_SX = {
+  bgcolor: 'background.paper',
+  fontWeight: 700,
+  fontSize: '0.7rem',
+  userSelect: 'none',
+  whiteSpace: 'nowrap',
+} as const;
 
 const ResultsTable = observer(function ResultsTable() {
   const { roomStore, settingsStore } = useStore();
@@ -33,6 +42,13 @@ const ResultsTable = observer(function ResultsTable() {
       .filter(r => r < roomStore.currentRound)
       .sort((a, b) => b - a);
   }, [roomStore.solves, roomStore.currentRound]);
+
+  // Sort players so "You" is always first
+  const sortedPlayers = useMemo(() => {
+    const me = roomStore.players.find(p => p.id === roomStore.playerId);
+    const others = roomStore.players.filter(p => p.id !== roomStore.playerId);
+    return me ? [me, ...others] : others;
+  }, [roomStore.players, roomStore.playerId]);
 
   if (completedRounds.length === 0) return null;
 
@@ -61,33 +77,19 @@ const ResultsTable = observer(function ResultsTable() {
 
   return (
     <>
-      <Typography
-        sx={{
-          textTransform: 'uppercase',
-          letterSpacing: '0.12em',
-          fontSize: '0.6rem',
-          fontWeight: 700,
-          color: 'text.secondary',
-          mb: 1,
-        }}>
-        {t('room.history')}
-      </Typography>
       <TableContainer
         sx={{
-          borderRadius: 2,
-          border: '1px solid',
-          borderColor: 'divider',
-          bgcolor: 'background.paper',
-          maxHeight: 180,
+          pb: 2,
+          overflow: 'visible',
         }}>
         <Table stickyHeader size="small">
           <TableHead>
             <TableRow>
-              <TableCell sx={{ bgcolor: 'background.paper' }}>
+              <TableCell sx={{ ...HEADER_SX, width: 40 }}>
                 {t('room.round')}
               </TableCell>
-              {roomStore.players.map((player: Player) => (
-                <TableCell key={player.id} sx={{ bgcolor: 'background.paper' }}>
+              {sortedPlayers.map((player: Player) => (
+                <TableCell key={player.id} sx={HEADER_SX}>
                   {player.id === roomStore.playerId
                     ? t('room.you')
                     : player.name}
@@ -97,14 +99,14 @@ const ResultsTable = observer(function ResultsTable() {
           </TableHead>
           <TableBody>
             {completedRounds.map(round => (
-              <TableRow key={round}>
+              <TableRow key={round} hover>
                 <TableCell
-                  sx={{ color: 'text.secondary', fontFamily: 'monospace' }}>
+                  sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.75rem' }}>
                   {round}
                 </TableCell>
                 {(() => {
                   const fastestId = getFastestId(round);
-                  return roomStore.players.map((player: Player) => {
+                  return sortedPlayers.map((player: Player) => {
                     const solve = getSolve(round, player.id);
                     const isMe = player.id === roomStore.playerId;
                     const isFastest = solve?.id === fastestId;
@@ -116,30 +118,23 @@ const ResultsTable = observer(function ResultsTable() {
                             sx={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: 3,
+                              gap: 1,
                             }}>
                             <Typography
-                              variant="body2"
                               component="span"
                               onClick={() => setSelectedSolve(solve)}
                               sx={{
                                 fontFamily: 'monospace',
                                 fontVariantNumeric: 'tabular-nums',
-                                fontWeight: isFastest ? 600 : 400,
+                                fontWeight: 600,
                                 color: isFastest ? 'primary.main' : 'text.primary',
-                              fontSize: '0.8rem',
-                              minWidth: '4.5em',
-                              display: 'inline-block',
-                              textAlign: 'right',
-                              cursor: 'pointer',
-                              '&:hover': {
-                                textDecoration: 'underline',
-                                opacity: 0.8,
-                              },
-                            }}>
+                                fontSize: '0.8rem',
+                                cursor: 'pointer',
+                                '&:hover': { color: 'primary.main' },
+                              }}>
                             {getDisplayTime(solve, precision)}
                           </Typography>
-                          {isMe && (
+                          {isMe ? (
                             <>
                               <ButtonGroup size="small">
                                 <Button
@@ -191,6 +186,18 @@ const ResultsTable = observer(function ResultsTable() {
                                 size={18}
                               />
                             </>
+                          ) : solve.crossColor && (
+                            <Box
+                              sx={{
+                                width: 18,
+                                height: 18,
+                                borderRadius: 0.75,
+                                bgcolor: CROSS_COLORS.find(c => c.key === solve.crossColor)?.hex ?? '#FFFFFF',
+                                border: '2px solid',
+                                borderColor: 'divider',
+                                flexShrink: 0,
+                              }}
+                            />
                           )}
                         </Box>
                       ) : (

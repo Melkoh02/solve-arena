@@ -40,7 +40,7 @@ const LABEL_SX = {
 const SIDEBAR_WIDTH = 260;
 
 const RoomScreen = observer(function RoomScreen() {
-  const { timerStore, roomStore, soloStore } = useStore();
+  const { timerStore, roomStore, soloStore, settingsStore } = useStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const muiTheme = useMuiTheme();
@@ -95,6 +95,11 @@ const RoomScreen = observer(function RoomScreen() {
     }, 300);
   };
 
+  // Reset timer to 0.00 when entering a room (e.g. after a solo solve)
+  useEffect(() => {
+    timerStore.resetToIdle();
+  }, [timerStore]);
+
   useEffect(() => {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
@@ -105,6 +110,9 @@ const RoomScreen = observer(function RoomScreen() {
       reaction(
         () => timerStore.timerPhase,
         (phase, prevPhase) => {
+          if (phase === 'running' && prevPhase !== 'running') {
+            roomStore.emitTimerStart();
+          }
           if (phase === 'stopped' && prevPhase === 'running' && !roomStore.hasSubmittedCurrentRound) {
             roomStore.submitTime(timerStore.displayTime, timerStore.lastStopWasDnf);
             // Apply the pending color after a short delay (wait for room-state with the new solve)
@@ -182,7 +190,25 @@ const RoomScreen = observer(function RoomScreen() {
 
   const mySolve = roomStore.myCurrentRoundSolve;
   const isTimerRunning = timerStore.timerPhase === 'running';
-  const shouldShowWaitingState = roomStore.isWaitingForOtherPlayers && !isTimerRunning;
+  const shouldShowWaitingState =
+    roomStore.isWaitingForOtherPlayers &&
+    !isTimerRunning &&
+    !roomStore.areAllPlayersSubmittedCurrentRound;
+  const precision = settingsStore.timerPrecision;
+
+  // Previous solves for display below timer (my solves from past rounds, newest first)
+  const previousSolves = (() => {
+    const myId = roomStore.playerId;
+    if (!myId) return [];
+    const mySolves = roomStore.solves
+      .filter(s => s.playerId === myId && s.round < roomStore.currentRound)
+      .sort((a, b) => b.round - a.round);
+    // If current round solve is shown as "YOUR TIME", exclude it and show previous ones
+    if (mySolve && roomStore.hasSubmittedCurrentRound) {
+      return mySolves.slice(0, 4);
+    }
+    return mySolves.slice(0, 4);
+  })();
 
   return (
     <Box
@@ -275,9 +301,7 @@ const RoomScreen = observer(function RoomScreen() {
 
           <PlayerSidebar />
 
-          <Box sx={{ flex: 1 }} />
-
-          <Box sx={{ p: 2, pt: 0 }}>
+          <Box sx={{ p: 2, pt: 0, flexShrink: 0 }}>
             <HostControls />
             <Button
               variant="outlined"
@@ -364,14 +388,13 @@ const RoomScreen = observer(function RoomScreen() {
           onTouchStart={touchHandlers.onTouchStart}
           onTouchEnd={touchHandlers.onTouchEnd}
           sx={{
-            flex: 1,
+            flex: isTimerRunning ? 1 : '0 0 auto',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             px: { xs: 2, sm: 3, md: 4 },
-            overflow: 'auto',
-            minHeight: 0,
+            py: { xs: 1, md: 2 },
             touchAction: 'none',
             WebkitTapHighlightColor: 'transparent',
             cursor: 'pointer',
@@ -429,17 +452,63 @@ const RoomScreen = observer(function RoomScreen() {
           ) : (
             <Timer disabled={isTimerDisabled} onColorStart={handleColorStart} />
           )}
+
+          {/* Previous solves stack */}
+          {!isTimerRunning && previousSolves.length > 0 && (
+            <Box sx={{ textAlign: 'center', mt: 1 }}>
+              {previousSolves.map((solve, i) => (
+                <Typography
+                  key={solve.id}
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontVariantNumeric: 'tabular-nums',
+                    fontSize: `${2.4 - i * 0.35}rem`,
+                    fontWeight: 600,
+                    color: 'text.secondary',
+                    opacity: 0.5 - i * 0.08,
+                    lineHeight: 1.7,
+                    userSelect: 'none',
+                  }}>
+                  {getDisplayTime(solve, precision)}
+                </Typography>
+              ))}
+            </Box>
+          )}
         </Box>
 
         {/* Results history — hidden when timer is running */}
         {!isTimerRunning && (
           <Box
             sx={{
-              height: { xs: 160, md: 220 },
-              flexShrink: 0,
-              px: { xs: 1.5, sm: 2, md: 3 },
-              pb: 2,
+              flex: '1 1 0',
+              minHeight: 0,
+              borderTop: '1px solid',
+              borderColor: 'divider',
+              overflowY: 'auto',
             }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: { xs: 1.5, sm: 2, md: 3 },
+                py: 1,
+                position: 'sticky',
+                top: 0,
+                zIndex: 2,
+                bgcolor: 'background.default',
+              }}>
+              <Typography
+                sx={{
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  fontSize: '0.6rem',
+                  fontWeight: 700,
+                  color: 'text.secondary',
+                }}>
+                {t('room.history')}
+              </Typography>
+            </Box>
             <ResultsTable />
           </Box>
         )}
