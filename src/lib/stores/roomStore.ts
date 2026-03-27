@@ -75,6 +75,8 @@ export class RoomStore {
 
     this.socket.on('room-state', (state: RoomState) => {
       runInAction(() => {
+        const prevRound = this.currentRound;
+
         this.roomCode = state.code;
         this.hostId = state.hostId;
         this.eventId = state.eventId;
@@ -83,17 +85,18 @@ export class RoomStore {
         this.players = state.players;
         this.solves = state.solves;
 
-        // Clear solving players who have submitted or when round advances
-        const currentRoundSolveIds = new Set(
-          state.solves.filter(s => s.round === state.currentRound).map(s => s.playerId),
-        );
-        for (const id of this.solvingPlayerIds) {
-          if (currentRoundSolveIds.has(id)) {
-            this.solvingPlayerIds.delete(id);
-          }
-        }
-        if (state.currentRound !== this.currentRound) {
+        // Clear solving players when round advances or when they've submitted
+        if (state.currentRound !== prevRound) {
           this.solvingPlayerIds.clear();
+        } else {
+          const currentRoundSolveIds = new Set(
+            state.solves.filter(s => s.round === state.currentRound).map(s => s.playerId),
+          );
+          for (const id of this.solvingPlayerIds) {
+            if (currentRoundSolveIds.has(id)) {
+              this.solvingPlayerIds.delete(id);
+            }
+          }
         }
 
         // Clear optimistic submit state once the server reflects our submission
