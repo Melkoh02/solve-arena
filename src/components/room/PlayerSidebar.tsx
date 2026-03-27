@@ -61,6 +61,7 @@ const PlayerSidebar = observer(function PlayerSidebar() {
         const ao5 = calculateAverage(playerSolves, 5, 2);
         const ao12 = calculateAverage(playerSolves, 12, 3);
         const bestTime = roomStore.getBestTime(player.id);
+        const globalAvg = roomStore.getGlobalAverage(player.id);
         const hasFinished = !!currentSolve;
 
         return (
@@ -175,6 +176,11 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                   variant="caption"
                   sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
                   ao12: {formatAverage(ao12, precision)}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                  avg: {globalAvg !== null ? formatTime(globalAvg, precision) : '-'}
                 </Typography>
               </Box>
               {roomStore.isHost && !isMe && (

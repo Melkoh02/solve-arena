@@ -337,6 +337,17 @@ export class RoomStore {
     return isFinite(best) ? best : null;
   }
 
+  getGlobalAverage(playerId: string): number | null {
+    const times: number[] = [];
+    for (const s of this.solves) {
+      if (s.playerId !== playerId) continue;
+      const eff = getEffectiveTime(s);
+      if (isFinite(eff)) times.push(eff);
+    }
+    if (times.length === 0) return null;
+    return times.reduce((a, b) => a + b, 0) / times.length;
+  }
+
   shiftPbNotification(): PbNotification | undefined {
     return this.pbNotificationQueue.shift();
   }
