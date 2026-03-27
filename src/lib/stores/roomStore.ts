@@ -320,12 +320,12 @@ export class RoomStore {
   }
 
   emitTimerStart() {
-    this.solvingPlayerIds.add(this.socket.id);
+    if (this.socket.id) this.solvingPlayerIds.add(this.socket.id);
     this.socket.emit('timer-start');
   }
 
   submitTime(time: number, dnf = false) {
-    this.solvingPlayerIds.delete(this.socket.id);
+    if (this.socket.id) this.solvingPlayerIds.delete(this.socket.id);
     this.pendingSubmissionRound = this.currentRound;
     this.socket.emit('submit-time', { time, dnf });
   }
