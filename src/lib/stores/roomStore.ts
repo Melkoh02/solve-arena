@@ -35,7 +35,7 @@ export class RoomStore {
   isReconnecting = false;
   pendingSubmissionRound: number | null = null;
   solvingPlayerIds: Set<string> = new Set();
-  private lastKnownPlayerId: string | null = null;
+  lastKnownPlayerId: string | null = null;
   private pendingRejoinCode: string | null = null;
 
   // PB tracking
@@ -150,11 +150,11 @@ export class RoomStore {
         // or once the round has advanced.
         if (
           this.pendingSubmissionRound !== null &&
-          this.socket.id &&
+          this.lastKnownPlayerId &&
           (state.currentRound > this.pendingSubmissionRound ||
             state.solves.some(
               s =>
-                s.playerId === this.socket.id &&
+                s.playerId === this.lastKnownPlayerId &&
                 s.round === this.pendingSubmissionRound,
             ))
         ) {
@@ -198,11 +198,11 @@ export class RoomStore {
   }
 
   get isHost(): boolean {
-    return this.socket.id != null && this.socket.id === this.hostId;
+    return this.lastKnownPlayerId != null && this.lastKnownPlayerId === this.hostId;
   }
 
   get playerId(): string | undefined {
-    return this.socket.id;
+    return this.lastKnownPlayerId ?? undefined;
   }
 
   get currentRoundSolves(): RoomSolve[] {
@@ -213,10 +213,10 @@ export class RoomStore {
     const submittedIds = new Set(this.currentRoundSolves.map(s => s.playerId));
     if (
       this.pendingSubmissionRound === this.currentRound &&
-      this.socket.id &&
-      !submittedIds.has(this.socket.id)
+      this.lastKnownPlayerId &&
+      !submittedIds.has(this.lastKnownPlayerId)
     ) {
-      submittedIds.add(this.socket.id);
+      submittedIds.add(this.lastKnownPlayerId);
     }
     return submittedIds.size;
   }
@@ -230,8 +230,8 @@ export class RoomStore {
   }
 
   get hasSubmittedCurrentRound(): boolean {
-    if (!this.socket.id) return false;
-    return this.currentRoundSolves.some(s => s.playerId === this.socket.id);
+    if (!this.lastKnownPlayerId) return false;
+    return this.currentRoundSolves.some(s => s.playerId === this.lastKnownPlayerId);
   }
 
   get hasSubmittedOrPendingCurrentRound(): boolean {
@@ -250,8 +250,8 @@ export class RoomStore {
   }
 
   get myCurrentRoundSolve(): RoomSolve | undefined {
-    if (!this.socket.id) return undefined;
-    return this.currentRoundSolves.find(s => s.playerId === this.socket.id);
+    if (!this.lastKnownPlayerId) return undefined;
+    return this.currentRoundSolves.find(s => s.playerId === this.lastKnownPlayerId);
   }
 
   setPlayerName(name: string) {
@@ -373,12 +373,12 @@ export class RoomStore {
   }
 
   emitTimerStart() {
-    if (this.socket.id) this.solvingPlayerIds.add(this.socket.id);
+    if (this.lastKnownPlayerId) this.solvingPlayerIds.add(this.lastKnownPlayerId);
     this.socket.emit('timer-start');
   }
 
   submitTime(time: number, dnf = false) {
-    if (this.socket.id) this.solvingPlayerIds.delete(this.socket.id);
+    if (this.lastKnownPlayerId) this.solvingPlayerIds.delete(this.lastKnownPlayerId);
     this.pendingSubmissionRound = this.currentRound;
     this.socket.emit('submit-time', { time, dnf });
   }
@@ -458,7 +458,7 @@ export class RoomStore {
         playerName: solve.playerName,
         playerId: solve.playerId,
         time: timeStr,
-        isSelf: solve.playerId === this.socket.id,
+        isSelf: solve.playerId === this.lastKnownPlayerId,
       });
     } else if (effTime < (this.previousBestTimes.get(solve.playerId) ?? Infinity)) {
       // Not a PB but update tracking if needed
