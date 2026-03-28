@@ -35,7 +35,7 @@ export class RoomStore {
   isReconnecting = false;
   pendingSubmissionRound: number | null = null;
   solvingPlayerIds: Set<string> = new Set();
-  private oldPlayerId: string | null = null;
+  private lastKnownPlayerId: string | null = null;
   private pendingRejoinCode: string | null = null;
 
   // PB tracking
@@ -61,12 +61,11 @@ export class RoomStore {
       runInAction(() => {
         this.isConnected = true;
         // Auto-rejoin if we were in a room
-        if (this.pendingRejoinCode && this.oldPlayerId) {
+        if (this.pendingRejoinCode && this.lastKnownPlayerId) {
           this.isReconnecting = true;
           const code = this.pendingRejoinCode;
-          const oldId = this.oldPlayerId;
+          const oldId = this.lastKnownPlayerId;
           this.pendingRejoinCode = null;
-          this.oldPlayerId = null;
           this.socket.emit('rejoin-room', {
             roomCode: code,
             playerName: this.playerName,
@@ -85,6 +84,8 @@ export class RoomStore {
             });
           });
         }
+        // Track current socket id for future reconnects
+        this.lastKnownPlayerId = this.socket.id ?? null;
       });
     });
 
@@ -92,9 +93,9 @@ export class RoomStore {
       runInAction(() => {
         this.isConnected = false;
         // If we were in a room, preserve state for rejoin
+        // lastKnownPlayerId was already saved on connect
         if (this.roomCode) {
           this.pendingRejoinCode = this.roomCode;
-          this.oldPlayerId = this.socket.id ?? null;
           this.isReconnecting = true;
         }
         this.pendingSubmissionRound = null;
@@ -350,7 +351,7 @@ export class RoomStore {
     this.processedSolveIds.clear();
     this.pendingSubmissionRound = null;
     this.pendingRejoinCode = null;
-    this.oldPlayerId = null;
+    this.lastKnownPlayerId = null;
     this.isReconnecting = false;
   }
 
