@@ -2,8 +2,6 @@ import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Box,
-  Button,
-  ButtonGroup,
   IconButton,
   Tooltip,
   Typography,
@@ -13,10 +11,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { formatTime, getDisplayTime } from '../../lib/utils/formatTime';
-import CrossColorPicker from './CrossColorPicker';
-import { CROSS_COLORS } from '../../lib/constants/crossColors';
 import { calculateAverage, formatAverage, getEffectiveTime } from '../../lib/utils/averages';
-import type { Penalty } from '../../lib/types/timer';
 import type { RoomSolve } from '../../lib/types/room';
 
 const LABEL_SX = {
@@ -267,53 +262,6 @@ const PlayerSidebar = observer(function PlayerSidebar() {
               )}
             </Box>
 
-            {/* Row 4: Penalty buttons + cross color (own solve) / read-only cross color (others) */}
-            {currentSolve && isMe && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.75 }}>
-                <ButtonGroup size="small">
-                  <Button
-                    variant={
-                      currentSolve.penalty === '+2' ? 'contained' : 'outlined'
-                    }
-                    sx={{ minWidth: 32, fontSize: '0.65rem', py: 0 }}
-                    onClick={() =>
-                      roomStore.updatePenalty(currentSolve.id, '+2' as Penalty)
-                    }>
-                    +2
-                  </Button>
-                  <Button
-                    variant={
-                      currentSolve.penalty === 'DNF' ? 'contained' : 'outlined'
-                    }
-                    sx={{ minWidth: 32, fontSize: '0.65rem', py: 0 }}
-                    onClick={() =>
-                      roomStore.updatePenalty(currentSolve.id, 'DNF' as Penalty)
-                    }>
-                    DNF
-                  </Button>
-                </ButtonGroup>
-                <CrossColorPicker
-                  value={currentSolve.crossColor}
-                  onChange={color => roomStore.updateCrossColor(currentSolve.id, color)}
-                  size={20}
-                />
-              </Box>
-            )}
-            {currentSolve && !isMe && currentSolve.crossColor && (
-              <Box sx={{ mt: 0.75 }}>
-                <Box
-                  sx={{
-                    width: 20,
-                    height: 20,
-                    borderRadius: 0.75,
-                    bgcolor: CROSS_COLORS.find(c => c.key === currentSolve.crossColor)?.hex ?? '#FFFFFF',
-                    border: '2px solid',
-                    borderColor: 'divider',
-                    flexShrink: 0,
-                  }}
-                />
-              </Box>
-            )}
           </Box>
         );
       })}
