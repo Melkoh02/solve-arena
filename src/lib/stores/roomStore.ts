@@ -52,12 +52,15 @@ export class RoomStore {
 
     this.socket = io(SOCKET_URL, {
       autoConnect: false,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 2000,
+      reconnection: true,
+      reconnectionAttempts: 50,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
       timeout: 10000,
     });
 
     this.socket.on('connect', () => {
+      console.log('[socket] connected, id:', this.socket.id, 'pendingRejoin:', this.pendingRejoinCode, 'oldId:', this.lastKnownPlayerId);
       runInAction(() => {
         this.isConnected = true;
         // Auto-rejoin if we were in a room
@@ -89,7 +92,8 @@ export class RoomStore {
       });
     });
 
-    this.socket.on('disconnect', () => {
+    this.socket.on('disconnect', (reason) => {
+      console.log('[socket] disconnected, reason:', reason, 'roomCode:', this.roomCode, 'lastKnownId:', this.lastKnownPlayerId);
       runInAction(() => {
         this.isConnected = false;
         // If we were in a room, preserve state for rejoin
@@ -100,6 +104,19 @@ export class RoomStore {
         }
         this.pendingSubmissionRound = null;
         this.solvingPlayerIds.clear();
+      });
+    });
+
+    this.socket.io.on('reconnect_failed', () => {
+      runInAction(() => {
+        this.isReconnecting = false;
+        this.pendingRejoinCode = null;
+        this.lastKnownPlayerId = null;
+        this.roomCode = null;
+        this.players = [];
+        this.solves = [];
+        this.currentRound = 0;
+        this.currentScramble = '';
       });
     });
 
