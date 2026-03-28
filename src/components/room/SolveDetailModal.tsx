@@ -11,13 +11,25 @@ import {
   Typography,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
-import { getDisplayTime } from '../../lib/utils/formatTime';
+import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
 import type { RoomSolve } from '../../lib/types/room';
 import type { Penalty } from '../../lib/types/timer';
 
-import { CROSS_COLORS } from '../../lib/constants/crossColors';
+import { CROSS_COLORS, CROSS_COLOR_LABEL } from '../../lib/constants/crossColors';
+
+function formatDateFull(ts: number): string {
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const mo = (d.getMonth() + 1).toString().padStart(2, '0');
+  const da = d.getDate().toString().padStart(2, '0');
+  const h = d.getHours().toString().padStart(2, '0');
+  const mi = d.getMinutes().toString().padStart(2, '0');
+  const s = d.getSeconds().toString().padStart(2, '0');
+  return `${y}-${mo}-${da} ${h}:${mi}:${s}`;
+}
 
 const LABEL_SX = {
   textTransform: 'uppercase',
@@ -245,6 +257,29 @@ const SolveDetailModal = observer(function SolveDetailModal({
             </Box>
           </Box>
         </Stack>
+
+        {/* Copy button */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
+            onClick={() => {
+              const exportFmt = settingsStore.timeFormat;
+              const text = [
+                `Time: ${getDisplayTimeForExport(solve, precision, exportFmt)}`,
+                `Scramble: ${solve.scramble}`,
+                `Cross: ${CROSS_COLOR_LABEL[solve.crossColor ?? 'w'] ?? solve.crossColor}`,
+                `Date: ${formatDateFull(solve.date)}`,
+                '',
+                'Powered by Solve Arena',
+              ].join('\n');
+              navigator.clipboard.writeText(text);
+            }}
+            sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
+            Copy
+          </Button>
+        </Box>
       </DialogContent>
     </Dialog>
   );

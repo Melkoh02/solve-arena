@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -44,6 +44,7 @@ const RoomScreen = observer(function RoomScreen() {
   const { timerStore, roomStore, soloStore, settingsStore } = useStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { code: urlCode } = useParams<{ code: string }>();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
@@ -186,18 +187,26 @@ const RoomScreen = observer(function RoomScreen() {
   );
 
   useEffect(() => {
-    if (!roomStore.isInRoom && !roomStore.isJoining) {
+    if (!roomStore.isInRoom && !roomStore.isJoining && !roomStore.isReconnecting) {
+      // Try auto-join from URL if we have a code and a saved name
+      if (urlCode && roomStore.playerName.trim()) {
+        roomStore.joinRoom(urlCode).then(success => {
+          if (!success) navigate('/');
+        });
+        return;
+      }
       navigate('/');
+      return;
     }
     return reaction(
       () => roomStore.isInRoom,
       isInRoom => {
-        if (!isInRoom && !roomStore.isJoining) {
+        if (!isInRoom && !roomStore.isJoining && !roomStore.isReconnecting) {
           navigate('/');
         }
       },
     );
-  }, [roomStore, navigate]);
+  }, [roomStore, navigate, urlCode]);
 
   const handleLeave = () => {
     roomStore.leaveRoom();
@@ -490,9 +499,6 @@ const RoomScreen = observer(function RoomScreen() {
 
           {roomStore.hasSubmittedCurrentRound && mySolve ? (
             <Box sx={{ textAlign: 'center' }}>
-              <Typography sx={{ ...LABEL_SX, mb: 1 }}>
-                {t('room.yourTime')}
-              </Typography>
               {(() => {
                 const timeStr = getDisplayTime(mySolve);
                 const dotIdx = timeStr.lastIndexOf('.');

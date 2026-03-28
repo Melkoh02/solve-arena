@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Box,
@@ -30,11 +30,15 @@ const HEADER_SX = {
   whiteSpace: 'nowrap',
 } as const;
 
+const PAGE_SIZE = 50;
+
 const ResultsTable = observer(function ResultsTable() {
   const { roomStore, settingsStore } = useStore();
   const { t } = useTranslation();
   const precision = settingsStore.timerPrecision;
   const [selectedSolve, setSelectedSolve] = useState<RoomSolve | null>(null);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const completedRounds = useMemo(() => {
     const rounds = new Set(roomStore.solves.map(s => s.round));
@@ -42,6 +46,32 @@ const ResultsTable = observer(function ResultsTable() {
       .filter(r => r < roomStore.currentRound)
       .sort((a, b) => b - a);
   }, [roomStore.solves, roomStore.currentRound]);
+
+  const visibleRounds = useMemo(
+    () => completedRounds.slice(0, visibleCount),
+    [completedRounds, visibleCount],
+  );
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [completedRounds.length]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const io = new IntersectionObserver(
+      entries => {
+        if (entries[0]?.isIntersecting) {
+          setVisibleCount(prev =>
+            prev >= completedRounds.length ? prev : prev + PAGE_SIZE,
+          );
+        }
+      },
+      { threshold: 0.1 },
+    );
+    io.observe(sentinel);
+    return () => io.disconnect();
+  }, [completedRounds.length]);
 
   // Sort players so "You" is always first
   const sortedPlayers = useMemo(() => {
@@ -95,7 +125,7 @@ const ResultsTable = observer(function ResultsTable() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {completedRounds.map(round => (
+            {visibleRounds.map(round => (
               <TableRow key={round} hover>
                 <TableCell
                   sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.75rem' }}>
@@ -217,6 +247,7 @@ const ResultsTable = observer(function ResultsTable() {
           </TableBody>
         </Table>
       </TableContainer>
+      <Box ref={sentinelRef} sx={{ height: 1 }} />
 
       <SolveDetailModal
         solve={liveSolve}
