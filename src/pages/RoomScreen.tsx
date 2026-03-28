@@ -25,7 +25,8 @@ import HostControls from '../components/room/HostControls';
 import PlayerSidebar from '../components/room/PlayerSidebar';
 import ResultsTable from '../components/room/ResultsTable';
 import SettingsDialog from '../components/settings/SettingsDialog';
-import { getDisplayTime } from '../lib/utils/formatTime';
+import { formatTime, getDisplayTime } from '../lib/utils/formatTime';
+import { calculateAverage, formatAverage } from '../lib/utils/averages';
 import type { PbNotification } from '../lib/stores/roomStore';
 import type { CrossColor } from '../lib/types/room';
 
@@ -66,6 +67,24 @@ const RoomScreen = observer(function RoomScreen() {
   }, []);
 
   const isTimerDisabled = roomStore.hasSubmittedOrPendingCurrentRound;
+
+  // Handle color keys when timer is disabled (after submitting)
+  useEffect(() => {
+    const COLOR_KEYS: Record<string, CrossColor> = {
+      w: 'w', y: 'y', r: 'r', o: 'o', b: 'b', g: 'g',
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (!roomStore.hasSubmittedOrPendingCurrentRound) return;
+      const color = COLOR_KEYS[e.key.toLowerCase()];
+      if (!color) return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+      const mySolves = roomStore.solves.filter(s => s.playerId === roomStore.playerId);
+      const lastSolve = mySolves[mySolves.length - 1];
+      if (lastSolve) roomStore.updateCrossColor(lastSolve.id, color);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [roomStore]);
   const touchHandlers = useTimerTouch(isTimerDisabled, handleColorStart);
 
   // Drain PB notification queue when timer is NOT running
@@ -114,19 +133,22 @@ const RoomScreen = observer(function RoomScreen() {
             roomStore.emitTimerStart();
           }
           if (phase === 'stopped' && prevPhase === 'running' && !roomStore.hasSubmittedCurrentRound) {
+            const roundAtSubmit = roomStore.currentRound;
             roomStore.submitTime(timerStore.displayTime, timerStore.lastStopWasDnf);
             // Apply the pending color after a short delay (wait for room-state with the new solve)
             const color = pendingColorRef.current;
             if (color !== 'w') {
-              const checkAndApply = () => {
+              const checkAndApply = (retries = 0) => {
                 const mySolves = roomStore.solves.filter(s => s.playerId === roomStore.playerId);
                 const lastSolve = mySolves[mySolves.length - 1];
-                if (lastSolve && lastSolve.round === roomStore.currentRound) {
+                if (lastSolve && lastSolve.round === roundAtSubmit) {
                   roomStore.updateCrossColor(lastSolve.id, color);
+                } else if (retries < 3) {
+                  setTimeout(() => checkAndApply(retries + 1), 500);
                 }
               };
               // The solve might not be in room-state yet, retry briefly
-              setTimeout(checkAndApply, 500);
+              setTimeout(() => checkAndApply(), 500);
             }
             pendingColorRef.current = 'w';
           }
@@ -195,6 +217,17 @@ const RoomScreen = observer(function RoomScreen() {
     !isTimerRunning &&
     !roomStore.areAllPlayersSubmittedCurrentRound;
   const precision = settingsStore.timerPrecision;
+
+  // My solves sorted newest first (for ao5/ao12 and previous solves display)
+  const myAllSolves = (() => {
+    const myId = roomStore.playerId;
+    if (!myId) return [];
+    return roomStore.solves
+      .filter(s => s.playerId === myId)
+      .sort((a, b) => b.round - a.round);
+  })();
+  const ao5 = calculateAverage(myAllSolves, 5, 2);
+  const ao12 = calculateAverage(myAllSolves, 12, 3);
 
   // Previous solves for display below timer (my solves from past rounds, newest first)
   const previousSolves = (() => {
@@ -325,6 +358,29 @@ const RoomScreen = observer(function RoomScreen() {
           overflow: 'hidden',
           minWidth: 0,
         }}>
+        {/* Reconnecting banner */}
+        {roomStore.isReconnecting && (
+          <Box
+            sx={{
+              px: 2,
+              py: 0.75,
+              bgcolor: 'rgba(244, 67, 54, 0.15)',
+              borderBottom: '1px solid',
+              borderColor: 'rgba(244, 67, 54, 0.3)',
+              textAlign: 'center',
+            }}>
+            <Typography
+              sx={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: '#f44336',
+                letterSpacing: '0.05em',
+              }}>
+              {t('room.reconnecting')}
+            </Typography>
+          </Box>
+        )}
+
         {/* Top bar — hidden when timer is running */}
         {!isTimerRunning && (
           <Box
@@ -388,7 +444,7 @@ const RoomScreen = observer(function RoomScreen() {
           onTouchStart={touchHandlers.onTouchStart}
           onTouchEnd={touchHandlers.onTouchEnd}
           sx={{
-            flex: isTimerRunning ? 1 : '0 0 auto',
+            flex: isTimerRunning ? 1 : '0 1 auto',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -419,6 +475,18 @@ const RoomScreen = observer(function RoomScreen() {
                 }}
               />
             ))}
+
+          {/* Stats bar (rolling averages) */}
+          {!isTimerRunning && myAllSolves.length > 0 && (
+            <Stack direction="row" spacing={3}>
+              <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
+                ao5: {formatAverage(ao5, precision)}
+              </Typography>
+              <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
+                ao12: {formatAverage(ao12, precision)}
+              </Typography>
+            </Stack>
+          )}
 
           {roomStore.hasSubmittedCurrentRound && mySolve ? (
             <Box sx={{ textAlign: 'center' }}>
@@ -455,18 +523,18 @@ const RoomScreen = observer(function RoomScreen() {
 
           {/* Previous solves stack */}
           {!isTimerRunning && previousSolves.length > 0 && (
-            <Box sx={{ textAlign: 'center', mt: 1 }}>
+            <Box sx={{ textAlign: 'center', mt: 1, overflow: 'hidden' }}>
               {previousSolves.map((solve, i) => (
                 <Typography
                   key={solve.id}
                   sx={{
                     fontFamily: 'monospace',
                     fontVariantNumeric: 'tabular-nums',
-                    fontSize: `${2.4 - i * 0.35}rem`,
+                    fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
                     fontWeight: 600,
                     color: 'text.secondary',
                     opacity: 0.5 - i * 0.08,
-                    lineHeight: 1.7,
+                    lineHeight: 1.5,
                     userSelect: 'none',
                   }}>
                   {getDisplayTime(solve, precision)}
@@ -481,7 +549,7 @@ const RoomScreen = observer(function RoomScreen() {
           <Box
             sx={{
               flex: '1 1 0',
-              minHeight: 0,
+              minHeight: 150,
               borderTop: '1px solid',
               borderColor: 'divider',
               overflowY: 'auto',
@@ -498,16 +566,41 @@ const RoomScreen = observer(function RoomScreen() {
                 zIndex: 2,
                 bgcolor: 'background.default',
               }}>
-              <Typography
-                sx={{
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.12em',
-                  fontSize: '0.6rem',
-                  fontWeight: 700,
-                  color: 'text.secondary',
-                }}>
-                {t('room.history')}
-              </Typography>
+              <Stack direction="row" spacing={1.5} alignItems="center">
+                <Typography
+                  sx={{
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.12em',
+                    fontSize: '0.6rem',
+                    fontWeight: 700,
+                    color: 'text.secondary',
+                  }}>
+                  {t('room.history')}
+                </Typography>
+                {myAllSolves.length > 0 && (() => {
+                  const worst = Math.max(...myAllSolves.map(s => s.penalty === 'DNF' ? 0 : s.penalty === '+2' ? s.time + 2000 : s.time));
+                  return worst > 0 ? (
+                    <Typography
+                      sx={{
+                        fontFamily: 'monospace',
+                        fontSize: '0.65rem',
+                        color: 'text.secondary',
+                      }}>
+                      Worst: {formatTime(worst, precision)}
+                    </Typography>
+                  ) : null;
+                })()}
+                {roomStore.getGlobalAverage(roomStore.playerId ?? '') !== null && (
+                  <Typography
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontSize: '0.65rem',
+                      color: 'text.secondary',
+                    }}>
+                    Avg: {formatTime(roomStore.getGlobalAverage(roomStore.playerId ?? '')!, precision)}
+                  </Typography>
+                )}
+              </Stack>
             </Box>
             <ResultsTable />
           </Box>

@@ -13,6 +13,7 @@ interface Player {
   id: string;
   name: string;
   isHost: boolean;
+  disconnected?: boolean;
 }
 
 interface Solve {
@@ -35,6 +36,7 @@ interface Room {
   currentRound: number;
   players: Map<string, Player>;
   solves: Solve[];
+  disconnectTimers: Map<string, ReturnType<typeof setTimeout>>;
 }
 
 interface RoomState {
@@ -54,7 +56,12 @@ app.use(cors());
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: { origin: '*' },
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  maxHttpBufferSize: 5e6,
 });
+
+const DISCONNECT_GRACE_MS = 30000;
 
 const rooms = new Map<string, Room>();
 
@@ -114,6 +121,15 @@ async function generateScramble(eventId: string): Promise<string> {
   }
 }
 
+function removePlayerFully(room: Room, playerId: string) {
+  room.players.delete(playerId);
+  const timer = room.disconnectTimers.get(playerId);
+  if (timer) {
+    clearTimeout(timer);
+    room.disconnectTimers.delete(playerId);
+  }
+}
+
 // ── Socket handlers ──────────────────────────────────────────────────────────
 
 io.on('connection', socket => {
@@ -131,6 +147,7 @@ io.on('connection', socket => {
       currentRound: 1,
       players: new Map(),
       solves: [],
+      disconnectTimers: new Map(),
     };
 
     room.players.set(socket.id, {
@@ -167,6 +184,55 @@ io.on('connection', socket => {
     broadcastRoomState(room);
   });
 
+  socket.on('rejoin-room', ({ roomCode, playerName, oldPlayerId }, callback) => {
+    const room = rooms.get(roomCode.toUpperCase());
+    if (!room) {
+      callback({ error: 'Room not found' });
+      return;
+    }
+
+    // Clear disconnect timer for old player
+    const timer = room.disconnectTimers.get(oldPlayerId);
+    if (timer) {
+      clearTimeout(timer);
+      room.disconnectTimers.delete(oldPlayerId);
+    }
+
+    const oldPlayer = room.players.get(oldPlayerId);
+    if (oldPlayer && oldPlayer.disconnected) {
+      // Restore: transfer old player data to new socket id
+      const wasHost = oldPlayer.isHost || room.hostId === oldPlayerId;
+      room.players.delete(oldPlayerId);
+      room.players.set(socket.id, {
+        id: socket.id,
+        name: playerName,
+        isHost: wasHost,
+      });
+      if (wasHost) {
+        room.hostId = socket.id;
+      }
+      // Update all solves to point to new socket id
+      for (const solve of room.solves) {
+        if (solve.playerId === oldPlayerId) {
+          solve.playerId = socket.id;
+        }
+      }
+    } else {
+      // Old player not found or not disconnected, join as new
+      room.players.set(socket.id, {
+        id: socket.id,
+        name: playerName,
+        isHost: false,
+      });
+    }
+
+    socket.join(room.code);
+    currentRoom = room.code;
+
+    callback({ success: true });
+    broadcastRoomState(room);
+  });
+
   socket.on('submit-time', async ({ time, dnf }) => {
     if (!currentRoom) return;
     const room = rooms.get(currentRoom);
@@ -192,13 +258,14 @@ io.on('connection', socket => {
       crossColor: 'w',
     });
 
-    // Auto-advance when all players have submitted
+    // Auto-advance when all connected players have submitted
+    const connectedPlayers = Array.from(room.players.values()).filter(p => !p.disconnected);
     const submittedCount = room.solves.filter(
       s => s.round === room.currentRound,
     ).length;
     const roundAtSubmit = room.currentRound;
 
-    if (submittedCount >= room.players.size) {
+    if (submittedCount >= connectedPlayers.length) {
       const newScramble = await generateScramble(room.eventId);
       // Guard: only advance if round hasn't been changed during await
       if (room.currentRound === roundAtSubmit) {
@@ -253,7 +320,7 @@ io.on('connection', socket => {
     const room = rooms.get(currentRoom);
     if (!room || room.hostId !== socket.id || playerId === socket.id) return;
 
-    room.players.delete(playerId);
+    removePlayerFully(room, playerId);
 
     const kickedSocket = io.sockets.sockets.get(playerId);
     if (kickedSocket) {
@@ -292,28 +359,60 @@ io.on('connection', socket => {
     socket.to(room.code).emit('player-solving', { playerId: socket.id });
   });
 
-  socket.on('leave-room', () => handleLeave());
-  socket.on('disconnect', () => handleLeave());
+  socket.on('leave-room', () => handleLeave(false));
+  socket.on('disconnect', () => handleLeave(true));
 
-  function handleLeave() {
+  function handleLeave(isDisconnect: boolean) {
     if (!currentRoom) return;
     const room = rooms.get(currentRoom);
     if (!room) return;
 
-    room.players.delete(socket.id);
-    socket.leave(currentRoom);
+    if (isDisconnect) {
+      // Mark player as disconnected, start grace period
+      const player = room.players.get(socket.id);
+      if (player) {
+        player.disconnected = true;
+        broadcastRoomState(room);
 
-    if (room.players.size === 0) {
-      rooms.delete(currentRoom);
-    } else if (room.hostId === socket.id) {
-      const nextHost = room.players.values().next().value;
-      if (nextHost) {
-        room.hostId = nextHost.id;
-        nextHost.isHost = true;
+        const playerId = socket.id;
+        const timer = setTimeout(() => {
+          // Grace period expired, remove fully
+          room.disconnectTimers.delete(playerId);
+          removePlayerFully(room, playerId);
+
+          if (room.players.size === 0) {
+            rooms.delete(room.code);
+          } else if (room.hostId === playerId) {
+            const nextHost = Array.from(room.players.values()).find(p => !p.disconnected);
+            if (nextHost) {
+              room.hostId = nextHost.id;
+              nextHost.isHost = true;
+            }
+            broadcastRoomState(room);
+          } else {
+            broadcastRoomState(room);
+          }
+        }, DISCONNECT_GRACE_MS);
+
+        room.disconnectTimers.set(playerId, timer);
       }
-      broadcastRoomState(room);
     } else {
-      broadcastRoomState(room);
+      // Explicit leave — remove immediately
+      removePlayerFully(room, socket.id);
+      socket.leave(currentRoom);
+
+      if (room.players.size === 0) {
+        rooms.delete(currentRoom);
+      } else if (room.hostId === socket.id) {
+        const nextHost = Array.from(room.players.values()).find(p => !p.disconnected);
+        if (nextHost) {
+          room.hostId = nextHost.id;
+          nextHost.isHost = true;
+        }
+        broadcastRoomState(room);
+      } else {
+        broadcastRoomState(room);
+      }
     }
 
     currentRoom = null;

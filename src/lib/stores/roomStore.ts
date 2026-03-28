@@ -32,8 +32,11 @@ export class RoomStore {
   playerName = '';
   error: string | null = null;
   isJoining = false;
+  isReconnecting = false;
   pendingSubmissionRound: number | null = null;
   solvingPlayerIds: Set<string> = new Set();
+  private oldPlayerId: string | null = null;
+  private pendingRejoinCode: string | null = null;
 
   // PB tracking
   pbNotificationQueue: PbNotification[] = [];
@@ -57,17 +60,43 @@ export class RoomStore {
     this.socket.on('connect', () => {
       runInAction(() => {
         this.isConnected = true;
+        // Auto-rejoin if we were in a room
+        if (this.pendingRejoinCode && this.oldPlayerId) {
+          this.isReconnecting = true;
+          const code = this.pendingRejoinCode;
+          const oldId = this.oldPlayerId;
+          this.pendingRejoinCode = null;
+          this.oldPlayerId = null;
+          this.socket.emit('rejoin-room', {
+            roomCode: code,
+            playerName: this.playerName,
+            oldPlayerId: oldId,
+          }, (response) => {
+            runInAction(() => {
+              this.isReconnecting = false;
+              if ('error' in response) {
+                // Room gone, clear state
+                this.roomCode = null;
+                this.players = [];
+                this.solves = [];
+                this.currentRound = 0;
+                this.currentScramble = '';
+              }
+            });
+          });
+        }
       });
     });
 
     this.socket.on('disconnect', () => {
       runInAction(() => {
         this.isConnected = false;
-        this.roomCode = null;
-        this.players = [];
-        this.solves = [];
-        this.currentRound = 0;
-        this.currentScramble = '';
+        // If we were in a room, preserve state for rejoin
+        if (this.roomCode) {
+          this.pendingRejoinCode = this.roomCode;
+          this.oldPlayerId = this.socket.id ?? null;
+          this.isReconnecting = true;
+        }
         this.pendingSubmissionRound = null;
         this.solvingPlayerIds.clear();
       });
@@ -147,7 +176,7 @@ export class RoomStore {
   }
 
   get isInRoom(): boolean {
-    return this.roomCode !== null && this.isConnected;
+    return this.roomCode !== null && (this.isConnected || this.isReconnecting);
   }
 
   get isHost(): boolean {
@@ -320,6 +349,9 @@ export class RoomStore {
     this.previousBestTimes.clear();
     this.processedSolveIds.clear();
     this.pendingSubmissionRound = null;
+    this.pendingRejoinCode = null;
+    this.oldPlayerId = null;
+    this.isReconnecting = false;
   }
 
   emitTimerStart() {

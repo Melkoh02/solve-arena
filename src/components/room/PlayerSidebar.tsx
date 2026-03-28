@@ -5,6 +5,7 @@ import {
   Button,
   ButtonGroup,
   IconButton,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -60,17 +61,17 @@ const PlayerSidebar = observer(function PlayerSidebar() {
     for (const round of completedRounds) {
       const roundSolves = roomStore.solves.filter(s => s.round === round);
       if (roundSolves.length === 0) continue;
-      let bestId: string | null = null;
       let bestTime = Infinity;
       for (const s of roundSolves) {
         const eff = getEffectiveTime(s);
-        if (eff < bestTime) {
-          bestTime = eff;
-          bestId = s.playerId;
-        }
+        if (eff < bestTime) bestTime = eff;
       }
-      if (bestId && bestTime < Infinity) {
-        wins.set(bestId, (wins.get(bestId) ?? 0) + 1);
+      if (bestTime < Infinity) {
+        for (const s of roundSolves) {
+          if (getEffectiveTime(s) === bestTime) {
+            wins.set(s.playerId, (wins.get(s.playerId) ?? 0) + 1);
+          }
+        }
       }
     }
     return wins;
@@ -92,12 +93,20 @@ const PlayerSidebar = observer(function PlayerSidebar() {
         const bestTime = roomStore.getBestTime(player.id);
         const globalAvg = roomStore.getGlobalAverage(player.id);
         const hasFinished = !!currentSolve;
-        const isSolving = !hasFinished && roomStore.solvingPlayerIds.has(player.id);
+        const isDisconnected = !!player.disconnected;
+        const isSolving = !hasFinished && !isDisconnected && roomStore.solvingPlayerIds.has(player.id);
         const winCount = winsByPlayer.get(player.id) ?? 0;
 
-        // Dot color: green = finished, yellow = solving, gray = idle
-        const dotColor = hasFinished ? '#4caf50' : isSolving ? '#ffb300' : undefined;
-        const dotOpacity = hasFinished || isSolving ? 1 : 0.3;
+        // Dot: red = disconnected, pink = finished, yellow = solving, gray = idle
+        const dotColor = isDisconnected ? '#f44336' : hasFinished ? 'primary.main' : isSolving ? '#ffb300' : undefined;
+        const dotOpacity = isDisconnected || hasFinished || isSolving ? 1 : 0.3;
+        const dotTooltip = isDisconnected
+          ? t('room.disconnected')
+          : hasFinished
+            ? t('room.finished')
+            : isSolving
+              ? t('room.solving')
+              : t('room.idle');
 
         return (
           <Box
@@ -161,22 +170,26 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                   </Typography>
                 </Box>
               </Box>
-              <Box
-                sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: '50%',
-                  flexShrink: 0,
-                  bgcolor: dotColor ?? 'text.secondary',
-                  opacity: dotOpacity,
-                  boxShadow: hasFinished
-                    ? '0 0 6px rgba(76, 175, 80, 0.5)'
-                    : isSolving
-                      ? '0 0 6px rgba(255, 179, 0, 0.5)'
-                      : 'none',
-                  transition: 'all 0.2s',
-                }}
-              />
+              <Tooltip title={dotTooltip} arrow placement="top">
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    flexShrink: 0,
+                    bgcolor: dotColor ?? 'text.secondary',
+                    opacity: dotOpacity,
+                    boxShadow: isDisconnected
+                      ? '0 0 6px rgba(244, 67, 54, 0.5)'
+                      : hasFinished
+                        ? '0 0 6px rgba(255, 105, 180, 0.5)'
+                        : isSolving
+                          ? '0 0 6px rgba(255, 179, 0, 0.5)'
+                          : 'none',
+                    transition: 'all 0.2s',
+                  }}
+                />
+              </Tooltip>
             </Box>
 
             {/* Row 2: Current + Last + Best */}
@@ -213,30 +226,34 @@ const PlayerSidebar = observer(function PlayerSidebar() {
               </Box>
             </Box>
 
-            {/* Row 3: ao5 / ao12 + kick button */}
+            {/* Row 3: ao5 / ao12 / avg + kick button */}
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
               }}>
-              <Box sx={{ display: 'flex', gap: 1.5 }}>
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                  ao5: {formatAverage(ao5, precision)}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                  ao12: {formatAverage(ao12, precision)}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                  avg: {globalAvg !== null ? formatTime(globalAvg, precision) : '-'}
-                </Typography>
-              </Box>
+              {!isMe ? (
+                <Box sx={{ display: 'flex', gap: 1.5 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                    ao5: {formatAverage(ao5, precision)}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                    ao12: {formatAverage(ao12, precision)}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
+                    avg: {globalAvg !== null ? formatTime(globalAvg, precision) : '-'}
+                  </Typography>
+                </Box>
+              ) : (
+                <Box />
+              )}
               {roomStore.isHost && !isMe && (
                 <IconButton
                   size="small"

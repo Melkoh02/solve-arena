@@ -255,8 +255,8 @@ const SoloScreen = observer(function SoloScreen() {
           px: { xs: 2, sm: 3, md: 4 },
           py: { xs: 1, md: 2 },
           // When running: expand to fill screen and center timer
-          // When not running: shrink to content so history fills the rest
-          flex: isTimerRunning ? 1 : '0 0 auto',
+          // When not running: shrink to content but allow shrinking if space is tight
+          flex: isTimerRunning ? 1 : '0 1 auto',
           touchAction: 'none',
           WebkitTapHighlightColor: 'transparent',
           cursor: 'pointer',
@@ -291,18 +291,18 @@ const SoloScreen = observer(function SoloScreen() {
 
         {/* Previous solves stack (quick glance) */}
         {!isTimerRunning && previousSolves.length > 0 && (
-          <Box sx={{ textAlign: 'center' }}>
+          <Box sx={{ textAlign: 'center', overflow: 'hidden' }}>
             {previousSolves.map((solve, i) => (
               <Typography
                 key={solve.id}
                 sx={{
                   fontFamily: 'monospace',
                   fontVariantNumeric: 'tabular-nums',
-                  fontSize: `${2.4 - i * 0.35}rem`,
+                  fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
                   fontWeight: 600,
                   color: 'text.secondary',
                   opacity: 0.5 - i * 0.08,
-                  lineHeight: 1.7,
+                  lineHeight: 1.5,
                   userSelect: 'none',
                 }}>
                 {getDisplayTime(solve, precision)}
@@ -317,7 +317,7 @@ const SoloScreen = observer(function SoloScreen() {
         <Box
           sx={{
             flex: '1 1 0',
-            minHeight: 0,
+            minHeight: 150,
             borderTop: '1px solid',
             borderColor: 'divider',
             overflowY: 'auto',

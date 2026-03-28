@@ -55,19 +55,16 @@ const ResultsTable = observer(function ResultsTable() {
   const getSolve = (round: number, playerId: string): RoomSolve | undefined =>
     roomStore.solves.find(s => s.round === round && s.playerId === playerId);
 
-  const getFastestId = (round: number): string | null => {
+  const getFastestIds = (round: number): Set<string> => {
     const roundSolves = roomStore.solves.filter(s => s.round === round);
-    if (roundSolves.length === 0) return null;
-    let best: RoomSolve | null = null;
     let bestTime = Infinity;
     for (const s of roundSolves) {
       const eff = getEffectiveTime(s);
-      if (eff < bestTime) {
-        bestTime = eff;
-        best = s;
-      }
+      if (eff < bestTime) bestTime = eff;
     }
-    return best?.id ?? null;
+    return new Set(
+      roundSolves.filter(s => getEffectiveTime(s) === bestTime).map(s => s.id),
+    );
   };
 
   // Keep modal in sync with live data (penalty updates)
@@ -105,11 +102,11 @@ const ResultsTable = observer(function ResultsTable() {
                   {round}
                 </TableCell>
                 {(() => {
-                  const fastestId = getFastestId(round);
+                  const fastestIds = getFastestIds(round);
                   return sortedPlayers.map((player: Player) => {
                     const solve = getSolve(round, player.id);
                     const isMe = player.id === roomStore.playerId;
-                    const isFastest = solve?.id === fastestId;
+                    const isFastest = !!solve && fastestIds.has(solve.id);
 
                     return (
                       <TableCell key={player.id}>
@@ -129,6 +126,10 @@ const ResultsTable = observer(function ResultsTable() {
                                 fontWeight: 600,
                                 color: isFastest ? 'primary.main' : 'text.primary',
                                 fontSize: '0.8rem',
+                                width: '9ch',
+                                flexShrink: 0,
+                                display: 'inline-block',
+                                textAlign: 'left',
                                 cursor: 'pointer',
                                 '&:hover': { color: 'primary.main' },
                               }}>

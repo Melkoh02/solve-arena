@@ -4,6 +4,7 @@ export interface Player {
   id: string;
   name: string;
   isHost: boolean;
+  disconnected?: boolean;
 }
 
 export type CrossColor = 'w' | 'y' | 'r' | 'o' | 'b' | 'g';
@@ -37,6 +38,10 @@ export interface ClientToServerEvents {
   ) => void;
   'join-room': (
     data: { roomCode: string; playerName: string },
+    callback: (response: { success: boolean } | { error: string }) => void,
+  ) => void;
+  'rejoin-room': (
+    data: { roomCode: string; playerName: string; oldPlayerId: string },
     callback: (response: { success: boolean } | { error: string }) => void,
   ) => void;
   'leave-room': () => void;
