@@ -259,6 +259,7 @@ const SoloScreen = observer(function SoloScreen() {
           flex: isTimerRunning ? 1 : '0 1 auto',
           touchAction: 'none',
           WebkitTapHighlightColor: 'transparent',
+          userSelect: 'none',
           cursor: 'pointer',
         }}>
         {/* Scramble */}
@@ -327,7 +328,7 @@ const SoloScreen = observer(function SoloScreen() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              px: { xs: 1.5, sm: 2, md: 3 },
+              px: 2,
               py: 1,
               position: 'sticky',
               top: 0,

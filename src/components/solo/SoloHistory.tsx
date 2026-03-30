@@ -96,7 +96,6 @@ const SoloHistory = observer(function SoloHistory({
   const [deleteTarget, setDeleteTarget] = useState<SoloSolve | null>(null);
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const rows = soloStore.historyRows;
 
@@ -114,16 +113,10 @@ const SoloHistory = observer(function SoloHistory({
     [sortedRows, visibleCount],
   );
 
-  // Reset visible count when rows change significantly (new solve added)
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [rows.length]);
-
   // IntersectionObserver for infinite scroll
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    const container = containerRef.current;
-    if (!sentinel || !container) return;
+    if (!sentinel) return;
 
     const io = new IntersectionObserver(
       entries => {
@@ -134,7 +127,7 @@ const SoloHistory = observer(function SoloHistory({
           });
         }
       },
-      { root: container, threshold: 0.1 },
+      { threshold: 0.1 },
     );
 
     io.observe(sentinel);
@@ -175,7 +168,6 @@ const SoloHistory = observer(function SoloHistory({
 
   return (
     <TableContainer
-      ref={containerRef}
       sx={{
         pb: 2,
         overflow: 'visible',

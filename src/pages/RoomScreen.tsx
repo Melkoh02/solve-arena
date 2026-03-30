@@ -55,14 +55,14 @@ const RoomScreen = observer(function RoomScreen() {
   pbSnackRef.current = pbSnack;
 
   const pendingColorRef = useRef<CrossColor>('w');
+  // Track round + color for deferred application when solve arrives from server
+  const pendingColorForRoundRef = useRef<{ round: number; color: CrossColor } | null>(null);
+
   const handleColorStart = useCallback((color: CrossColor) => {
     const phase = timerStore.timerPhase;
     if (phase === 'running') {
+      // Queue color to apply when timer stops
       pendingColorRef.current = color;
-    } else {
-      const mySolves = roomStore.solves.filter(s => s.playerId === roomStore.playerId);
-      const lastSolve = mySolves[mySolves.length - 1];
-      if (lastSolve) roomStore.updateCrossColor(lastSolve.id, color);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -70,22 +70,51 @@ const RoomScreen = observer(function RoomScreen() {
   const isTimerDisabled = roomStore.hasSubmittedOrPendingCurrentRound;
 
   // Handle color keys when timer is disabled (after submitting)
+  // Instead of applying directly (solve may not be in store yet), save to pending
   useEffect(() => {
     const COLOR_KEYS: Record<string, CrossColor> = {
       w: 'w', y: 'y', r: 'r', o: 'o', b: 'b', g: 'g',
     };
     const handleKey = (e: KeyboardEvent) => {
+      if (timerStore.timerPhase === 'running') return;
       if (!roomStore.hasSubmittedOrPendingCurrentRound) return;
       const color = COLOR_KEYS[e.key.toLowerCase()];
       if (!color) return;
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
-      const mySolves = roomStore.solves.filter(s => s.playerId === roomStore.playerId);
-      const lastSolve = mySolves[mySolves.length - 1];
-      if (lastSolve) roomStore.updateCrossColor(lastSolve.id, color);
+      // Try to apply directly if solve already exists
+      const mySolve = roomStore.myCurrentRoundSolve;
+      if (mySolve) {
+        roomStore.updateCrossColor(mySolve.id, color);
+      } else {
+        // Solve not in store yet — queue for when it arrives
+        pendingColorForRoundRef.current = { round: roomStore.currentRound, color };
+      }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [roomStore]);
+  }, [roomStore, timerStore]);
+
+  // Apply pending color when my solve appears in the store
+  useEffect(
+    () =>
+      reaction(
+        () => roomStore.solves.length,
+        () => {
+          const pending = pendingColorForRoundRef.current;
+          if (!pending) return;
+          const myId = roomStore.playerId;
+          if (!myId) return;
+          const solve = roomStore.solves.find(
+            s => s.playerId === myId && s.round === pending.round,
+          );
+          if (solve) {
+            roomStore.updateCrossColor(solve.id, pending.color);
+            pendingColorForRoundRef.current = null;
+          }
+        },
+      ),
+    [roomStore],
+  );
   const touchHandlers = useTimerTouch(isTimerDisabled, handleColorStart);
 
   // Drain PB notification queue when timer is NOT running
@@ -134,23 +163,12 @@ const RoomScreen = observer(function RoomScreen() {
             roomStore.emitTimerStart();
           }
           if (phase === 'stopped' && prevPhase === 'running' && !roomStore.hasSubmittedCurrentRound) {
-            const roundAtSubmit = roomStore.currentRound;
-            roomStore.submitTime(timerStore.displayTime, timerStore.lastStopWasDnf);
-            // Apply the pending color after a short delay (wait for room-state with the new solve)
             const color = pendingColorRef.current;
             if (color !== 'w') {
-              const checkAndApply = (retries = 0) => {
-                const mySolves = roomStore.solves.filter(s => s.playerId === roomStore.playerId);
-                const lastSolve = mySolves[mySolves.length - 1];
-                if (lastSolve && lastSolve.round === roundAtSubmit) {
-                  roomStore.updateCrossColor(lastSolve.id, color);
-                } else if (retries < 3) {
-                  setTimeout(() => checkAndApply(retries + 1), 500);
-                }
-              };
-              // The solve might not be in room-state yet, retry briefly
-              setTimeout(() => checkAndApply(), 500);
+              // Queue color for when the solve arrives from server
+              pendingColorForRoundRef.current = { round: roomStore.currentRound, color };
             }
+            roomStore.submitTime(timerStore.displayTime, timerStore.lastStopWasDnf);
             pendingColorRef.current = 'w';
           }
         },
@@ -162,8 +180,27 @@ const RoomScreen = observer(function RoomScreen() {
     () =>
       reaction(
         () => roomStore.currentRound,
-        () => {
+        (round) => {
           timerStore.resetToIdle();
+          // Play notification sound when new round starts and tab is not visible
+          if (round > 1 && document.hidden) {
+            try {
+              const ctx = new AudioContext();
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.frequency.value = 880;
+              osc.type = 'sine';
+              gain.gain.value = 0.3;
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+              osc.start();
+              osc.stop(ctx.currentTime + 0.3);
+              osc.onended = () => ctx.close();
+            } catch {
+              // AudioContext not available
+            }
+          }
         },
       ),
     [timerStore, roomStore],
@@ -462,6 +499,7 @@ const RoomScreen = observer(function RoomScreen() {
             py: { xs: 1, md: 2 },
             touchAction: 'none',
             WebkitTapHighlightColor: 'transparent',
+            userSelect: 'none',
             cursor: 'pointer',
           }}>
           {!isTimerRunning &&
@@ -565,7 +603,7 @@ const RoomScreen = observer(function RoomScreen() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                px: { xs: 1.5, sm: 2, md: 3 },
+                px: 2,
                 py: 1,
                 position: 'sticky',
                 top: 0,

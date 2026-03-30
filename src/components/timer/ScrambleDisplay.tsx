@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -106,6 +106,39 @@ export default function ScrambleDisplay({
       return next;
     });
   };
+
+  // Keyboard shortcut: hold E = temporary preview, Ctrl+E = toggle
+  const holdPreviewRef = useRef(false);
+  useEffect(() => {
+    const INTERACTIVE = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
+    const handleDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== 'e') return;
+      if (INTERACTIVE.has((e.target as HTMLElement).tagName)) return;
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        togglePreview();
+        return;
+      }
+      if (e.repeat) return;
+      holdPreviewRef.current = true;
+      setShowPreview(true);
+    };
+    const handleUp = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== 'e') return;
+      if (!holdPreviewRef.current) return;
+      holdPreviewRef.current = false;
+      // Restore to persisted state
+      const persisted = localStorage.getItem(PREVIEW_KEY) === 'true';
+      setShowPreview(persisted);
+    };
+    window.addEventListener('keydown', handleDown);
+    window.addEventListener('keyup', handleUp);
+    return () => {
+      window.removeEventListener('keydown', handleDown);
+      window.removeEventListener('keyup', handleUp);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleApplyCustom = () => {
     if (customInput.trim() && onSetCustom) {

@@ -131,13 +131,21 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
         return;
       }
 
-      // Any key stops a running timer; Escape also flags as DNF
+      // Most keys stop a running timer; Escape also flags as DNF.
+      // Modifier-only keys (Ctrl, Alt, Shift, Meta, Tab, CapsLock, F1-F12) are
+      // ignored so system shortcuts / app focus changes don't stop the timer.
       if (timerStore.timerPhase === 'running') {
+        const IGNORE = new Set([
+          'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight',
+          'ShiftLeft', 'ShiftRight', 'MetaLeft', 'MetaRight',
+          'Tab', 'CapsLock', 'ContextMenu',
+          'F1', 'F2', 'F3', 'F4', 'F5', 'F6',
+          'F7', 'F8', 'F9', 'F10', 'F11', 'F12',
+        ]);
+        if (IGNORE.has(e.code)) return;
         e.preventDefault();
         timerStore.stopTimer(e.code === 'Escape');
         stopTimestamp.current = Date.now();
-        // Only mark key as down if it's a key we handle on keyup (space/color).
-        // Otherwise the keyup won't reset it and the next press gets blocked.
         const stopColorKey = COLOR_KEYS[e.key.toLowerCase()];
         isKeyDown.current = e.code === 'Space' || !!stopColorKey;
         clearHoldTimer();
