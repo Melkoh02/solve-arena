@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../../lib/hooks/useStore';
 import { formatTime } from '../../../lib/utils/formatTime';
 import { vhSafe } from '../../../lib/utils/viewport';
-import ResultsTable from '../ResultsTable';
+import MobileResultsList from './MobileResultsList';
 
 const PEEK_HEIGHT = 56;
 
@@ -182,17 +182,17 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
           </IconButton>
         </Box>
 
-        {/* Results table — horizontal scroll for the per-player columns,
-            vertical scroll for rounds. The table itself paginates. */}
+        {/* Round cards — pill style matching solo's HistoryCard, with
+            per-player mini-cells inside each card. Horizontal scroll for
+            wide rooms; vertical scroll for many rounds. */}
         <Box
           sx={{
             flex: 1,
             minHeight: 0,
             overflow: 'auto',
-            px: 1,
             pb: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
           }}>
-          <ResultsTable />
+          <MobileResultsList />
         </Box>
       </Drawer>
     </>
