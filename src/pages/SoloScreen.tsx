@@ -21,6 +21,7 @@ import { observer } from 'mobx-react-lite';
 import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/hooks/useStore';
+import { useIsMobile } from '../lib/hooks/useIsMobile';
 import ScrambleDisplay from '../components/timer/ScrambleDisplay';
 import Timer, { useTimerTouch } from '../components/timer/Timer';
 import PuzzleSelector from '../components/timer/PuzzleSelector';
@@ -29,6 +30,7 @@ import ServerStatusDot from '../components/room/ServerStatusDot';
 import SoloHistory from '../components/solo/SoloHistory';
 import SoloSolveDetailModal from '../components/solo/SoloSolveDetailModal';
 import AverageDetailModal from '../components/solo/AverageDetailModal';
+import MobileSoloLayout from '../components/solo/mobile/MobileSoloLayout';
 import SettingsDialog from '../components/settings/SettingsDialog';
 import { formatTime, getDisplayTime } from '../lib/utils/formatTime';
 import { formatAverage } from '../lib/utils/averages';
@@ -50,7 +52,8 @@ const SoloScreen = observer(function SoloScreen() {
   const { timerStore, soloStore, settingsStore } = useStore();
   const { t } = useTranslation();
   const muiTheme = useMuiTheme();
-  const isMobile = useMediaQuery(muiTheme.breakpoints.down('sm'));
+  const isNarrowViewport = useMediaQuery(muiTheme.breakpoints.down('sm'));
+  const useMobileLayout = useIsMobile();
   const [competAnchor, setCompetAnchor] = useState<HTMLElement | null>(null);
   const [selectedSolve, setSelectedSolve] = useState<SoloSolve | null>(null);
   const [aoSolves, setAoSolves] = useState<SoloSolve[] | null>(null);
@@ -217,11 +220,24 @@ const SoloScreen = observer(function SoloScreen() {
         display: 'flex',
         flexDirection: 'column',
         height: '100vh',
-        maxWidth: 1000,
+        maxWidth: useMobileLayout ? '100%' : 1000,
         mx: 'auto',
         width: '100%',
         overflow: 'hidden',
       }}>
+      {useMobileLayout ? (
+        <MobileSoloLayout
+          onColorStart={handleColorStart}
+          onTouchStart={touchHandlers.onTouchStart}
+          onTouchEnd={touchHandlers.onTouchEnd}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenCompete={anchor => setCompetAnchor(anchor)}
+          onSelectSolve={setSelectedSolve}
+          onRequestClearAll={() => setDeleteConfirm(true)}
+          previousSolves={previousSolves}
+        />
+      ) : (
+        <>
       {/* ── Top bar ─────────────────────────────────────────── */}
       {!isTimerRunning && (
         <Box
@@ -263,7 +279,7 @@ const SoloScreen = observer(function SoloScreen() {
               variant="outlined"
               size="small"
               startIcon={
-                !isMobile ? <GroupsIcon sx={{ fontSize: 18 }} /> : undefined
+                !isNarrowViewport ? <GroupsIcon sx={{ fontSize: 18 }} /> : undefined
               }
               endIcon={<ServerStatusDot />}
               onClick={e => setCompetAnchor(e.currentTarget)}
@@ -273,9 +289,9 @@ const SoloScreen = observer(function SoloScreen() {
                 fontSize: '0.75rem',
                 borderColor: 'primary.main',
                 color: 'primary.main',
-                minWidth: isMobile ? 36 : undefined,
+                minWidth: isNarrowViewport ? 36 : undefined,
               }}>
-              {isMobile ? (
+              {isNarrowViewport ? (
                 <GroupsIcon sx={{ fontSize: 18 }} />
               ) : (
                 t('lobby.compete')
@@ -426,6 +442,8 @@ const SoloScreen = observer(function SoloScreen() {
           />
         </Box>
       )}
+        </>
+      )}
 
       {/* Compete popover */}
       <JoinRoomPopover
@@ -464,6 +482,7 @@ const SoloScreen = observer(function SoloScreen() {
           }
         }}
         maxWidth="xs"
+        fullWidth={useMobileLayout}
         slotProps={{
           paper: {
             sx: {
@@ -472,33 +491,43 @@ const SoloScreen = observer(function SoloScreen() {
               borderColor: 'divider',
               borderRadius: 3,
               backgroundImage: 'none',
+              mx: useMobileLayout ? 2 : undefined,
             },
           },
         }}>
-        <DialogTitle sx={{ pb: 0.5, fontSize: '0.95rem', fontWeight: 700 }}>
+        <DialogTitle
+          sx={{
+            pb: 0.5,
+            fontSize: useMobileLayout ? '1.05rem' : '0.95rem',
+            fontWeight: 700,
+          }}>
           {t('solo.clearAll')}
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+          <Typography
+            sx={{
+              fontSize: useMobileLayout ? '0.95rem' : '0.85rem',
+              color: 'text.secondary',
+            }}>
             {t('solo.clearAllConfirm')}
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ px: 3, pb: useMobileLayout ? 2.5 : 2, gap: useMobileLayout ? 1 : 0 }}>
           <Button
-            size="small"
+            size={useMobileLayout ? 'medium' : 'small'}
             onClick={() => setDeleteConfirm(false)}
-            sx={{ textTransform: 'none' }}>
+            sx={{ textTransform: 'none', minWidth: useMobileLayout ? 96 : undefined }}>
             {t('common.cancel')}
           </Button>
           <Button
-            size="small"
+            size={useMobileLayout ? 'medium' : 'small'}
             variant="contained"
             color="error"
             onClick={() => {
               soloStore.clearSolves();
               setDeleteConfirm(false);
             }}
-            sx={{ textTransform: 'none' }}>
+            sx={{ textTransform: 'none', minWidth: useMobileLayout ? 96 : undefined }}>
             {t('common.confirm')}
           </Button>
         </DialogActions>
