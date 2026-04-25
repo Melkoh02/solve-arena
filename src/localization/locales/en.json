@@ -104,6 +104,17 @@
     "themeDark": "Dark",
     "themeGlass": "Glass",
     "toggleTheme": "Toggle Theme",
+    "colors": "Accent colors",
+    "color": {
+      "primary": "Primary",
+      "background": "Background",
+      "backgroundAccent": "Gradient accent",
+      "surface": "Surface",
+      "textPrimary": "Text",
+      "textSecondary": "Muted text",
+      "success": "Success",
+      "error": "Error"
+    },
     "timerSection": "Timer",
     "colorKeyHoldTime": "Color key hold time",
     "spacebarRequiresHold": "Spacebar requires hold",

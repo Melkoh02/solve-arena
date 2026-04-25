@@ -1,146 +1,156 @@
-import { createTheme } from '@mui/material/styles';
+import { alpha, createTheme, darken, lighten } from '@mui/material/styles';
 import { sharedColors } from './sharedColors';
+import { DARK_TOKENS, type ThemeTokens } from './tokens';
 
-export const darkTheme = createTheme({
-  scheme: 'dark',
-  customColors: sharedColors,
-  palette: {
-    mode: 'dark',
-    primary: { main: '#FF69B4', dark: '#db5a9c', light: '#ff8cc8' },
-    background: { default: '#0a0a14', paper: '#141428' },
-    text: { primary: '#ffffff', secondary: '#7a7a9e' },
-    divider: 'rgba(255, 105, 180, 0.12)',
-    success: { main: '#4caf50' },
-    error: { main: '#f44336' },
-  },
-  typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-  },
-  components: {
-    MuiCssBaseline: {
-      styleOverrides: {
-        body: {
-          backgroundImage: 'none',
-        },
+export function createDarkTheme(tokens: ThemeTokens = DARK_TOKENS) {
+  const PRIMARY = tokens.primary;
+  return createTheme({
+    scheme: 'dark',
+    customColors: sharedColors,
+    palette: {
+      mode: 'dark',
+      primary: {
+        main: PRIMARY,
+        dark: darken(PRIMARY, 0.15),
+        light: lighten(PRIMARY, 0.15),
       },
+      background: { default: tokens.background, paper: tokens.surface },
+      text: { primary: tokens.textPrimary, secondary: tokens.textSecondary },
+      divider: alpha(PRIMARY, 0.12),
+      success: { main: tokens.success },
+      error: { main: tokens.error },
     },
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          borderRadius: 12,
-          border: '1px solid rgba(255, 105, 180, 0.10)',
-          backgroundImage: 'none',
-        },
-      },
+    typography: {
+      fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
     },
-    MuiButton: {
-      styleOverrides: {
-        containedPrimary: {
-          background: '#FF69B4',
-          color: '#0a0a14',
-          fontWeight: 700,
-          letterSpacing: '0.04em',
-          '&:hover': {
-            background: '#ff8cc8',
-          },
-          '&.Mui-disabled': {
-            background: 'rgba(255, 105, 180, 0.2)',
-            color: 'rgba(255, 105, 180, 0.4)',
-          },
-        },
-        outlinedPrimary: {
-          borderColor: 'rgba(255, 105, 180, 0.35)',
-          color: '#FF69B4',
-          '&:hover': {
-            borderColor: '#FF69B4',
-            backgroundColor: 'rgba(255, 105, 180, 0.08)',
-          },
-        },
-        outlinedError: {
-          borderColor: 'rgba(244, 67, 54, 0.35)',
-          '&:hover': {
-            borderColor: '#f44336',
-            backgroundColor: 'rgba(244, 67, 54, 0.08)',
+    components: {
+      MuiCssBaseline: {
+        styleOverrides: {
+          body: {
+            backgroundImage: 'none',
           },
         },
       },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-root': {
-            '& fieldset': {
-              borderColor: 'rgba(255, 105, 180, 0.18)',
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            borderRadius: 12,
+            border: `1px solid ${alpha(PRIMARY, 0.10)}`,
+            backgroundImage: 'none',
+          },
+        },
+      },
+      MuiButton: {
+        styleOverrides: {
+          containedPrimary: {
+            background: PRIMARY,
+            color: tokens.background,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            '&:hover': {
+              background: lighten(PRIMARY, 0.15),
             },
-            '&:hover fieldset': {
-              borderColor: 'rgba(255, 105, 180, 0.35)',
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: '#FF69B4',
+            '&.Mui-disabled': {
+              background: alpha(PRIMARY, 0.2),
+              color: alpha(PRIMARY, 0.4),
             },
           },
-          '& .MuiInputLabel-root': {
-            color: '#7a7a9e',
-            '&.Mui-focused': {
-              color: '#FF69B4',
+          outlinedPrimary: {
+            borderColor: alpha(PRIMARY, 0.35),
+            color: PRIMARY,
+            '&:hover': {
+              borderColor: PRIMARY,
+              backgroundColor: alpha(PRIMARY, 0.08),
+            },
+          },
+          outlinedError: {
+            borderColor: alpha(tokens.error, 0.35),
+            '&:hover': {
+              borderColor: tokens.error,
+              backgroundColor: alpha(tokens.error, 0.08),
             },
           },
         },
       },
-    },
-    MuiSelect: {
-      styleOverrides: {
-        root: {
-          '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(255, 105, 180, 0.18)',
-          },
-          '&:hover .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'rgba(255, 105, 180, 0.35)',
-          },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-            borderColor: '#FF69B4',
-          },
-        },
-      },
-    },
-    MuiChip: {
-      styleOverrides: {
-        outlined: {
-          borderColor: 'rgba(255, 105, 180, 0.25)',
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
-          borderBottomColor: 'rgba(255, 105, 180, 0.06)',
-        },
-        head: {
-          fontWeight: 700,
-          textTransform: 'uppercase',
-          letterSpacing: '0.06em',
-          fontSize: '0.7rem',
-          color: '#7a7a9e',
-        },
-      },
-    },
-    MuiDivider: {
-      styleOverrides: {
-        root: {
-          borderColor: 'rgba(255, 105, 180, 0.12)',
-          '&::before, &::after': {
-            borderColor: 'rgba(255, 105, 180, 0.12)',
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': {
+                borderColor: alpha(PRIMARY, 0.18),
+              },
+              '&:hover fieldset': {
+                borderColor: alpha(PRIMARY, 0.35),
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: PRIMARY,
+              },
+            },
+            '& .MuiInputLabel-root': {
+              color: tokens.textSecondary,
+              '&.Mui-focused': {
+                color: PRIMARY,
+              },
+            },
           },
         },
       },
-    },
-    MuiAlert: {
-      styleOverrides: {
-        standardError: {
-          backgroundColor: 'rgba(244, 67, 54, 0.1)',
-          border: '1px solid rgba(244, 67, 54, 0.2)',
+      MuiSelect: {
+        styleOverrides: {
+          root: {
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: alpha(PRIMARY, 0.18),
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+              borderColor: alpha(PRIMARY, 0.35),
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+              borderColor: PRIMARY,
+            },
+          },
+        },
+      },
+      MuiChip: {
+        styleOverrides: {
+          outlined: {
+            borderColor: alpha(PRIMARY, 0.25),
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderBottomColor: alpha(PRIMARY, 0.06),
+          },
+          head: {
+            fontWeight: 700,
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+            fontSize: '0.7rem',
+            color: tokens.textSecondary,
+          },
+        },
+      },
+      MuiDivider: {
+        styleOverrides: {
+          root: {
+            borderColor: alpha(PRIMARY, 0.12),
+            '&::before, &::after': {
+              borderColor: alpha(PRIMARY, 0.12),
+            },
+          },
+        },
+      },
+      MuiAlert: {
+        styleOverrides: {
+          standardError: {
+            backgroundColor: alpha(tokens.error, 0.1),
+            border: `1px solid ${alpha(tokens.error, 0.2)}`,
+          },
         },
       },
     },
-  },
-});
+  });
+}
+
+export const darkTheme = createDarkTheme();

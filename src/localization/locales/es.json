@@ -105,6 +105,17 @@
     "themeDark": "Oscuro",
     "themeGlass": "Cristal",
     "toggleTheme": "Cambiar Tema",
+    "colors": "Colores de acento",
+    "color": {
+      "primary": "Primario",
+      "background": "Fondo",
+      "backgroundAccent": "Acento del degradado",
+      "surface": "Superficie",
+      "textPrimary": "Texto",
+      "textSecondary": "Texto tenue",
+      "success": "Éxito",
+      "error": "Error"
+    },
     "timerSection": "Cronómetro",
     "colorKeyHoldTime": "Tiempo de presión para teclas de color",
     "spacebarRequiresHold": "Espacio requiere presión",
