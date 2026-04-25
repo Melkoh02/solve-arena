@@ -4,6 +4,7 @@ import {
   SETTINGS_DEFAULTS,
   SHORTCUT_DEFAULTS,
   type AppSettings,
+  type LayoutMode,
   type ShortcutBinding,
   type ShortcutBindings,
   type ShortcutId,
@@ -17,6 +18,7 @@ export class SettingsStore {
   spacebarRequiresHold: boolean = SETTINGS_DEFAULTS.spacebarRequiresHold;
   timerPrecision: TimerPrecision = SETTINGS_DEFAULTS.timerPrecision;
   timeFormat: TimeFormat = SETTINGS_DEFAULTS.timeFormat;
+  layoutMode: LayoutMode = SETTINGS_DEFAULTS.layoutMode;
   shortcuts: ShortcutBindings = cloneShortcuts(SHORTCUT_DEFAULTS);
 
   constructor() {
@@ -48,6 +50,13 @@ export class SettingsStore {
     this.saveToStorage();
   }
 
+  // ── Layout setters ────────────────────────────────────
+
+  setLayoutMode(value: LayoutMode) {
+    this.layoutMode = value;
+    this.saveToStorage();
+  }
+
   // ── Shortcuts ─────────────────────────────────────────
 
   setShortcut(id: ShortcutId, binding: ShortcutBinding) {
@@ -71,6 +80,10 @@ export class SettingsStore {
     );
   }
 
+  get isLayoutModified(): boolean {
+    return this.layoutMode !== SETTINGS_DEFAULTS.layoutMode;
+  }
+
   get isShortcutsModified(): boolean {
     for (const id of Object.keys(SHORTCUT_DEFAULTS) as ShortcutId[]) {
       if (!shortcutsEqual(this.shortcuts[id], SHORTCUT_DEFAULTS[id])) return true;
@@ -90,6 +103,11 @@ export class SettingsStore {
     this.saveToStorage();
   }
 
+  resetLayout() {
+    this.layoutMode = SETTINGS_DEFAULTS.layoutMode;
+    this.saveToStorage();
+  }
+
   resetShortcuts() {
     this.shortcuts = cloneShortcuts(SHORTCUT_DEFAULTS);
     this.saveToStorage();
@@ -104,6 +122,7 @@ export class SettingsStore {
         spacebarRequiresHold: this.spacebarRequiresHold,
         timerPrecision: this.timerPrecision,
         timeFormat: this.timeFormat,
+        layoutMode: this.layoutMode,
         shortcuts: this.shortcuts,
       };
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(data));
@@ -129,6 +148,13 @@ export class SettingsStore {
       }
       if (data.timeFormat === 'auto' || data.timeFormat === 'mm:ss.xx') {
         this.timeFormat = data.timeFormat;
+      }
+      if (
+        data.layoutMode === 'auto' ||
+        data.layoutMode === 'mobile' ||
+        data.layoutMode === 'desktop'
+      ) {
+        this.layoutMode = data.layoutMode;
       }
       if (data.shortcuts && typeof data.shortcuts === 'object') {
         const next = cloneShortcuts(SHORTCUT_DEFAULTS);

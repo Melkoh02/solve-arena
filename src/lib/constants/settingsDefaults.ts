@@ -1,5 +1,6 @@
 export type TimerPrecision = 2 | 1;
 export type TimeFormat = 'auto' | 'mm:ss.xx';
+export type LayoutMode = 'auto' | 'mobile' | 'desktop';
 
 export interface ShortcutBinding {
   key: string;
@@ -32,6 +33,9 @@ export interface AppSettings {
   timerPrecision: TimerPrecision;
   timeFormat: TimeFormat;
 
+  // Layout
+  layoutMode: LayoutMode;
+
   // Shortcuts
   shortcuts: ShortcutBindings;
 }
@@ -55,5 +59,6 @@ export const SETTINGS_DEFAULTS: Readonly<AppSettings> = Object.freeze({
   spacebarRequiresHold: false,
   timerPrecision: 2,
   timeFormat: 'auto',
+  layoutMode: 'auto',
   shortcuts: SHORTCUT_DEFAULTS,
 });
