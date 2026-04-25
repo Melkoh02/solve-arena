@@ -9,6 +9,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import AppearanceSection from './AppearanceSection';
+import LayoutSection from './LayoutSection';
 import TimerSection from './TimerSection';
 import DisplaySection from './DisplaySection';
 import ShortcutsSection from './ShortcutsSection';
@@ -57,6 +58,13 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         {/* Appearance */}
         <Box sx={{ mb: 1 }}>
           <AppearanceSection />
+        </Box>
+
+        <Divider sx={{ my: 2.5 }} />
+
+        {/* Layout */}
+        <Box sx={{ mb: 1 }}>
+          <LayoutSection />
         </Box>
 
         <Divider sx={{ my: 2.5 }} />
