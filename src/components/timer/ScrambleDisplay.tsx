@@ -13,8 +13,11 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import EditIcon from '@mui/icons-material/Edit';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
+import { observer } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
 import { formatTime } from '../../lib/utils/formatTime';
+import { matchesShortcut } from '../../lib/utils/shortcuts';
+import { useStore } from '../../lib/hooks/useStore';
 import ScramblePreview from './ScramblePreview';
 
 /**
@@ -72,7 +75,7 @@ interface ScrambleDisplayProps {
   onManualTime?: (timeMs: number) => void;
 }
 
-export default function ScrambleDisplay({
+const ScrambleDisplay = observer(function ScrambleDisplay({
   scramble,
   eventId = '333',
   isLoading = false,
@@ -82,6 +85,7 @@ export default function ScrambleDisplay({
   onManualTime,
 }: ScrambleDisplayProps) {
   const { t } = useTranslation();
+  const { settingsStore } = useStore();
   const [showPreview, setShowPreview] = useState(() => {
     try {
       return localStorage.getItem(PREVIEW_KEY) === 'true';
@@ -107,27 +111,32 @@ export default function ScrambleDisplay({
     });
   };
 
-  // Keyboard shortcut: hold E = temporary preview, Ctrl+E = toggle
+  // Keyboard shortcut: hold = temporary preview, ctrl-variant = toggle
   const holdPreviewRef = useRef(false);
+  const holdBinding = settingsStore.shortcuts.holdScramblePreview;
+  const toggleBinding = settingsStore.shortcuts.toggleScramblePreview;
   useEffect(() => {
     const INTERACTIVE = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
     const handleDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() !== 'e') return;
       if (INTERACTIVE.has((e.target as HTMLElement).tagName)) return;
-      if (e.ctrlKey || e.metaKey) {
+      // Toggle is checked first because it has stricter modifiers
+      if (matchesShortcut(e, toggleBinding)) {
         e.preventDefault();
         togglePreview();
         return;
       }
-      if (e.repeat) return;
-      holdPreviewRef.current = true;
-      setShowPreview(true);
+      if (matchesShortcut(e, holdBinding)) {
+        if (e.repeat) return;
+        e.preventDefault();
+        holdPreviewRef.current = true;
+        setShowPreview(true);
+      }
     };
     const handleUp = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() !== 'e') return;
+      // Use just the key portion of the hold binding so release fires regardless of modifiers
+      if (e.key.toLowerCase() !== holdBinding.key.toLowerCase()) return;
       if (!holdPreviewRef.current) return;
       holdPreviewRef.current = false;
-      // Restore to persisted state
       const persisted = localStorage.getItem(PREVIEW_KEY) === 'true';
       setShowPreview(persisted);
     };
@@ -137,8 +146,7 @@ export default function ScrambleDisplay({
       window.removeEventListener('keydown', handleDown);
       window.removeEventListener('keyup', handleUp);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [holdBinding, toggleBinding]);
 
   const handleApplyCustom = () => {
     if (customInput.trim() && onSetCustom) {
@@ -418,4 +426,6 @@ export default function ScrambleDisplay({
       </Popover>
     </Box>
   );
-}
+});
+
+export default ScrambleDisplay;

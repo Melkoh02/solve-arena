@@ -3,14 +3,11 @@ import { observer } from 'mobx-react-lite';
 import { Typography, useTheme as useMuiTheme } from '@mui/material';
 import { useStore } from '../../lib/hooks/useStore';
 import { formatTime } from '../../lib/utils/formatTime';
+import { getColorFromEvent } from '../../lib/utils/shortcuts';
 import type { CrossColor } from '../../lib/types/room';
 
 const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON']);
 const MAX_TIME_MS = 3_599_990; // 59:59.99
-
-const COLOR_KEYS: Record<string, CrossColor> = {
-  w: 'w', y: 'y', r: 'r', o: 'o', b: 'b', g: 'g',
-};
 
 interface TimerProps {
   disabled?: boolean;
@@ -146,14 +143,14 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
         e.preventDefault();
         timerStore.stopTimer(e.code === 'Escape');
         stopTimestamp.current = Date.now();
-        const stopColorKey = COLOR_KEYS[e.key.toLowerCase()];
+        const stopColorKey = getColorFromEvent(e, settingsStore.shortcuts);
         isKeyDown.current = e.code === 'Space' || !!stopColorKey;
         clearHoldTimer();
         return;
       }
 
       // Spacebar or color keys start the preparing/ready/start flow
-      const colorKey = COLOR_KEYS[e.key.toLowerCase()];
+      const colorKey = getColorFromEvent(e, settingsStore.shortcuts);
       const isSpace = e.code === 'Space';
       if (!isSpace && !colorKey) return;
       e.preventDefault();
@@ -180,7 +177,7 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      const colorKey = COLOR_KEYS[e.key.toLowerCase()];
+      const colorKey = getColorFromEvent(e, settingsStore.shortcuts);
       const isSpace = e.code === 'Space';
       if (!isSpace && !colorKey) return;
       if (isInsideOverlay(e.target)) return;
@@ -217,7 +214,7 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       clearHoldTimer();
     };
-  }, [timerStore, settingsStore.colorKeyHoldThreshold, settingsStore.spacebarRequiresHold, animate, disabled, onColorStart]);
+  }, [timerStore, settingsStore, settingsStore.colorKeyHoldThreshold, settingsStore.spacebarRequiresHold, settingsStore.shortcuts, animate, disabled, onColorStart]);
 
   const getColor = (): string => {
     switch (timerStore.timerPhase) {

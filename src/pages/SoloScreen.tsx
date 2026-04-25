@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -32,8 +32,11 @@ import AverageDetailModal from '../components/solo/AverageDetailModal';
 import SettingsDialog from '../components/settings/SettingsDialog';
 import { formatTime, getDisplayTime } from '../lib/utils/formatTime';
 import { formatAverage } from '../lib/utils/averages';
+import { matchesShortcut } from '../lib/utils/shortcuts';
 import type { SoloSolve } from '../lib/stores/soloStore';
 import type { CrossColor } from '../lib/types/room';
+
+const HISTORY_VISIBLE_KEY = 'soloHistoryVisible';
 
 const LABEL_SX = {
   textTransform: 'uppercase',
@@ -53,7 +56,27 @@ const SoloScreen = observer(function SoloScreen() {
   const [aoSolves, setAoSolves] = useState<SoloSolve[] | null>(null);
   const [aoSize, setAoSize] = useState(5);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [historyVisible, setHistoryVisible] = useState(() => {
+    try {
+      const raw = localStorage.getItem(HISTORY_VISIBLE_KEY);
+      return raw === null ? true : raw === 'true';
+    } catch {
+      return true;
+    }
+  });
   const pendingColorRef = useRef<CrossColor>('w');
+
+  const toggleHistory = useCallback(() => {
+    setHistoryVisible(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem(HISTORY_VISIBLE_KEY, String(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }, []);
 
   const precision = settingsStore.timerPrecision;
   const isTimerRunning = timerStore.timerPhase === 'running';
@@ -130,8 +153,12 @@ const SoloScreen = observer(function SoloScreen() {
     [timerStore, soloStore],
   );
 
-  // Delete shortcuts: Backspace/Delete = delete last solve, Ctrl+Shift+Backspace/Delete = clear all
+  // Configurable shortcuts: delete last, clear all, toggle history.
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const shortcuts = settingsStore.shortcuts;
+  const deleteLastBinding = useMemo(() => shortcuts.deleteLastSolve, [shortcuts]);
+  const clearAllBinding = useMemo(() => shortcuts.clearAllSolves, [shortcuts]);
+  const toggleHistoryBinding = useMemo(() => shortcuts.toggleHistory, [shortcuts]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -143,18 +170,33 @@ const SoloScreen = observer(function SoloScreen() {
       )
         return;
 
-      if (e.key === 'Backspace' || e.key === 'Delete') {
+      // Clear-all takes precedence (more specific binding with modifiers)
+      if (matchesShortcut(e, clearAllBinding)) {
         e.preventDefault();
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey) {
-          if (soloStore.eventSolves.length > 0) setDeleteConfirm(true);
-        } else {
-          if (soloStore.lastSolve) soloStore.deleteLastSolve();
-        }
+        if (soloStore.eventSolves.length > 0) setDeleteConfirm(true);
+        return;
+      }
+      if (matchesShortcut(e, deleteLastBinding)) {
+        e.preventDefault();
+        if (soloStore.lastSolve) soloStore.deleteLastSolve();
+        return;
+      }
+      if (matchesShortcut(e, toggleHistoryBinding)) {
+        e.preventDefault();
+        toggleHistory();
+        return;
       }
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [soloStore, isTimerActive]);
+  }, [
+    soloStore,
+    isTimerActive,
+    deleteLastBinding,
+    clearAllBinding,
+    toggleHistoryBinding,
+    toggleHistory,
+  ]);
 
   // When timer shows the last solve time (stopped), exclude it from the stack.
   // When timer is idle/ready (0.00), show all recent solves including the last.
@@ -314,7 +356,7 @@ const SoloScreen = observer(function SoloScreen() {
       </Box>
 
       {/* ── History table (fills remaining space) ───────────── */}
-      {!isTimerRunning && soloStore.eventSolves.length > 0 && (
+      {!isTimerRunning && historyVisible && soloStore.eventSolves.length > 0 && (
         <Box
           sx={{
             flex: '1 1 0',

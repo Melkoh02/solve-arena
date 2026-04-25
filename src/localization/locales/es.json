@@ -113,7 +113,24 @@
     "timeFormatExport": "Formato de copia/exportación",
     "timeFormatAuto": "Auto",
     "resetToDefault": "Restablecer",
-    "logout": "Cerrar Sesion"
+    "logout": "Cerrar Sesion",
+    "shortcutsSection": "Atajos de teclado",
+    "shortcutsHint": "Haz click en una tecla para grabar. Presiona Esc para cancelar.",
+    "shortcutRecording": "Presiona una tecla…",
+    "shortcutConflict": "Conflicto con otro atajo",
+    "shortcuts": {
+      "colorWhite": "Cruz blanca",
+      "colorYellow": "Cruz amarilla",
+      "colorRed": "Cruz roja",
+      "colorOrange": "Cruz naranja",
+      "colorBlue": "Cruz azul",
+      "colorGreen": "Cruz verde",
+      "deleteLastSolve": "Eliminar último tiempo",
+      "clearAllSolves": "Eliminar todos los tiempos",
+      "holdScramblePreview": "Ver vista previa de la mezcla (mantener)",
+      "toggleScramblePreview": "Alternar vista previa de la mezcla",
+      "toggleHistory": "Mostrar/ocultar historial"
+    }
   },
   "modals": {
     "userAccount": {
