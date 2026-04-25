@@ -16,6 +16,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
+import { useIsMobile } from '../../lib/hooks/useIsMobile';
 import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
 import CrossColorPicker from '../room/CrossColorPicker';
 import type { SoloSolve } from '../../lib/stores/soloStore';
@@ -53,6 +54,7 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
 }: Props) {
   const { soloStore, settingsStore } = useStore();
   const { t, i18n } = useTranslation();
+  const isMobile = useIsMobile();
   const precision = settingsStore.timerPrecision;
 
   if (!solve) return null;
@@ -66,14 +68,18 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      fullScreen={isMobile}
       slotProps={{
         paper: {
           sx: {
             bgcolor: 'background.paper',
-            border: '1px solid',
+            border: isMobile ? 'none' : '1px solid',
             borderColor: 'divider',
-            borderRadius: 3,
+            borderRadius: isMobile ? 0 : 3,
             backgroundImage: 'none',
+            // Respect iOS safe areas in fullScreen
+            pt: isMobile ? 'env(safe-area-inset-top, 0px)' : 0,
+            pb: isMobile ? 'env(safe-area-inset-bottom, 0px)' : 0,
           },
         },
       }}>
@@ -87,8 +93,8 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
         <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
           {t('room.solveDetails')}
         </Typography>
-        <IconButton size="small" onClick={onClose}>
-          <CloseIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+        <IconButton size={isMobile ? 'medium' : 'small'} onClick={onClose}>
+          <CloseIcon sx={{ fontSize: isMobile ? 24 : 18, color: 'text.secondary' }} />
         </IconButton>
       </DialogTitle>
       <DialogContent>
@@ -106,7 +112,9 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
           <Typography
             sx={{
               fontFamily: '"Inter", monospace',
-              fontSize: 'clamp(2.2rem, 10vw, 3.2rem)',
+              fontSize: isMobile
+                ? 'clamp(3rem, 14vw, 4.5rem)'
+                : 'clamp(2.2rem, 10vw, 3.2rem)',
               fontWeight: 900,
               fontVariantNumeric: 'tabular-nums',
               color: 'primary.main',
@@ -118,25 +126,32 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
         </Box>
 
         {/* Penalty + cross color */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
-          <ButtonGroup size="small">
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: isMobile ? 2 : 1.5,
+            mb: 2.5,
+          }}>
+          <ButtonGroup size={isMobile ? 'medium' : 'small'}>
             <Button
               variant={liveSolve.penalty === '+2' ? 'contained' : 'outlined'}
               onClick={() => soloStore.updatePenalty(liveSolve.id, '+2' as Penalty)}
-              sx={{ minWidth: 48 }}>
+              sx={{ minWidth: isMobile ? 64 : 48 }}>
               +2
             </Button>
             <Button
               variant={liveSolve.penalty === 'DNF' ? 'contained' : 'outlined'}
               onClick={() => soloStore.updatePenalty(liveSolve.id, 'DNF' as Penalty)}
-              sx={{ minWidth: 48 }}>
+              sx={{ minWidth: isMobile ? 64 : 48 }}>
               DNF
             </Button>
           </ButtonGroup>
           <CrossColorPicker
             value={liveSolve.crossColor}
             onChange={color => soloStore.updateCrossColor(liveSolve.id, color)}
-            size={24}
+            size={isMobile ? 32 : 24}
           />
         </Box>
 
@@ -196,10 +211,18 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
         </Stack>
 
         {/* Copy & Export buttons */}
-        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', mt: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: isMobile ? 'column' : 'row',
+            gap: 1,
+            justifyContent: 'center',
+            mt: 2,
+          }}>
           <Button
-            size="small"
+            size={isMobile ? 'medium' : 'small'}
             variant="outlined"
+            fullWidth={isMobile}
             startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
             onClick={() => {
               const exportFmt = settingsStore.timeFormat;
@@ -213,12 +236,13 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
               ].join('\n');
               navigator.clipboard.writeText(text);
             }}
-            sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
+            sx={{ textTransform: 'none', fontSize: isMobile ? '0.85rem' : '0.75rem' }}>
             Copy
           </Button>
           <Button
-            size="small"
+            size={isMobile ? 'medium' : 'small'}
             variant="outlined"
+            fullWidth={isMobile}
             startIcon={<FileDownloadIcon sx={{ fontSize: 16 }} />}
             onClick={() => {
               const exportFmt2 = settingsStore.timeFormat;
@@ -237,7 +261,7 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
               a.click();
               URL.revokeObjectURL(url);
             }}
-            sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
+            sx={{ textTransform: 'none', fontSize: isMobile ? '0.85rem' : '0.75rem' }}>
             Export CSV
           </Button>
         </Box>

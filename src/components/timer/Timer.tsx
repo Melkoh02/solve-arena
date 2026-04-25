@@ -12,6 +12,8 @@ const MAX_TIME_MS = 3_599_990; // 59:59.99
 interface TimerProps {
   disabled?: boolean;
   onColorStart?: (color: CrossColor) => void;
+  /** When true, scale the timer up — used by the mobile layout. */
+  large?: boolean;
 }
 
 /** Hook that returns touch handlers for the timer area. */
@@ -69,7 +71,7 @@ export function useTimerTouch(disabled: boolean, onColorStart?: (color: CrossCol
   return { onTouchStart, onTouchEnd };
 }
 
-const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerProps) {
+const Timer = observer(function Timer({ disabled = false, onColorStart, large = false }: TimerProps) {
   const { timerStore, settingsStore } = useStore();
   const theme = useMuiTheme();
   const rafRef = useRef<number | null>(null);
@@ -245,7 +247,9 @@ const Timer = observer(function Timer({ disabled = false, onColorStart }: TimerP
 
   const baseSx = {
     fontFamily: '"Inter", monospace',
-    fontSize: 'clamp(3rem, 12vw, 8rem)',
+    fontSize: large
+      ? 'clamp(5.5rem, 28vw, 10rem)'
+      : 'clamp(3rem, 12vw, 8rem)',
     fontWeight: 900,
     fontVariantNumeric: 'tabular-nums',
     textAlign: 'center',

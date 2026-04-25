@@ -45,7 +45,7 @@ const HistoryCard = observer(function HistoryCard({
       sx={{
         display: 'flex',
         alignItems: 'center',
-        gap: 1,
+        gap: 1.25,
         px: 1.5,
         py: 1.25,
         borderRadius: 2,
@@ -100,17 +100,17 @@ const HistoryCard = observer(function HistoryCard({
       </Stack>
 
       {/* Penalty toggles */}
-      <Stack direction="row" spacing={0.5}>
+      <Stack direction="row" spacing={1}>
         <ToggleButton
           value="+2"
           selected={solve.penalty === '+2'}
           onChange={() => togglePenalty('+2')}
           size="small"
           sx={{
-            minWidth: 36,
-            px: 0.75,
-            py: 0.5,
-            fontSize: '0.7rem',
+            minWidth: 44,
+            px: 1,
+            py: 0.875,
+            fontSize: '0.78rem',
             fontWeight: 700,
             border: '1px solid',
             borderColor: 'divider',
@@ -129,10 +129,10 @@ const HistoryCard = observer(function HistoryCard({
           onChange={() => togglePenalty('DNF')}
           size="small"
           sx={{
-            minWidth: 40,
-            px: 0.75,
-            py: 0.5,
-            fontSize: '0.7rem',
+            minWidth: 48,
+            px: 1,
+            py: 0.875,
+            fontSize: '0.78rem',
             fontWeight: 700,
             border: '1px solid',
             borderColor: 'divider',
@@ -151,16 +151,16 @@ const HistoryCard = observer(function HistoryCard({
       <CrossColorPicker
         value={solve.crossColor}
         onChange={color => soloStore.updateCrossColor(solve.id, color)}
-        size={22}
+        size={26}
       />
 
       {/* Delete */}
       <IconButton
-        size="small"
+        size="medium"
         onClick={() => onRequestDelete(solve)}
-        sx={{ color: 'text.secondary', opacity: 0.6 }}
+        sx={{ color: 'text.secondary', opacity: 0.7, p: 0.875 }}
         aria-label={t('solo.deleteSolve')}>
-        <DeleteOutlineIcon sx={{ fontSize: 20 }} />
+        <DeleteOutlineIcon sx={{ fontSize: 22 }} />
       </IconButton>
     </Box>
   );
