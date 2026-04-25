@@ -20,6 +20,7 @@ import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/hooks/useStore';
 import { useIsMobile } from '../lib/hooks/useIsMobile';
+import { vhSafe } from '../lib/utils/viewport';
 import ScrambleDisplay from '../components/timer/ScrambleDisplay';
 import Timer, { useTimerTouch } from '../components/timer/Timer';
 import HostControls from '../components/room/HostControls';
@@ -297,7 +298,7 @@ const RoomScreen = observer(function RoomScreen() {
       sx={{
         display: 'flex',
         flexDirection: useMobileLayout ? 'column' : 'row',
-        height: '100vh',
+        ...vhSafe(100),
         maxWidth: useMobileLayout ? '100%' : 1400,
         mx: 'auto',
         width: '100%',

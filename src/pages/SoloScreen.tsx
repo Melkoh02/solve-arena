@@ -35,6 +35,7 @@ import SettingsDialog from '../components/settings/SettingsDialog';
 import { formatTime, getDisplayTime } from '../lib/utils/formatTime';
 import { formatAverage } from '../lib/utils/averages';
 import { matchesShortcut } from '../lib/utils/shortcuts';
+import { vhSafe } from '../lib/utils/viewport';
 import type { SoloSolve } from '../lib/stores/soloStore';
 import type { CrossColor } from '../lib/types/room';
 
@@ -219,7 +220,7 @@ const SoloScreen = observer(function SoloScreen() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        ...vhSafe(100),
         maxWidth: useMobileLayout ? '100%' : 1000,
         mx: 'auto',
         width: '100%',
