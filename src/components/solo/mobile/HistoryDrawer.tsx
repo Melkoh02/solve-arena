@@ -168,7 +168,17 @@ const HistoryDrawer = observer(function HistoryDrawer({
             borderColor: 'divider',
             flexShrink: 0,
           }}>
-          <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
+            {/* Destructive action lives on the LEFT, away from the close
+                affordance so users don't tap it by mistake. The clear-all
+                still goes through a confirmation dialog. */}
+            <IconButton
+              size="medium"
+              onClick={onRequestClearAll}
+              sx={{ color: 'text.secondary', p: 0.875, mr: 0.5 }}
+              aria-label={t('solo.clearAll')}>
+              <DeleteOutlineIcon sx={{ fontSize: 22 }} />
+            </IconButton>
             <Typography
               sx={{
                 textTransform: 'uppercase',
@@ -181,25 +191,18 @@ const HistoryDrawer = observer(function HistoryDrawer({
             </Typography>
             {best !== null && (
               <Typography
-                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>
+                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary', pl: 0.75 }}>
                 {t('room.best')}: {formatTime(best, precision)}
               </Typography>
             )}
             {avg !== null && (
               <Typography
-                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>
+                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary', pl: 0.75 }}>
                 Avg: {formatTime(avg, precision)}
               </Typography>
             )}
           </Stack>
           <Stack direction="row" spacing={0.5} alignItems="center">
-            <IconButton
-              size="medium"
-              onClick={onRequestClearAll}
-              sx={{ color: 'text.secondary', p: 0.875 }}
-              aria-label={t('solo.clearAll')}>
-              <DeleteOutlineIcon sx={{ fontSize: 22 }} />
-            </IconButton>
             <IconButton
               size="medium"
               onClick={onClose}
