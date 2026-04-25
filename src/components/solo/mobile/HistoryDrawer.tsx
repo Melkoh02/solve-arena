@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../../lib/hooks/useStore';
 import { formatTime, getDisplayTime } from '../../../lib/utils/formatTime';
@@ -191,13 +192,22 @@ const HistoryDrawer = observer(function HistoryDrawer({
               </Typography>
             )}
           </Stack>
-          <IconButton
-            size="small"
-            onClick={onRequestClearAll}
-            sx={{ color: 'text.secondary' }}
-            aria-label={t('solo.clearAll')}>
-            <DeleteOutlineIcon sx={{ fontSize: 20 }} />
-          </IconButton>
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <IconButton
+              size="medium"
+              onClick={onRequestClearAll}
+              sx={{ color: 'text.secondary', p: 0.875 }}
+              aria-label={t('solo.clearAll')}>
+              <DeleteOutlineIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+            <IconButton
+              size="medium"
+              onClick={onClose}
+              sx={{ color: 'text.secondary', p: 0.875 }}
+              aria-label={t('common.cancel')}>
+              <CloseIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+          </Stack>
         </Box>
 
         {/* Cards */}
