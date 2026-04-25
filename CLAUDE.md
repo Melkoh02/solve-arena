@@ -48,8 +48,8 @@ Only start this when the user explicitly says to release.
    - Add a new section above the previous version (follow [Keep a Changelog](https://keepachangelog.com/) format with Added/Changed/Fixed/Removed sections as needed).
    - Add the release link at the bottom of the file: `[X.Y.Z]: https://github.com/Melkoh02/solve-arena/releases/tag/vX.Y.Z`.
    - Commit: `git commit -m "docs: update CHANGELOG for vX.Y.Z"`.
-6. Tag the release: `git tag vX.Y.Z`.
-7. Push master and tags: `git push origin master --tags` — triggers GitHub Actions to deploy to GitHub Pages.
+6. Tag the release as an annotated tag: `git tag -a vX.Y.Z -m "vX.Y.Z — <title>"`. Annotated tags carry author/date/message and survive `git push --follow-tags`; lightweight tags (`git tag vX.Y.Z`) get silently skipped.
+7. Push master and tags: `git push origin master --follow-tags` — triggers GitHub Actions to deploy to GitHub Pages.
 8. Sync develop: `git checkout develop && git merge master && git push origin develop`.
 9. (Optional) Create a GitHub release using the CHANGELOG entry as the notes: `gh release create vX.Y.Z -t "vX.Y.Z — <title>" --notes-from-tag` (or pass `-F` with a notes file).
 
