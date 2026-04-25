@@ -242,11 +242,13 @@ const HistoryDrawer = observer(function HistoryDrawer({
         </Box>
       </Drawer>
 
-      {/* Per-solve delete confirmation */}
+      {/* Per-solve delete confirmation — fullWidth so the dialog has presence
+          on a phone instead of collapsing to content width. */}
       <Dialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
         maxWidth="xs"
+        fullWidth
         slotProps={{
           paper: {
             sx: {
@@ -255,35 +257,34 @@ const HistoryDrawer = observer(function HistoryDrawer({
               borderColor: 'divider',
               borderRadius: 3,
               backgroundImage: 'none',
+              mx: 2,
             },
           },
         }}>
-        <DialogTitle sx={{ pb: 0.5, fontSize: '0.95rem', fontWeight: 700 }}>
+        <DialogTitle sx={{ pb: 0.5, fontSize: '1.05rem', fontWeight: 700 }}>
           {t('solo.deleteSolve')}
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+          <Typography sx={{ fontSize: '0.95rem', color: 'text.secondary' }}>
             {t('solo.deleteSolveConfirm', {
               time: deleteTarget ? getDisplayTime(deleteTarget, precision) : '',
             })}
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
           <Button
-            size="small"
             onClick={() => setDeleteTarget(null)}
-            sx={{ textTransform: 'none' }}>
+            sx={{ textTransform: 'none', minWidth: 96 }}>
             {t('common.cancel')}
           </Button>
           <Button
-            size="small"
             variant="contained"
             color="error"
             onClick={() => {
               if (deleteTarget) soloStore.deleteSolve(deleteTarget.id);
               setDeleteTarget(null);
             }}
-            sx={{ textTransform: 'none' }}>
+            sx={{ textTransform: 'none', minWidth: 96 }}>
             {t('common.confirm')}
           </Button>
         </DialogActions>

@@ -482,6 +482,7 @@ const SoloScreen = observer(function SoloScreen() {
           }
         }}
         maxWidth="xs"
+        fullWidth={useMobileLayout}
         slotProps={{
           paper: {
             sx: {
@@ -490,33 +491,43 @@ const SoloScreen = observer(function SoloScreen() {
               borderColor: 'divider',
               borderRadius: 3,
               backgroundImage: 'none',
+              mx: useMobileLayout ? 2 : undefined,
             },
           },
         }}>
-        <DialogTitle sx={{ pb: 0.5, fontSize: '0.95rem', fontWeight: 700 }}>
+        <DialogTitle
+          sx={{
+            pb: 0.5,
+            fontSize: useMobileLayout ? '1.05rem' : '0.95rem',
+            fontWeight: 700,
+          }}>
           {t('solo.clearAll')}
         </DialogTitle>
         <DialogContent>
-          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+          <Typography
+            sx={{
+              fontSize: useMobileLayout ? '0.95rem' : '0.85rem',
+              color: 'text.secondary',
+            }}>
             {t('solo.clearAllConfirm')}
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
+        <DialogActions sx={{ px: 3, pb: useMobileLayout ? 2.5 : 2, gap: useMobileLayout ? 1 : 0 }}>
           <Button
-            size="small"
+            size={useMobileLayout ? 'medium' : 'small'}
             onClick={() => setDeleteConfirm(false)}
-            sx={{ textTransform: 'none' }}>
+            sx={{ textTransform: 'none', minWidth: useMobileLayout ? 96 : undefined }}>
             {t('common.cancel')}
           </Button>
           <Button
-            size="small"
+            size={useMobileLayout ? 'medium' : 'small'}
             variant="contained"
             color="error"
             onClick={() => {
               soloStore.clearSolves();
               setDeleteConfirm(false);
             }}
-            sx={{ textTransform: 'none' }}>
+            sx={{ textTransform: 'none', minWidth: useMobileLayout ? 96 : undefined }}>
             {t('common.confirm')}
           </Button>
         </DialogActions>
