@@ -604,7 +604,8 @@ const RoomScreen = observer(function RoomScreen() {
           )}
         </Box>
 
-        {/* Results history — hidden when timer is running */}
+        {/* Results history — header sits in its own row so it stays put when
+            the table scrolls horizontally on narrow viewports. */}
         {!isTimerRunning && (
           <Box
             sx={{
@@ -612,7 +613,9 @@ const RoomScreen = observer(function RoomScreen() {
               minHeight: 150,
               borderTop: '1px solid',
               borderColor: 'divider',
-              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
             }}>
             <Box
               sx={{
@@ -621,10 +624,8 @@ const RoomScreen = observer(function RoomScreen() {
                 justifyContent: 'space-between',
                 px: 2,
                 py: 1,
-                position: 'sticky',
-                top: 0,
-                zIndex: 2,
                 bgcolor: 'background.default',
+                flexShrink: 0,
               }}>
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Typography
@@ -662,7 +663,9 @@ const RoomScreen = observer(function RoomScreen() {
                 )}
               </Stack>
             </Box>
-            <ResultsTable />
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+              <ResultsTable />
+            </Box>
           </Box>
         )}
       </Box>
