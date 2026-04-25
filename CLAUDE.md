@@ -44,9 +44,14 @@ Only start this when the user explicitly says to release.
 2. Determine version number based on changes since last release (see Versioning above).
 3. Bump `version` in `package.json` on `develop` and commit: `git commit -m "chore: bump version to vX.Y.Z"`.
 4. Merge to master: `git checkout master && git merge develop --no-ff -m "release: vX.Y.Z"`.
-5. Tag the release: `git tag vX.Y.Z`.
-6. Push master and tags: `git push origin master --tags` — triggers GitHub Actions to deploy to GitHub Pages.
-7. Sync develop: `git checkout develop && git merge master && git push origin develop`.
+5. Update `CHANGELOG.md` on master:
+   - Add a new section above the previous version (follow [Keep a Changelog](https://keepachangelog.com/) format with Added/Changed/Fixed/Removed sections as needed).
+   - Add the release link at the bottom of the file: `[X.Y.Z]: https://github.com/Melkoh02/solve-arena/releases/tag/vX.Y.Z`.
+   - Commit: `git commit -m "docs: update CHANGELOG for vX.Y.Z"`.
+6. Tag the release: `git tag vX.Y.Z`.
+7. Push master and tags: `git push origin master --tags` — triggers GitHub Actions to deploy to GitHub Pages.
+8. Sync develop: `git checkout develop && git merge master && git push origin develop`.
+9. (Optional) Create a GitHub release using the CHANGELOG entry as the notes: `gh release create vX.Y.Z -t "vX.Y.Z — <title>" --notes-from-tag` (or pass `-F` with a notes file).
 
 ### Deployment
 Pushing to `master` triggers `.github/workflows/deploy.yml`, which builds the client (`yarn build`) and deploys to GitHub Pages (custom domain `solvearena.net` per `CNAME`). The Express server (multiplayer) deploys separately on Render via `render.yaml`.
