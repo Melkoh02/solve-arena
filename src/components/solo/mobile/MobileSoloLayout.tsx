@@ -118,12 +118,12 @@ const MobileSoloLayout = observer(function MobileSoloLayout({
           minHeight: 0,
         }}>
         {!isTimerRunning && soloStore.eventSolves.length > 0 && (
-          <Stack direction="row" spacing={2} sx={{ mb: 0.5 }}>
+          <Stack direction="row" spacing={2.5} sx={{ mb: 1 }}>
             <Typography
               sx={{
                 textTransform: 'uppercase',
                 letterSpacing: '0.12em',
-                fontSize: '0.95rem',
+                fontSize: '1.15rem',
                 fontWeight: 700,
                 color: 'text.secondary',
               }}>
@@ -133,7 +133,7 @@ const MobileSoloLayout = observer(function MobileSoloLayout({
               sx={{
                 textTransform: 'uppercase',
                 letterSpacing: '0.12em',
-                fontSize: '0.95rem',
+                fontSize: '1.15rem',
                 fontWeight: 700,
                 color: 'text.secondary',
               }}>
@@ -142,21 +142,21 @@ const MobileSoloLayout = observer(function MobileSoloLayout({
           </Stack>
         )}
 
-        <Timer disabled={false} onColorStart={onColorStart} />
+        <Timer disabled={false} onColorStart={onColorStart} large />
 
         {!isTimerRunning && previousSolves.length > 0 && (
-          <Box sx={{ textAlign: 'center', overflow: 'hidden' }}>
+          <Box sx={{ textAlign: 'center', overflow: 'hidden', mt: 1 }}>
             {previousSolves.map((solve, i) => (
               <Typography
                 key={solve.id}
                 sx={{
                   fontFamily: 'monospace',
                   fontVariantNumeric: 'tabular-nums',
-                  fontSize: `${1.4 - i * 0.15}rem`,
+                  fontSize: `${1.85 - i * 0.18}rem`,
                   fontWeight: 600,
                   color: 'text.secondary',
-                  opacity: 0.5 - i * 0.08,
-                  lineHeight: 1.4,
+                  opacity: 0.55 - i * 0.08,
+                  lineHeight: 1.35,
                   userSelect: 'none',
                 }}>
                 {getDisplayTime(solve, precision)}

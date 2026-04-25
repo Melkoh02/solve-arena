@@ -1,4 +1,4 @@
-import { Box, CircularProgress, IconButton, Typography } from '@mui/material';
+import { Box, ButtonBase, CircularProgress, Typography } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { useTranslation } from 'react-i18next';
 import ScramblePreview from '../../timer/ScramblePreview';
@@ -51,11 +51,15 @@ export default function MobileScramblePanel({
         {isCustom ? t('timer.customScramble') : t('timer.scrambleLabel')}
       </Typography>
 
-      <Box
+      <ButtonBase
+        component="div"
+        onClick={onOpenActions}
+        aria-label={t('settings.scrambleActions')}
         sx={{
           mx: 1,
           px: 2,
           py: 1.5,
+          width: 'calc(100% - 16px)',
           borderRadius: 2,
           bgcolor: isCustom
             ? 'rgba(255, 105, 180, 0.08)'
@@ -63,6 +67,12 @@ export default function MobileScramblePanel({
           border: '1px solid',
           borderColor: isCustom ? 'primary.main' : 'divider',
           position: 'relative',
+          textAlign: 'center',
+          display: 'block',
+          transition: 'background-color 0.15s, border-color 0.15s',
+          '&:active, &:hover': {
+            bgcolor: 'rgba(255, 105, 180, 0.12)',
+          },
         }}>
         <Typography
           sx={{
@@ -72,7 +82,7 @@ export default function MobileScramblePanel({
             color: 'text.primary',
             lineHeight: 1.6,
             wordBreak: 'break-word',
-            // Leave room for the absolute-positioned overflow button
+            // Leave room for the decorative overflow icon at the right edge
             pr: 4,
           }}>
           {scramble}
@@ -82,19 +92,20 @@ export default function MobileScramblePanel({
           <ScramblePreview scramble={scramble} eventId={eventId} />
         )}
 
-        <IconButton
-          size="medium"
-          onClick={onOpenActions}
-          aria-label={t('settings.scrambleActions')}
+        {/* Decorative affordance — the whole pill is the click target */}
+        <Box
           sx={{
             position: 'absolute',
-            top: 4,
-            right: 4,
+            top: 8,
+            right: 8,
+            display: 'flex',
+            alignItems: 'center',
             color: 'text.secondary',
+            pointerEvents: 'none',
           }}>
           <MoreVertIcon sx={{ fontSize: 22 }} />
-        </IconButton>
-      </Box>
+        </Box>
+      </ButtonBase>
     </Box>
   );
 }
