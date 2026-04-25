@@ -104,6 +104,17 @@
     "themeDark": "Dark",
     "themeGlass": "Glass",
     "toggleTheme": "Toggle Theme",
+    "colors": "Accent colors",
+    "color": {
+      "primary": "Primary",
+      "background": "Background",
+      "backgroundAccent": "Gradient accent",
+      "surface": "Surface",
+      "textPrimary": "Text",
+      "textSecondary": "Muted text",
+      "success": "Success",
+      "error": "Error"
+    },
     "timerSection": "Timer",
     "colorKeyHoldTime": "Color key hold time",
     "spacebarRequiresHold": "Spacebar requires hold",
@@ -112,7 +123,24 @@
     "timeFormatExport": "Copy/export format",
     "timeFormatAuto": "Auto",
     "resetToDefault": "Reset",
-    "logout": "Log Out"
+    "logout": "Log Out",
+    "shortcutsSection": "Shortcuts",
+    "shortcutsHint": "Click a key to record. Press Esc to cancel.",
+    "shortcutRecording": "Press a key…",
+    "shortcutConflict": "Conflict with another shortcut",
+    "shortcuts": {
+      "colorWhite": "White cross",
+      "colorYellow": "Yellow cross",
+      "colorRed": "Red cross",
+      "colorOrange": "Orange cross",
+      "colorBlue": "Blue cross",
+      "colorGreen": "Green cross",
+      "deleteLastSolve": "Delete last solve",
+      "clearAllSolves": "Clear all solves",
+      "holdScramblePreview": "Show scramble preview (hold)",
+      "toggleScramblePreview": "Toggle scramble preview",
+      "toggleHistory": "Toggle history table"
+    }
   },
   "modals": {
     "userAccount": {

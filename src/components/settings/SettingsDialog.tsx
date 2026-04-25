@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import AppearanceSection from './AppearanceSection';
 import TimerSection from './TimerSection';
 import DisplaySection from './DisplaySection';
+import ShortcutsSection from './ShortcutsSection';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -63,6 +64,13 @@ export default function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         {/* Timer */}
         <Box sx={{ mb: 1 }}>
           <TimerSection />
+        </Box>
+
+        <Divider sx={{ my: 2.5 }} />
+
+        {/* Shortcuts */}
+        <Box sx={{ mb: 1 }}>
+          <ShortcutsSection />
         </Box>
 
         <Divider sx={{ my: 2.5 }} />
