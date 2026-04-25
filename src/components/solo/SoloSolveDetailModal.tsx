@@ -68,18 +68,18 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
-      fullScreen={isMobile}
       slotProps={{
         paper: {
           sx: {
             bgcolor: 'background.paper',
-            border: isMobile ? 'none' : '1px solid',
+            border: '1px solid',
             borderColor: 'divider',
-            borderRadius: isMobile ? 0 : 3,
+            borderRadius: 3,
             backgroundImage: 'none',
-            // Respect iOS safe areas in fullScreen
-            pt: isMobile ? 'env(safe-area-inset-top, 0px)' : 0,
-            pb: isMobile ? 'env(safe-area-inset-bottom, 0px)' : 0,
+            // On mobile we keep tighter side margins so the content has room
+            mx: isMobile ? 1.5 : undefined,
+            // Avoid the dialog hugging the edges of the safe area on iOS
+            my: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 16px)' : undefined,
           },
         },
       }}>
