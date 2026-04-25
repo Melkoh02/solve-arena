@@ -12,6 +12,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../../lib/hooks/useStore';
 import { formatTime } from '../../../lib/utils/formatTime';
+import { vhSafe } from '../../../lib/utils/viewport';
 import ResultsTable from '../ResultsTable';
 
 const PEEK_HEIGHT = 56;
@@ -116,7 +117,7 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
               borderTopRightRadius: 20,
               bgcolor: 'background.paper',
               backgroundImage: 'none',
-              height: '85vh',
+              ...vhSafe(85),
               display: 'flex',
               flexDirection: 'column',
             },

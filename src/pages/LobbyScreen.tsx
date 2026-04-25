@@ -17,6 +17,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { observer } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/hooks/useStore';
+import { minVhSafe } from '../lib/utils/viewport';
 import LanguageSelect from '../components/organisms/LanguageSelect';
 
 const LobbyScreen = observer(function LobbyScreen() {
@@ -48,7 +49,7 @@ const LobbyScreen = observer(function LobbyScreen() {
         alignItems: 'center',
         justifyContent: 'center',
         px: 2,
-        minHeight: '100vh',
+        ...minVhSafe(100),
       }}>
       <Paper
         elevation={0}

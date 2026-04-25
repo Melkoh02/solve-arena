@@ -11,6 +11,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../../lib/hooks/useStore';
+import { vhSafe } from '../../../lib/utils/viewport';
 import PlayerSidebar from '../PlayerSidebar';
 import HostControls from '../HostControls';
 
@@ -42,7 +43,7 @@ const RoomSidebarSheet = observer(function RoomSidebarSheet({
             borderTopRightRadius: 20,
             bgcolor: 'background.paper',
             backgroundImage: 'none',
-            height: '85vh',
+            ...vhSafe(85),
             display: 'flex',
             flexDirection: 'column',
             pb: 'calc(env(safe-area-inset-bottom, 0px))',
