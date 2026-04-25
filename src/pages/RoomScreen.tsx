@@ -19,11 +19,13 @@ import { observer } from 'mobx-react-lite';
 import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/hooks/useStore';
+import { useIsMobile } from '../lib/hooks/useIsMobile';
 import ScrambleDisplay from '../components/timer/ScrambleDisplay';
 import Timer, { useTimerTouch } from '../components/timer/Timer';
 import HostControls from '../components/room/HostControls';
 import PlayerSidebar from '../components/room/PlayerSidebar';
 import ResultsTable from '../components/room/ResultsTable';
+import MobileRoomLayout from '../components/room/mobile/MobileRoomLayout';
 import SettingsDialog from '../components/settings/SettingsDialog';
 import { formatTime, getDisplayTime } from '../lib/utils/formatTime';
 import { calculateAverage, formatAverage } from '../lib/utils/averages';
@@ -47,6 +49,7 @@ const RoomScreen = observer(function RoomScreen() {
   const { code: urlCode } = useParams<{ code: string }>();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+  const useMobileLayout = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
   const [pbSnack, setPbSnack] = useState<PbNotification | null>(null);
@@ -293,13 +296,25 @@ const RoomScreen = observer(function RoomScreen() {
     <Box
       sx={{
         display: 'flex',
-        flexDirection: 'row',
+        flexDirection: useMobileLayout ? 'column' : 'row',
         height: '100vh',
-        maxWidth: 1400,
+        maxWidth: useMobileLayout ? '100%' : 1400,
         mx: 'auto',
         width: '100%',
         overflow: 'hidden',
       }}>
+      {useMobileLayout ? (
+        <MobileRoomLayout
+          onColorStart={handleColorStart}
+          onTouchStart={touchHandlers.onTouchStart}
+          onTouchEnd={touchHandlers.onTouchEnd}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onLeave={handleLeave}
+          onCopyCode={handleCopyCode}
+          isTimerDisabled={isTimerDisabled}
+        />
+      ) : (
+        <>
       {/* ── Sidebar — fully hidden when closed or timer running ── */}
       {sidebarOpen && !isTimerRunning && (
         <Box
@@ -650,6 +665,8 @@ const RoomScreen = observer(function RoomScreen() {
           </Box>
         )}
       </Box>
+        </>
+      )}
 
       {/* Settings dialog */}
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />

@@ -50,7 +50,8 @@ export interface ScrambleActionSheetProps {
   onClose: () => void;
   showPreview: boolean;
   onTogglePreview: () => void;
-  onSetCustomScramble: (s: string) => void;
+  /** Optional — multiplayer scrambles are server-controlled, so this row is hidden when unset. */
+  onSetCustomScramble?: (s: string) => void;
   onManualTime: (ms: number) => void;
 }
 
@@ -140,11 +141,13 @@ export default function ScrambleActionSheet({
               }}
               active={showPreview}
             />
-            <ActionRow
-              icon={<EditIcon />}
-              label={t('settings.scrambleActionEdit')}
-              onClick={() => setView('edit')}
-            />
+            {onSetCustomScramble && (
+              <ActionRow
+                icon={<EditIcon />}
+                label={t('settings.scrambleActionEdit')}
+                onClick={() => setView('edit')}
+              />
+            )}
             <ActionRow
               icon={<MoreTimeIcon />}
               label={t('settings.scrambleActionManualTime')}
@@ -164,7 +167,7 @@ export default function ScrambleActionSheet({
               onChange={e => setCustomInput(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter' && customInput.trim()) {
-                  onSetCustomScramble(customInput.trim());
+                  onSetCustomScramble?.(customInput.trim());
                   handleClose();
                 }
                 e.stopPropagation();
@@ -194,7 +197,7 @@ export default function ScrambleActionSheet({
                 variant="contained"
                 disabled={!customInput.trim()}
                 onClick={() => {
-                  onSetCustomScramble(customInput.trim());
+                  onSetCustomScramble?.(customInput.trim());
                   handleClose();
                 }}
                 sx={{ textTransform: 'none' }}>
