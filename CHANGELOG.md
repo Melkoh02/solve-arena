@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-04-25
+
+Mobile-friendly solo mode.
+
+### Added
+
+- **Mobile layout** for solo mode — a dedicated phone-optimized UI with thumb-sized tap targets, replacing the cramped desktop layout that was rendering on small screens. The desktop layout is unchanged.
+- **Layout mode setting** in Settings → Layout: `Auto` / `Mobile` / `Desktop`. `Auto` flips to the mobile layout under the `<sm` breakpoint (~600px viewport). Persists alongside the rest of `@M003:settings`.
+- **Mobile top bar** — compact: puzzle dropdown on the left, settings gear and a circular "Compete" icon button (with the live status dot) on the right. Honors `env(safe-area-inset-top)` on iOS.
+- **Scramble action sheet** — bottom sheet with three labeled actions (3D Preview / Edit Scramble / Manual Entry) replacing the three tiny inline icons. The whole scramble pill is the trigger — tapping anywhere on the pill opens the sheet.
+- **Card-based history** — solves render as full-width cards (index, time, date, +2/DNF toggles, cross-color swatch, delete) instead of a horizontal table. Per-solve delete confirmation is mobile-friendly (`fullWidth`, larger fonts, 96px-min buttons).
+- **History bottom drawer** — peek bar at the bottom showing `HISTORY (n) · Best · Avg`; tap to expand to 85 vh. Trash (clear-all) sits in the top-left corner of the drawer header, close (X) in the top-right, so the destructive action can't be accidentally tapped instead of dismiss.
+- **`large` prop on `Timer`** — the mobile layout uses `clamp(5.5rem, 28vw, 10rem)` so the timer fills the empty space on a phone instead of staying at the desktop minimum. AO5/AO12 and the previous-solves stack scale up alongside it.
+- **`useIsMobile()` hook** — single source of truth that reads `settingsStore.layoutMode` and the viewport. New components use this; the existing desktop-chrome viewport heuristic in `SoloScreen` was renamed to `isNarrowViewport` to avoid confusion.
+
+### Changed
+
+- **`SoloSolveDetailModal`** picks up larger sizing on mobile (bigger time display, `medium`-sized penalty buttons, 32px cross-color swatch, full-width Copy/Export buttons stacked vertically). Stays a centered dialog rather than going fullScreen.
+- **Clear-all confirmation dialog** in `SoloScreen` goes `fullWidth` on mobile so it has presence instead of collapsing to content width. Desktop sizing unchanged.
+
+### Internal / Infra
+
+- Release process now requires annotated tags (`git tag -a vX.Y.Z -m "vX.Y.Z — <title>"`) and uses `git push origin master --follow-tags` so the tag rides along with the release commit. Lightweight tags (`git tag vX.Y.Z`) are silently skipped by `--follow-tags`.
+- Release process now includes a CHANGELOG update step on `master` between the merge and the tag, mirroring the my-wallet workflow.
+
 ## [1.0.0] - 2026-04-25
 
 Initial release of Solve Arena.
@@ -51,4 +76,5 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.1.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.1.0
 [1.0.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.0.0
