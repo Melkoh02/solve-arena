@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.4] - 2026-04-26
+
+Glass is now the default theme for new visitors.
+
+### Changed
+
+- **First-time visitors now land on the glass theme.** Previously the default tracked the OS `prefers-color-scheme` (dark or light) when no `@M003:user-theme` was saved. Existing users with a saved theme are unaffected; only first-time visitors see the change. Also dropped the `prefers-color-scheme` `matchMedia` change listener that previously flipped a default-themed user between dark and light when their OS toggled — with glass as the default, that auto-flip would have yanked the user off glass on system pref changes.
+
 ## [1.3.3] - 2026-04-26
 
 Polish for the multiplayer mobile history bottomsheet.
@@ -156,6 +164,7 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.3.4]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.4
 [1.3.3]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.3
 [1.3.2]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.2
 [1.3.1]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.1
