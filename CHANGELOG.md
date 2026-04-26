@@ -5,7 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.2] - 2026-04-26
+## [1.3.3] - 2026-04-26
+
+Polish for the multiplayer mobile history bottomsheet.
+
+### Fixed
+
+- **Round pill in the mobile multiplayer history bottomsheet ended at the viewport edge in 3+ player rooms, with the trailing player cells visibly spilling out the right side when scrolled.** The outer `Stack` in `MobileResultsList` was sized to its scroll container's width (block-default 100%), so each `RoundCard`'s flex-stretch made the pill exactly viewport-wide while the inner row of player cells exceeded that. Sizing the outer Stack to `width: max-content, minWidth: 100%` lets the pill stretch to encompass every player cell when the row overflows horizontally, while still filling the viewport in narrow-content cases.
+- **Time column in the mobile multiplayer history rows wasn't aligned across rows.** The time `Typography` had no fixed width, so the +2 / DNF / picker / color-square columns shifted horizontally between rows depending on whether the time was 4 chars (`9.42`) or 5 (`10.80`). Reserved a `4.5rem` `minWidth` on the time element so the trailing controls now line up consistently across rows.
+- **Own-row color picker sat at the end of the row, immediately adjacent to the next player's color marker on horizontal scroll** — the two circles were easy to confuse. Moved the picker to immediately after the time so it visually groups with one's own data, and dropped its size from 22px to 18px to match the other players' color square.
+
+
 
 Mobile-mode polish across history, timer keys, and scramble preview.
 
@@ -146,6 +156,7 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.3.3]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.3
 [1.3.2]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.2
 [1.3.1]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.1
 [1.3.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.0
