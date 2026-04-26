@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-04-25
+
+Mobile-friendly multiplayer + cross-platform polish.
+
+### Added
+
+- **Mobile layout for multiplayer (room) screen** — same big-timer / scramble bottom sheet / peek-and-expand history drawer / full-screen running pattern as solo. Two multiplayer-specific differences: the desktop left sidebar (player info, competitor list, host controls, Leave) becomes a bottom sheet triggered by the burger menu; the history drawer wraps a card-based round list (see below) so the per-player columns scroll horizontally without breaking the timer.
+- **Pill-card round history on mobile multiplayer** (`MobileResultsList`) — each completed round renders as a rounded card matching solo's `HistoryCard`. Inside the card, a `#N` round badge sits on the left and a horizontal stack of per-player mini-cells follows — each cell with a small uppercase player-name label on top and the time + controls below. For your own column, `+2` / `DNF` toggles and the cross-color picker render inline; for other players, just the time and a static color dot. Wide rooms scroll horizontally inside the drawer; long histories paginate at 50 rounds via `IntersectionObserver`. Fastest time per round still highlights in primary, matching the desktop table.
+- **`vhSafe(n)` / `minVhSafe(n)` helpers** in `src/lib/utils/viewport.ts` — a tiny wrapper that emits `{ height: 'NNvh', '@supports (height: 100dvh)': { height: 'NNdvh' } }`. Modern browsers use the dynamic-viewport unit, older browsers fall back to `vh`.
+- **Mobile sizing for room `SolveDetailModal`** — same pass we did for solo's modal: bigger time display, `medium` penalty buttons (`minWidth: 64`), bigger cross-color circles (28→36), `fullWidth` Copy button on mobile, side-margin honoring `env(safe-area-inset-top)`.
+
+### Changed
+
+- **`ScrambleActionSheet.onSetCustomScramble` is now optional** — multiplayer omits it because scrambles are server-controlled per round, so the "Edit scramble" row is hidden in the multiplayer action sheet. Manual time entry still works (and is gated on `!hasSubmittedCurrentRound` per the existing desktop flow).
+
+### Fixed
+
+- **Android URL bar pushed content offscreen on mobile.** Android Chrome's `100vh` equals the *largest* possible viewport (URL bar hidden), so when the URL bar is visible the bottom of the layout sits below the visible window — most obvious on the solo history peek bar. Replaced fixed-`vh` values across all top-level layout containers and bottom drawers with `vhSafe()` / `minVhSafe()`. Touched `routes`, `SoloScreen`, `RoomScreen`, `LobbyScreen`, `HistoryDrawer`, `MobileResultsDrawer`, `RoomSidebarSheet`. iOS was already happy, no behavior change there.
+- **History sticky header drifted with horizontal scroll on narrow viewports.** The desktop history container had `overflowY: 'auto'`, which CSS auto-promotes to `overflow: auto` on both axes when the table is wider than the viewport — so the sticky header (and the trash icon) shifted left along with the horizontal scroll, leaving the trash floating in the middle of the visible area. Restructured into a flex column with the header in its own non-scrolling row and the table in an inner scroll container. Applied to both desktop solo and desktop multiplayer; mobile layouts use a separate drawer and weren't affected.
+
 ## [1.1.0] - 2026-04-25
 
 Mobile-friendly solo mode.
@@ -76,5 +96,6 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.2.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.2.0
 [1.1.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.1.0
 [1.0.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.0.0
