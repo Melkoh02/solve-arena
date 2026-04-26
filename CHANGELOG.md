@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.5] - 2026-04-26
+
+Vendor chunk splitting for better cache reuse across deploys.
+
+### Changed
+
+- **Production build splits MUI/Emotion, MobX, react-router, and i18next into their own content-hashed chunks** via `manualChunks` in `vite.config.ts`. Returning visitors keep ~159 KB gzip of vendor code cached across deploys instead of re-downloading the full main bundle whenever app code changes. No user-visible behavior change — same first-load size, same lazy-loading of `cubing/twisty` and `cubing/scramble`.
+
 ## [1.3.4] - 2026-04-26
 
 Glass is now the default theme for new visitors.
@@ -164,6 +172,7 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.3.5]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.5
 [1.3.4]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.4
 [1.3.3]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.3
 [1.3.2]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.2
