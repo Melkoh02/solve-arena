@@ -37,7 +37,11 @@ export default function MobileRoomTopBar({
         borderColor: 'divider',
         flexShrink: 0,
       }}>
-      <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
+      <Stack
+        direction="row"
+        spacing={0.5}
+        alignItems="center"
+        sx={{ minWidth: 0 }}>
         <IconButton
           size="medium"
           onClick={onOpenSidebar}
@@ -65,8 +69,13 @@ export default function MobileRoomTopBar({
           <ContentCopyIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </Stack>
-      <Stack direction="row" spacing={0.25} alignItems="center" sx={{ flexShrink: 0 }}>
-        <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary', mr: 0.5 }}>
+      <Stack
+        direction="row"
+        spacing={0.25}
+        alignItems="center"
+        sx={{ flexShrink: 0 }}>
+        <Typography
+          sx={{ fontSize: '0.7rem', color: 'text.secondary', mr: 0.5 }}>
           {t('room.playerCount', { count: playerCount })}
         </Typography>
         <IconButton

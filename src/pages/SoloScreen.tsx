@@ -187,9 +187,15 @@ const SoloScreen = observer(function SoloScreen() {
   // Configurable shortcuts: delete last, clear all, toggle history.
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const shortcuts = settingsStore.shortcuts;
-  const deleteLastBinding = useMemo(() => shortcuts.deleteLastSolve, [shortcuts]);
+  const deleteLastBinding = useMemo(
+    () => shortcuts.deleteLastSolve,
+    [shortcuts],
+  );
   const clearAllBinding = useMemo(() => shortcuts.clearAllSolves, [shortcuts]);
-  const toggleHistoryBinding = useMemo(() => shortcuts.toggleHistory, [shortcuts]);
+  const toggleHistoryBinding = useMemo(
+    () => shortcuts.toggleHistory,
+    [shortcuts],
+  );
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -267,226 +273,234 @@ const SoloScreen = observer(function SoloScreen() {
         />
       ) : (
         <>
-      {/* ── Top bar ─────────────────────────────────────────── */}
-      {!isTimerRunning && (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            px: { xs: 1.5, md: 3 },
-            pt: { xs: 2, md: 2.5 },
-            pb: 1.5,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            flexShrink: 0,
-          }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <PuzzleSelector
-              value={soloStore.eventId}
-              onChange={id => soloStore.changeEvent(id)}
-            />
-          </Stack>
-          <Typography
-            sx={{
-              color: 'primary.main',
-              fontWeight: 900,
-              fontSize: { xs: '0.85rem', md: '1rem' },
-              letterSpacing: '-0.02em',
-              display: { xs: 'none', sm: 'block' },
-            }}>
-            Solve Arena
-          </Typography>
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <IconButton
-              size="small"
-              onClick={() => setSettingsOpen(true)}
-              title={t('settings.title')}>
-              <SettingsIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
-            </IconButton>
-            <Button
-              ref={competeButtonRef}
-              variant="outlined"
-              size="small"
-              startIcon={
-                !isNarrowViewport ? <GroupsIcon sx={{ fontSize: 18 }} /> : undefined
-              }
-              endIcon={<ServerStatusDot />}
-              onClick={e => setCompetAnchor(e.currentTarget)}
+          {/* ── Top bar ─────────────────────────────────────────── */}
+          {!isTimerRunning && (
+            <Box
               sx={{
-                textTransform: 'none',
-                fontWeight: 700,
-                fontSize: '0.75rem',
-                borderColor: 'primary.main',
-                color: 'primary.main',
-                minWidth: isNarrowViewport ? 36 : undefined,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: { xs: 1.5, md: 3 },
+                pt: { xs: 2, md: 2.5 },
+                pb: 1.5,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                flexShrink: 0,
               }}>
-              {isNarrowViewport ? (
-                <GroupsIcon sx={{ fontSize: 18 }} />
-              ) : (
-                t('lobby.compete')
-              )}
-            </Button>
-          </Stack>
-        </Box>
-      )}
-
-      {/* ── Timer area ─────────────────────────────────────── */}
-      <Box
-        onTouchStart={touchHandlers.onTouchStart}
-        onTouchEnd={touchHandlers.onTouchEnd}
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          px: { xs: 2, sm: 3, md: 4 },
-          py: { xs: 1, md: 2 },
-          // When running: expand to fill screen and center timer
-          // When not running: shrink to content but allow shrinking if space is tight
-          flex: isTimerRunning ? 1 : '0 1 auto',
-          touchAction: 'none',
-          WebkitTapHighlightColor: 'transparent',
-          userSelect: 'none',
-          cursor: 'pointer',
-        }}>
-        {/* Scramble */}
-        {!isTimerRunning && (
-          <ScrambleDisplay
-            scramble={soloStore.currentScramble}
-            eventId={soloStore.eventId}
-            isLoading={soloStore.isLoadingScramble}
-            isCustom={soloStore.isCustomScramble}
-            onSetCustom={s => soloStore.setCustomScramble(s)}
-            onClearCustom={() => soloStore.clearCustomScramble()}
-            onManualTime={ms => soloStore.addManualSolve(ms)}
-          />
-        )}
-
-        {/* Stats bar (rolling averages) — always rendered so the timer area
-            keeps a fixed footprint regardless of solve count. */}
-        {!isTimerRunning && (
-          <Stack
-            direction="row"
-            spacing={3}
-            sx={{
-              visibility: soloStore.eventSolves.length > 0 ? 'visible' : 'hidden',
-            }}>
-            <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
-              ao5: {formatAverage(soloStore.ao5, precision)}
-            </Typography>
-            <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
-              ao12: {formatAverage(soloStore.ao12, precision)}
-            </Typography>
-          </Stack>
-        )}
-
-        {/* Timer */}
-        <Timer disabled={false} onColorStart={handleColorStart} />
-
-        {/* Previous solves stack — always renders 4 slots so the history bar
-            below it doesn't drift as solves accumulate. */}
-        {!isTimerRunning && (
-          <Box sx={{ textAlign: 'center', overflow: 'hidden' }}>
-            {Array.from({ length: 4 }).map((_, i) => {
-              const solve = previousSolves[i];
-              return (
-                <Typography
-                  key={solve?.id ?? `placeholder-${i}`}
-                  sx={{
-                    fontFamily: 'monospace',
-                    fontVariantNumeric: 'tabular-nums',
-                    fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
-                    fontWeight: 600,
-                    color: 'text.secondary',
-                    opacity: 0.5 - i * 0.08,
-                    lineHeight: 1.5,
-                    userSelect: 'none',
-                    visibility: solve ? 'visible' : 'hidden',
-                  }}>
-                  {solve ? getDisplayTime(solve, precision) : '0.00'}
-                </Typography>
-              );
-            })}
-          </Box>
-        )}
-      </Box>
-
-      {/* ── History table (fills remaining space) ─────────────
-          Header is in its own row outside the scroll container so it
-          stays put when the table scrolls horizontally on narrow viewports. */}
-      {!isTimerRunning && historyVisible && soloStore.eventSolves.length > 0 && (
-        <Box
-          sx={{
-            flex: '1 1 0',
-            minHeight: 150,
-            borderTop: '1px solid',
-            borderColor: 'divider',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-          }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              px: 2,
-              py: 1,
-              bgcolor: 'background.default',
-              flexShrink: 0,
-            }}>
-            <Stack direction="row" spacing={1.5} alignItems="center">
+              <Stack direction="row" spacing={1} alignItems="center">
+                <PuzzleSelector
+                  value={soloStore.eventId}
+                  onChange={id => soloStore.changeEvent(id)}
+                />
+              </Stack>
               <Typography
                 sx={{
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.12em',
-                  fontSize: '0.6rem',
-                  fontWeight: 700,
-                  color: 'text.secondary',
+                  color: 'primary.main',
+                  fontWeight: 900,
+                  fontSize: { xs: '0.85rem', md: '1rem' },
+                  letterSpacing: '-0.02em',
+                  display: { xs: 'none', sm: 'block' },
                 }}>
-                {t('room.history')} ({soloStore.eventSolves.length})
+                Solve Arena
               </Typography>
-              {soloStore.bestTime !== null && (
-                <Typography
+              <Stack direction="row" spacing={0.5} alignItems="center">
+                <IconButton
+                  size="small"
+                  onClick={() => setSettingsOpen(true)}
+                  title={t('settings.title')}>
+                  <SettingsIcon
+                    sx={{ fontSize: 18, color: 'text.secondary' }}
+                  />
+                </IconButton>
+                <Button
+                  ref={competeButtonRef}
+                  variant="outlined"
+                  size="small"
+                  startIcon={
+                    !isNarrowViewport ? (
+                      <GroupsIcon sx={{ fontSize: 18 }} />
+                    ) : undefined
+                  }
+                  endIcon={<ServerStatusDot />}
+                  onClick={e => setCompetAnchor(e.currentTarget)}
                   sx={{
-                    fontFamily: 'monospace',
-                    fontSize: '0.65rem',
-                    color: 'text.secondary',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: '0.75rem',
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
+                    minWidth: isNarrowViewport ? 36 : undefined,
                   }}>
-                  {t('room.best')}: {formatTime(soloStore.bestTime, precision)}
+                  {isNarrowViewport ? (
+                    <GroupsIcon sx={{ fontSize: 18 }} />
+                  ) : (
+                    t('lobby.compete')
+                  )}
+                </Button>
+              </Stack>
+            </Box>
+          )}
+
+          {/* ── Timer area ─────────────────────────────────────── */}
+          <Box
+            onTouchStart={touchHandlers.onTouchStart}
+            onTouchEnd={touchHandlers.onTouchEnd}
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              px: { xs: 2, sm: 3, md: 4 },
+              py: { xs: 1, md: 2 },
+              // When running: expand to fill screen and center timer
+              // When not running: shrink to content but allow shrinking if space is tight
+              flex: isTimerRunning ? 1 : '0 1 auto',
+              touchAction: 'none',
+              WebkitTapHighlightColor: 'transparent',
+              userSelect: 'none',
+              cursor: 'pointer',
+            }}>
+            {/* Scramble */}
+            {!isTimerRunning && (
+              <ScrambleDisplay
+                scramble={soloStore.currentScramble}
+                eventId={soloStore.eventId}
+                isLoading={soloStore.isLoadingScramble}
+                isCustom={soloStore.isCustomScramble}
+                onSetCustom={s => soloStore.setCustomScramble(s)}
+                onClearCustom={() => soloStore.clearCustomScramble()}
+                onManualTime={ms => soloStore.addManualSolve(ms)}
+              />
+            )}
+
+            {/* Stats bar (rolling averages) — always rendered so the timer area
+            keeps a fixed footprint regardless of solve count. */}
+            {!isTimerRunning && (
+              <Stack
+                direction="row"
+                spacing={3}
+                sx={{
+                  visibility:
+                    soloStore.eventSolves.length > 0 ? 'visible' : 'hidden',
+                }}>
+                <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
+                  ao5: {formatAverage(soloStore.ao5, precision)}
                 </Typography>
-              )}
-              {soloStore.globalAverage !== null && (
-                <Typography
+                <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
+                  ao12: {formatAverage(soloStore.ao12, precision)}
+                </Typography>
+              </Stack>
+            )}
+
+            {/* Timer */}
+            <Timer disabled={false} onColorStart={handleColorStart} />
+
+            {/* Previous solves stack — always renders 4 slots so the history bar
+            below it doesn't drift as solves accumulate. */}
+            {!isTimerRunning && (
+              <Box sx={{ textAlign: 'center', overflow: 'hidden' }}>
+                {Array.from({ length: 4 }).map((_, i) => {
+                  const solve = previousSolves[i];
+                  return (
+                    <Typography
+                      key={solve?.id ?? `placeholder-${i}`}
+                      sx={{
+                        fontFamily: 'monospace',
+                        fontVariantNumeric: 'tabular-nums',
+                        fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
+                        fontWeight: 600,
+                        color: 'text.secondary',
+                        opacity: 0.5 - i * 0.08,
+                        lineHeight: 1.5,
+                        userSelect: 'none',
+                        visibility: solve ? 'visible' : 'hidden',
+                      }}>
+                      {solve ? getDisplayTime(solve, precision) : '0.00'}
+                    </Typography>
+                  );
+                })}
+              </Box>
+            )}
+          </Box>
+
+          {/* ── History table (fills remaining space) ─────────────
+          Header is in its own row outside the scroll container so it
+          stays put when the table scrolls horizontally on narrow viewports. */}
+          {!isTimerRunning &&
+            historyVisible &&
+            soloStore.eventSolves.length > 0 && (
+              <Box
+                sx={{
+                  flex: '1 1 0',
+                  minHeight: 150,
+                  borderTop: '1px solid',
+                  borderColor: 'divider',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                }}>
+                <Box
                   sx={{
-                    fontFamily: 'monospace',
-                    fontSize: '0.65rem',
-                    color: 'text.secondary',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    px: 2,
+                    py: 1,
+                    bgcolor: 'background.default',
+                    flexShrink: 0,
                   }}>
-                  Avg: {formatTime(soloStore.globalAverage, precision)}
-                </Typography>
-              )}
-            </Stack>
-            <IconButton
-              size="small"
-              onClick={() => setDeleteConfirm(true)}
-              title={t('room.resetRoom')}
-              sx={{ color: 'text.secondary', p: 0.25 }}>
-              <DeleteOutlineIcon sx={{ fontSize: 16 }} />
-            </IconButton>
-          </Box>
-          <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-            <SoloHistory
-              onSelectSolve={setSelectedSolve}
-              onSelectAo={(solves, size) => {
-                setAoSolves(solves);
-                setAoSize(size);
-              }}
-            />
-          </Box>
-        </Box>
-      )}
+                  <Stack direction="row" spacing={1.5} alignItems="center">
+                    <Typography
+                      sx={{
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.12em',
+                        fontSize: '0.6rem',
+                        fontWeight: 700,
+                        color: 'text.secondary',
+                      }}>
+                      {t('room.history')} ({soloStore.eventSolves.length})
+                    </Typography>
+                    {soloStore.bestTime !== null && (
+                      <Typography
+                        sx={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.65rem',
+                          color: 'text.secondary',
+                        }}>
+                        {t('room.best')}:{' '}
+                        {formatTime(soloStore.bestTime, precision)}
+                      </Typography>
+                    )}
+                    {soloStore.globalAverage !== null && (
+                      <Typography
+                        sx={{
+                          fontFamily: 'monospace',
+                          fontSize: '0.65rem',
+                          color: 'text.secondary',
+                        }}>
+                        Avg: {formatTime(soloStore.globalAverage, precision)}
+                      </Typography>
+                    )}
+                  </Stack>
+                  <IconButton
+                    size="small"
+                    onClick={() => setDeleteConfirm(true)}
+                    title={t('room.resetRoom')}
+                    sx={{ color: 'text.secondary', p: 0.25 }}>
+                    <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                  </IconButton>
+                </Box>
+                <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+                  <SoloHistory
+                    onSelectSolve={setSelectedSolve}
+                    onSelectAo={(solves, size) => {
+                      setAoSolves(solves);
+                      setAoSize(size);
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
         </>
       )}
 
@@ -562,11 +576,19 @@ const SoloScreen = observer(function SoloScreen() {
             {t('solo.clearAllConfirm')}
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: useMobileLayout ? 2.5 : 2, gap: useMobileLayout ? 1 : 0 }}>
+        <DialogActions
+          sx={{
+            px: 3,
+            pb: useMobileLayout ? 2.5 : 2,
+            gap: useMobileLayout ? 1 : 0,
+          }}>
           <Button
             size={useMobileLayout ? 'medium' : 'small'}
             onClick={() => setDeleteConfirm(false)}
-            sx={{ textTransform: 'none', minWidth: useMobileLayout ? 96 : undefined }}>
+            sx={{
+              textTransform: 'none',
+              minWidth: useMobileLayout ? 96 : undefined,
+            }}>
             {t('common.cancel')}
           </Button>
           <Button
@@ -577,7 +599,10 @@ const SoloScreen = observer(function SoloScreen() {
               soloStore.clearSolves();
               setDeleteConfirm(false);
             }}
-            sx={{ textTransform: 'none', minWidth: useMobileLayout ? 96 : undefined }}>
+            sx={{
+              textTransform: 'none',
+              minWidth: useMobileLayout ? 96 : undefined,
+            }}>
             {t('common.confirm')}
           </Button>
         </DialogActions>

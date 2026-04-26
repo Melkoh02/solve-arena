@@ -88,7 +88,11 @@ const RoomSidebarSheet = observer(function RoomSidebarSheet({
             }}>
             {t('room.player')}
           </Typography>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{ minWidth: 0 }}>
             <Typography
               sx={{
                 color: 'primary.main',
@@ -100,14 +104,21 @@ const RoomSidebarSheet = observer(function RoomSidebarSheet({
               }}>
               {roomStore.playerName}
             </Typography>
-            <Typography
-              sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>
+            <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>
               {roomStore.isHost ? t('room.host') : t('room.competitor')}
             </Typography>
           </Stack>
         </Box>
-        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
-          <Stack direction="row" spacing={0.25} alignItems="center" sx={{ mr: 0.5 }}>
+        <Stack
+          direction="row"
+          spacing={0.5}
+          alignItems="center"
+          sx={{ flexShrink: 0 }}>
+          <Stack
+            direction="row"
+            spacing={0.25}
+            alignItems="center"
+            sx={{ mr: 0.5 }}>
             <Typography
               sx={{
                 color: 'primary.main',

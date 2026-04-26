@@ -1,4 +1,4 @@
-import {makeAutoObservable, runInAction} from 'mobx';
+import { makeAutoObservable, runInAction } from 'mobx';
 import i18n from '../../localization';
 
 export class LanguageStore {

@@ -21,15 +21,15 @@ A multiplayer speedcube timer where you and your friends can compete in real-tim
 
 ## Tech Stack
 
-| Layer | Tech |
-|-------|------|
-| Frontend | React 19, TypeScript, Vite |
-| UI | MUI 7, Emotion |
-| State | MobX |
-| Realtime | Socket.IO |
-| Scrambles | cubing.js |
-| i18n | i18next |
-| Hosting | GitHub Pages (frontend), Render (server) |
+| Layer     | Tech                                     |
+| --------- | ---------------------------------------- |
+| Frontend  | React 19, TypeScript, Vite               |
+| UI        | MUI 7, Emotion                           |
+| State     | MobX                                     |
+| Realtime  | Socket.IO                                |
+| Scrambles | cubing.js                                |
+| i18n      | i18next                                  |
+| Hosting   | GitHub Pages (frontend), Render (server) |
 
 ## Getting Started
 
@@ -49,6 +49,7 @@ yarn dev
 ```
 
 This starts:
+
 - Vite dev server on `http://localhost:5173`
 - Socket.IO server on `http://localhost:3001`
 
@@ -65,8 +66,8 @@ yarn build
 
 ### Environment
 
-| Variable | Where | Purpose |
-|----------|-------|---------|
+| Variable          | Where                 | Purpose               |
+| ----------------- | --------------------- | --------------------- |
 | `VITE_SOCKET_URL` | GitHub Actions secret | Production server URL |
 
 ## Project Structure

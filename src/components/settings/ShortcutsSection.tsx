@@ -12,7 +12,10 @@ import {
 } from '../../lib/utils/shortcuts';
 import type { ShortcutId } from '../../lib/constants/settingsDefaults';
 import SectionResetButton from './SectionResetButton';
-import { SETTINGS_LABEL_SX as LABEL_SX, SETTINGS_SECTION_HEADER_SX } from './styles';
+import {
+  SETTINGS_LABEL_SX as LABEL_SX,
+  SETTINGS_SECTION_HEADER_SX,
+} from './styles';
 
 const SHORTCUT_GROUPS: Array<{
   title?: string;
@@ -106,7 +109,11 @@ const ShortcutsSection = observer(function ShortcutsSection() {
               <Row
                 key={id}
                 label={t(`settings.shortcuts.${id}`)}
-                display={recording ? t('settings.shortcutRecording') : formatShortcut(binding)}
+                display={
+                  recording
+                    ? t('settings.shortcutRecording')
+                    : formatShortcut(binding)
+                }
                 recording={recording}
                 conflict={conflicts.length > 0}
                 conflictTitle={
@@ -137,10 +144,21 @@ interface RowProps {
   onClick: () => void;
 }
 
-function Row({ label, display, recording, conflict, conflictTitle, onClick }: RowProps) {
+function Row({
+  label,
+  display,
+  recording,
+  conflict,
+  conflictTitle,
+  onClick,
+}: RowProps) {
   return (
     <>
-      <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
+      <Stack
+        direction="row"
+        spacing={0.75}
+        alignItems="center"
+        sx={{ minWidth: 0 }}>
         <Typography
           sx={{
             fontSize: '0.78rem',

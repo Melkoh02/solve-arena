@@ -7,7 +7,10 @@ interface SectionResetButtonProps {
   onClick: () => void;
 }
 
-export default function SectionResetButton({ visible, onClick }: SectionResetButtonProps) {
+export default function SectionResetButton({
+  visible,
+  onClick,
+}: SectionResetButtonProps) {
   const { t } = useTranslation();
   return (
     <Fade in={visible} unmountOnExit>

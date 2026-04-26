@@ -184,54 +184,57 @@ io.on('connection', socket => {
     broadcastRoomState(room);
   });
 
-  socket.on('rejoin-room', ({ roomCode, playerName, oldPlayerId }, callback) => {
-    const room = rooms.get(roomCode.toUpperCase());
-    if (!room) {
-      callback({ error: 'Room not found' });
-      return;
-    }
-
-    // Clear disconnect timer for old player
-    const timer = room.disconnectTimers.get(oldPlayerId);
-    if (timer) {
-      clearTimeout(timer);
-      room.disconnectTimers.delete(oldPlayerId);
-    }
-
-    const oldPlayer = room.players.get(oldPlayerId);
-    if (oldPlayer && oldPlayer.disconnected) {
-      // Restore: transfer old player data to new socket id
-      const wasHost = oldPlayer.isHost || room.hostId === oldPlayerId;
-      room.players.delete(oldPlayerId);
-      room.players.set(socket.id, {
-        id: socket.id,
-        name: playerName,
-        isHost: wasHost,
-      });
-      if (wasHost) {
-        room.hostId = socket.id;
+  socket.on(
+    'rejoin-room',
+    ({ roomCode, playerName, oldPlayerId }, callback) => {
+      const room = rooms.get(roomCode.toUpperCase());
+      if (!room) {
+        callback({ error: 'Room not found' });
+        return;
       }
-      // Update all solves to point to new socket id
-      for (const solve of room.solves) {
-        if (solve.playerId === oldPlayerId) {
-          solve.playerId = socket.id;
+
+      // Clear disconnect timer for old player
+      const timer = room.disconnectTimers.get(oldPlayerId);
+      if (timer) {
+        clearTimeout(timer);
+        room.disconnectTimers.delete(oldPlayerId);
+      }
+
+      const oldPlayer = room.players.get(oldPlayerId);
+      if (oldPlayer && oldPlayer.disconnected) {
+        // Restore: transfer old player data to new socket id
+        const wasHost = oldPlayer.isHost || room.hostId === oldPlayerId;
+        room.players.delete(oldPlayerId);
+        room.players.set(socket.id, {
+          id: socket.id,
+          name: playerName,
+          isHost: wasHost,
+        });
+        if (wasHost) {
+          room.hostId = socket.id;
         }
+        // Update all solves to point to new socket id
+        for (const solve of room.solves) {
+          if (solve.playerId === oldPlayerId) {
+            solve.playerId = socket.id;
+          }
+        }
+      } else {
+        // Old player not found or not disconnected, join as new
+        room.players.set(socket.id, {
+          id: socket.id,
+          name: playerName,
+          isHost: false,
+        });
       }
-    } else {
-      // Old player not found or not disconnected, join as new
-      room.players.set(socket.id, {
-        id: socket.id,
-        name: playerName,
-        isHost: false,
-      });
-    }
 
-    socket.join(room.code);
-    currentRoom = room.code;
+      socket.join(room.code);
+      currentRoom = room.code;
 
-    callback({ success: true });
-    broadcastRoomState(room);
-  });
+      callback({ success: true });
+      broadcastRoomState(room);
+    },
+  );
 
   socket.on('submit-time', async ({ time, dnf }) => {
     if (!currentRoom) return;
@@ -259,7 +262,9 @@ io.on('connection', socket => {
     });
 
     // Auto-advance when all connected players have submitted
-    const connectedPlayers = Array.from(room.players.values()).filter(p => !p.disconnected);
+    const connectedPlayers = Array.from(room.players.values()).filter(
+      p => !p.disconnected,
+    );
     const submittedCount = room.solves.filter(
       s => s.round === room.currentRound,
     ).length;
@@ -383,7 +388,9 @@ io.on('connection', socket => {
           if (room.players.size === 0) {
             rooms.delete(room.code);
           } else if (room.hostId === playerId) {
-            const nextHost = Array.from(room.players.values()).find(p => !p.disconnected);
+            const nextHost = Array.from(room.players.values()).find(
+              p => !p.disconnected,
+            );
             if (nextHost) {
               room.hostId = nextHost.id;
               nextHost.isHost = true;
@@ -404,7 +411,9 @@ io.on('connection', socket => {
       if (room.players.size === 0) {
         rooms.delete(currentRoom);
       } else if (room.hostId === socket.id) {
-        const nextHost = Array.from(room.players.values()).find(p => !p.disconnected);
+        const nextHost = Array.from(room.players.values()).find(
+          p => !p.disconnected,
+        );
         if (nextHost) {
           room.hostId = nextHost.id;
           nextHost.isHost = true;

@@ -1,6 +1,6 @@
-import {action, computed, makeAutoObservable, runInAction} from 'mobx';
-import type {User} from '../types/user';
-import {USER_STORAGE_KEY} from '../constants';
+import { action, computed, makeAutoObservable, runInAction } from 'mobx';
+import type { User } from '../types/user';
+import { USER_STORAGE_KEY } from '../constants';
 
 interface AuthResponse {
   access: string;
@@ -24,21 +24,21 @@ export class UserStore {
   }
 
   /** Computed helper that builds the Authorization header. */
-  get authHeader(): {Authorization?: string} {
+  get authHeader(): { Authorization?: string } {
     return this.accessToken
-      ? {Authorization: `Bearer ${this.accessToken}`}
+      ? { Authorization: `Bearer ${this.accessToken}` }
       : {};
   }
 
   /** Populate the store with tokens and user data returned from login. */
-  setAuth({access, refresh, user}: AuthResponse) {
+  setAuth({ access, refresh, user }: AuthResponse) {
     this.accessToken = access;
     this.refreshToken = refresh;
     this.user = user;
     try {
       localStorage.setItem(
         USER_STORAGE_KEY,
-        JSON.stringify({access, refresh, user}),
+        JSON.stringify({ access, refresh, user }),
       );
     } catch (e) {
       console.warn('Failed to persist auth to localStorage', e);
@@ -62,7 +62,7 @@ export class UserStore {
     try {
       const json = localStorage.getItem(USER_STORAGE_KEY);
       if (json) {
-        const {access, refresh, user}: AuthResponse = JSON.parse(json);
+        const { access, refresh, user }: AuthResponse = JSON.parse(json);
         runInAction(() => {
           this.accessToken = access;
           this.refreshToken = refresh;

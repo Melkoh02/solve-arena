@@ -48,7 +48,11 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
     mySolves.length > 0
       ? Math.max(
           ...mySolves.map(s =>
-            s.penalty === 'DNF' ? 0 : s.penalty === '+2' ? s.time + 2000 : s.time,
+            s.penalty === 'DNF'
+              ? 0
+              : s.penalty === '+2'
+                ? s.time + 2000
+                : s.time,
           ),
         )
       : 0;
@@ -59,7 +63,9 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
 
   // Don't render anything until at least one round has results
   const completedRoundsCount = new Set(
-    roomStore.solves.filter(s => s.round < roomStore.currentRound).map(s => s.round),
+    roomStore.solves
+      .filter(s => s.round < roomStore.currentRound)
+      .map(s => s.round),
   ).size;
   if (completedRoundsCount === 0) return null;
 
@@ -83,7 +89,11 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
           flexShrink: 0,
           textAlign: 'left',
         }}>
-        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+        <Stack
+          direction="row"
+          spacing={1.25}
+          alignItems="center"
+          sx={{ minWidth: 0 }}>
           <Typography
             sx={{
               textTransform: 'uppercase',
@@ -96,13 +106,21 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
           </Typography>
           {worst > 0 && (
             <Typography
-              sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>
+              sx={{
+                fontFamily: 'monospace',
+                fontSize: '0.7rem',
+                color: 'text.secondary',
+              }}>
               Worst: {formatTime(worst, precision)}
             </Typography>
           )}
           {avg !== null && (
             <Typography
-              sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>
+              sx={{
+                fontFamily: 'monospace',
+                fontSize: '0.7rem',
+                color: 'text.secondary',
+              }}>
               Avg: {formatTime(avg, precision)}
             </Typography>
           )}
@@ -134,78 +152,90 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
             gridTemplateRows: 'auto auto minmax(0, 1fr)',
             overflow: 'hidden',
           }}>
-        {/* Drag handle */}
-        <Box
-          sx={{
-            width: 40,
-            height: 4,
-            bgcolor: 'divider',
-            borderRadius: 2,
-            mx: 'auto',
-            mt: 1,
-            mb: 1,
-            flexShrink: 0,
-          }}
-        />
+          {/* Drag handle */}
+          <Box
+            sx={{
+              width: 40,
+              height: 4,
+              bgcolor: 'divider',
+              borderRadius: 2,
+              mx: 'auto',
+              mt: 1,
+              mb: 1,
+              flexShrink: 0,
+            }}
+          />
 
-        {/* Header */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            px: 2,
-            py: 1,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            flexShrink: 0,
-          }}>
-          <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
-            <Typography
-              sx={{
-                textTransform: 'uppercase',
-                letterSpacing: '0.12em',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                color: 'text.secondary',
-              }}>
-              {t('room.history')}
-            </Typography>
-            {worst > 0 && (
+          {/* Header */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 1,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              flexShrink: 0,
+            }}>
+            <Stack
+              direction="row"
+              spacing={1.25}
+              alignItems="center"
+              sx={{ minWidth: 0 }}>
               <Typography
-                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>
-                Worst: {formatTime(worst, precision)}
+                sx={{
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  color: 'text.secondary',
+                }}>
+                {t('room.history')}
               </Typography>
-            )}
-            {avg !== null && (
-              <Typography
-                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>
-                Avg: {formatTime(avg, precision)}
-              </Typography>
-            )}
-          </Stack>
-          <IconButton
-            size="medium"
-            onClick={onClose}
-            aria-label={t('common.cancel')}
-            sx={{ color: 'text.secondary', p: 0.875 }}>
-            <CloseIcon sx={{ fontSize: 22 }} />
-          </IconButton>
-        </Box>
+              {worst > 0 && (
+                <Typography
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontSize: '0.7rem',
+                    color: 'text.secondary',
+                  }}>
+                  Worst: {formatTime(worst, precision)}
+                </Typography>
+              )}
+              {avg !== null && (
+                <Typography
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontSize: '0.7rem',
+                    color: 'text.secondary',
+                  }}>
+                  Avg: {formatTime(avg, precision)}
+                </Typography>
+              )}
+            </Stack>
+            <IconButton
+              size="medium"
+              onClick={onClose}
+              aria-label={t('common.cancel')}
+              sx={{ color: 'text.secondary', p: 0.875 }}>
+              <CloseIcon sx={{ fontSize: 22 }} />
+            </IconButton>
+          </Box>
 
-        {/* Round cards — pill style matching solo's HistoryCard, with
+          {/* Round cards — pill style matching solo's HistoryCard, with
             per-player mini-cells inside each card. Horizontal scroll for
             wide rooms; vertical scroll for many rounds. */}
-        <Box
-          ref={setScrollEl}
-          sx={{
-            minHeight: 0,
-            overflow: 'auto',
-            overscrollBehavior: 'contain',
-            pb: 2,
-          }}>
-          <MobileResultsList scrollEl={scrollEl} />
-        </Box>
+          <Box
+            ref={setScrollEl}
+            sx={{
+              minHeight: 0,
+              overflow: 'auto',
+              overscrollBehavior: 'contain',
+              pb: 2,
+            }}>
+            <MobileResultsList scrollEl={scrollEl} />
+          </Box>
         </Box>
       </Drawer>
     </>

@@ -15,6 +15,9 @@ const PAGE_SIZE = 50;
 const ROUND_BADGE_WIDTH = 44;
 const PLAYER_CELL_MIN_WIDTH_ME = 180;
 const PLAYER_CELL_MIN_WIDTH_OTHER = 110;
+// Reserves space for the longest plausible time string ("XX.XX+", "X:XX.X")
+// so the +2 / DNF / picker columns line up across rows regardless of digits.
+const TIME_MIN_WIDTH = '4.5rem';
 
 const PENALTY_TOGGLE_SX = {
   minWidth: 36,
@@ -94,14 +97,19 @@ const MobileResultsList = observer(function MobileResultsList({
 
   // Live solve for the open detail modal (penalty/cross changes update immediately)
   const liveSolve = selectedSolve
-    ? roomStore.solves.find(s => s.id === selectedSolve.id) ?? null
+    ? (roomStore.solves.find(s => s.id === selectedSolve.id) ?? null)
     : null;
 
   if (completedRounds.length === 0) return null;
 
   return (
     <>
-      <Stack spacing={1} sx={{ p: 1.5 }}>
+      {/* width: max-content (with minWidth 100%) lets each pill stretch to
+          encompass every player cell when the row overflows horizontally,
+          instead of ending at the viewport edge while cells spill out. */}
+      <Stack
+        spacing={1}
+        sx={{ p: 1.5, width: 'max-content', minWidth: '100%' }}>
         {visibleRounds.map(round => (
           <RoundCard
             key={round}
@@ -116,7 +124,10 @@ const MobileResultsList = observer(function MobileResultsList({
         <Box ref={setSentinelEl} sx={{ height: 8 }} />
       </Stack>
 
-      <SolveDetailModal solve={liveSolve} onClose={() => setSelectedSolve(null)} />
+      <SolveDetailModal
+        solve={liveSolve}
+        onClose={() => setSelectedSolve(null)}
+      />
     </>
   );
 });
@@ -254,9 +265,35 @@ const PlayerCell = observer(function PlayerCell({
               cursor: 'pointer',
               color: isFastest ? 'primary.main' : 'text.primary',
               lineHeight: 1.1,
+              minWidth: TIME_MIN_WIDTH,
             }}>
             {getDisplayTime(solve, precision)}
           </Typography>
+          {/* Color marker sits immediately after the time so my picker
+              doesn't end up adjacent to the next player's marker. */}
+          {isMe ? (
+            <CrossColorPicker
+              value={solve.crossColor}
+              onChange={color => roomStore.updateCrossColor(solve.id, color)}
+              size={18}
+            />
+          ) : (
+            solve.crossColor && (
+              <Box
+                sx={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 0.75,
+                  bgcolor:
+                    CROSS_COLORS.find(c => c.key === solve.crossColor)?.hex ??
+                    '#FFFFFF',
+                  border: '2px solid',
+                  borderColor: 'divider',
+                  flexShrink: 0,
+                }}
+              />
+            )
+          )}
           {isMe && (
             <>
               <ToggleButton
@@ -275,27 +312,7 @@ const PlayerCell = observer(function PlayerCell({
                 sx={PENALTY_TOGGLE_SX}>
                 DNF
               </ToggleButton>
-              <CrossColorPicker
-                value={solve.crossColor}
-                onChange={color => roomStore.updateCrossColor(solve.id, color)}
-                size={22}
-              />
             </>
-          )}
-          {!isMe && solve.crossColor && (
-            <Box
-              sx={{
-                width: 18,
-                height: 18,
-                borderRadius: 0.75,
-                bgcolor:
-                  CROSS_COLORS.find(c => c.key === solve.crossColor)?.hex ??
-                  '#FFFFFF',
-                border: '2px solid',
-                borderColor: 'divider',
-                flexShrink: 0,
-              }}
-            />
           )}
         </Stack>
       ) : (

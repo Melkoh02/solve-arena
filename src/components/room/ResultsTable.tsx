@@ -99,7 +99,7 @@ const ResultsTable = observer(function ResultsTable() {
 
   // Keep modal in sync with live data (penalty updates)
   const liveSolve = selectedSolve
-    ? roomStore.solves.find(s => s.id === selectedSolve.id) ?? null
+    ? (roomStore.solves.find(s => s.id === selectedSolve.id) ?? null)
     : null;
 
   return (
@@ -128,7 +128,11 @@ const ResultsTable = observer(function ResultsTable() {
             {visibleRounds.map(round => (
               <TableRow key={round} hover>
                 <TableCell
-                  sx={{ color: 'text.secondary', fontFamily: 'monospace', fontSize: '0.75rem' }}>
+                  sx={{
+                    color: 'text.secondary',
+                    fontFamily: 'monospace',
+                    fontSize: '0.75rem',
+                  }}>
                   {round}
                 </TableCell>
                 {(() => {
@@ -154,7 +158,9 @@ const ResultsTable = observer(function ResultsTable() {
                                 fontFamily: 'monospace',
                                 fontVariantNumeric: 'tabular-nums',
                                 fontWeight: 600,
-                                color: isFastest ? 'primary.main' : 'text.primary',
+                                color: isFastest
+                                  ? 'primary.main'
+                                  : 'text.primary',
                                 fontSize: '0.8rem',
                                 width: '9ch',
                                 flexShrink: 0,
@@ -163,84 +169,94 @@ const ResultsTable = observer(function ResultsTable() {
                                 cursor: 'pointer',
                                 '&:hover': { color: 'primary.main' },
                               }}>
-                            {getDisplayTime(solve, precision)}
+                              {getDisplayTime(solve, precision)}
+                            </Typography>
+                            {isMe ? (
+                              <>
+                                <ButtonGroup size="small">
+                                  <Button
+                                    size="small"
+                                    variant={
+                                      solve.penalty === '+2'
+                                        ? 'contained'
+                                        : 'outlined'
+                                    }
+                                    sx={{
+                                      minWidth: 24,
+                                      px: 0.3,
+                                      py: 0,
+                                      fontSize: '0.6rem',
+                                    }}
+                                    onClick={() =>
+                                      roomStore.updatePenalty(
+                                        solve.id,
+                                        '+2' as Penalty,
+                                      )
+                                    }>
+                                    +2
+                                  </Button>
+                                  <Button
+                                    size="small"
+                                    variant={
+                                      solve.penalty === 'DNF'
+                                        ? 'contained'
+                                        : 'outlined'
+                                    }
+                                    sx={{
+                                      minWidth: 24,
+                                      px: 0.3,
+                                      py: 0,
+                                      fontSize: '0.6rem',
+                                    }}
+                                    onClick={() =>
+                                      roomStore.updatePenalty(
+                                        solve.id,
+                                        'DNF' as Penalty,
+                                      )
+                                    }>
+                                    DNF
+                                  </Button>
+                                </ButtonGroup>
+                                <CrossColorPicker
+                                  value={solve.crossColor}
+                                  onChange={color =>
+                                    roomStore.updateCrossColor(solve.id, color)
+                                  }
+                                  size={18}
+                                />
+                              </>
+                            ) : (
+                              solve.crossColor && (
+                                <Box
+                                  sx={{
+                                    width: 18,
+                                    height: 18,
+                                    borderRadius: 0.75,
+                                    bgcolor:
+                                      CROSS_COLORS.find(
+                                        c => c.key === solve.crossColor,
+                                      )?.hex ?? '#FFFFFF',
+                                    border: '2px solid',
+                                    borderColor: 'divider',
+                                    flexShrink: 0,
+                                  }}
+                                />
+                              )
+                            )}
+                          </Box>
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'text.secondary',
+                              fontSize: '0.8rem',
+                            }}>
+                            -
                           </Typography>
-                          {isMe ? (
-                            <>
-                              <ButtonGroup size="small">
-                                <Button
-                                  size="small"
-                                  variant={
-                                    solve.penalty === '+2'
-                                      ? 'contained'
-                                      : 'outlined'
-                                  }
-                                  sx={{
-                                    minWidth: 24,
-                                    px: 0.3,
-                                    py: 0,
-                                    fontSize: '0.6rem',
-                                  }}
-                                  onClick={() =>
-                                    roomStore.updatePenalty(
-                                      solve.id,
-                                      '+2' as Penalty,
-                                    )
-                                  }>
-                                  +2
-                                </Button>
-                                <Button
-                                  size="small"
-                                  variant={
-                                    solve.penalty === 'DNF'
-                                      ? 'contained'
-                                      : 'outlined'
-                                  }
-                                  sx={{
-                                    minWidth: 24,
-                                    px: 0.3,
-                                    py: 0,
-                                    fontSize: '0.6rem',
-                                  }}
-                                  onClick={() =>
-                                    roomStore.updatePenalty(
-                                      solve.id,
-                                      'DNF' as Penalty,
-                                    )
-                                  }>
-                                  DNF
-                                </Button>
-                              </ButtonGroup>
-                              <CrossColorPicker
-                                value={solve.crossColor}
-                                onChange={color => roomStore.updateCrossColor(solve.id, color)}
-                                size={18}
-                              />
-                            </>
-                          ) : solve.crossColor && (
-                            <Box
-                              sx={{
-                                width: 18,
-                                height: 18,
-                                borderRadius: 0.75,
-                                bgcolor: CROSS_COLORS.find(c => c.key === solve.crossColor)?.hex ?? '#FFFFFF',
-                                border: '2px solid',
-                                borderColor: 'divider',
-                                flexShrink: 0,
-                              }}
-                            />
-                          )}
-                        </Box>
-                      ) : (
-                        <Typography
-                          variant="body2"
-                          sx={{ color: 'text.secondary', fontSize: '0.8rem' }}>
-                          -
-                        </Typography>
-                      )}
-                    </TableCell>
-                  );
-                });
+                        )}
+                      </TableCell>
+                    );
+                  });
                 })()}
               </TableRow>
             ))}

@@ -67,7 +67,7 @@ Mobile-friendly multiplayer + cross-platform polish.
 
 ### Fixed
 
-- **Android URL bar pushed content offscreen on mobile.** Android Chrome's `100vh` equals the *largest* possible viewport (URL bar hidden), so when the URL bar is visible the bottom of the layout sits below the visible window — most obvious on the solo history peek bar. Replaced fixed-`vh` values across all top-level layout containers and bottom drawers with `vhSafe()` / `minVhSafe()`. Touched `routes`, `SoloScreen`, `RoomScreen`, `LobbyScreen`, `HistoryDrawer`, `MobileResultsDrawer`, `RoomSidebarSheet`. iOS was already happy, no behavior change there.
+- **Android URL bar pushed content offscreen on mobile.** Android Chrome's `100vh` equals the _largest_ possible viewport (URL bar hidden), so when the URL bar is visible the bottom of the layout sits below the visible window — most obvious on the solo history peek bar. Replaced fixed-`vh` values across all top-level layout containers and bottom drawers with `vhSafe()` / `minVhSafe()`. Touched `routes`, `SoloScreen`, `RoomScreen`, `LobbyScreen`, `HistoryDrawer`, `MobileResultsDrawer`, `RoomSidebarSheet`. iOS was already happy, no behavior change there.
 - **History sticky header drifted with horizontal scroll on narrow viewports.** The desktop history container had `overflowY: 'auto'`, which CSS auto-promotes to `overflow: auto` on both axes when the table is wider than the viewport — so the sticky header (and the trash icon) shifted left along with the horizontal scroll, leaving the trash floating in the middle of the visible area. Restructured into a flex column with the header in its own non-scrolling row and the table in an inner scroll container. Applied to both desktop solo and desktop multiplayer; mobile layouts use a separate drawer and weren't affected.
 
 ## [1.1.0] - 2026-04-25
@@ -102,6 +102,7 @@ Initial release of Solve Arena.
 ### Added
 
 #### Solo mode
+
 - Speedcube timer with hold-to-ready flow: spacebar (instant) or color key (hold) starts the cycle, key release fires the timer.
 - Cross-color tagging via the 6 color keys (W/Y/R/O/B/G) — the chosen color is recorded with the solve.
 - Configurable color-key hold threshold (100–2000 ms) and a "spacebar requires hold" toggle.
@@ -113,6 +114,7 @@ Initial release of Solve Arena.
 - Keyboard shortcuts to delete the last solve (`Backspace`), clear all solves (`Ctrl+Shift+Backspace`), and toggle the history table (`H`, persisted).
 
 #### Multiplayer mode
+
 - Room-based lobbies with shareable codes, served by an Express + socket.io backend.
 - Live competitor sidebar showing each player's solving / finished / waiting status per round.
 - Synchronized per-round scrambles.
@@ -120,6 +122,7 @@ Initial release of Solve Arena.
 - Reconnection recovery — keeps the player's identity through socket reconnects (uses MobX-tracked `playerId`, not stale `socket.id`).
 
 #### Settings
+
 - Three themes: Light, Dark, Glass (the last with a `backdrop-filter` glass effect over a diagonal wallpaper gradient).
 - Per-scheme palette overrides for 8 tokens — Primary, Background, Gradient accent, Surface, Text, Muted text, Success, Error. Glass exposes a second background stop for the diagonal gradient; Dark and Light use the simpler 7-token set.
 - Configurable keyboard shortcuts for 11 actions (color keys, delete-last, clear-all, scramble preview hold/toggle, history toggle), with conflict detection and a "reset section" button.
@@ -127,12 +130,14 @@ Initial release of Solve Arena.
 - English and Spanish localization.
 
 #### Infrastructure
+
 - React 19 + Vite + TypeScript on the client; MUI v7 + MobX + react-i18next.
 - Express + socket.io server, deployed separately on Render via `render.yaml`.
 - Client persists to `localStorage` under the `@M003:` prefix (settings, palette, theme, language, solves, selected event, player name).
 - GitHub Pages deployment via GitHub Actions on every push to `master`.
 
 ### Technical Details
+
 - React 19.2 + Vite 7
 - TypeScript 5.8 in strict mode
 - MUI v7 with three custom theme factories (`createDarkTheme` / `createLightTheme` / `createGlassTheme`) that take a `ThemeTokens` object so palette overrides cascade through every component-level override

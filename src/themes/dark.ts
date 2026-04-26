@@ -35,7 +35,7 @@ export function createDarkTheme(tokens: ThemeTokens = DARK_TOKENS) {
         styleOverrides: {
           root: {
             borderRadius: 12,
-            border: `1px solid ${alpha(PRIMARY, 0.10)}`,
+            border: `1px solid ${alpha(PRIMARY, 0.1)}`,
             backgroundImage: 'none',
           },
         },
