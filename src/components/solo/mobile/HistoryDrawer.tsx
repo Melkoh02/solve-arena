@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Box,
@@ -50,8 +50,11 @@ const HistoryDrawer = observer(function HistoryDrawer({
   const avg = soloStore.globalAverage;
 
   const [visible, setVisible] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  // Callback refs (state-backed) so the IO effect re-runs the moment React
+  // attaches the elements. useRef would silently miss the first mount when
+  // Drawer's lazy paper rendering puts the ref population after the effect.
+  const [sentinelEl, setSentinelEl] = useState<HTMLDivElement | null>(null);
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
   // Most-recent first
   const orderedSolves = [...soloStore.eventSolves].reverse();
@@ -63,9 +66,7 @@ const HistoryDrawer = observer(function HistoryDrawer({
   }, [open]);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    const root = scrollContainerRef.current;
-    if (!sentinel || !root || !open) return;
+    if (!sentinelEl || !scrollEl || !open) return;
     const io = new IntersectionObserver(
       entries => {
         if (entries[0]?.isIntersecting) {
@@ -74,11 +75,11 @@ const HistoryDrawer = observer(function HistoryDrawer({
           );
         }
       },
-      { root, rootMargin: '300px', threshold: 0 },
+      { root: scrollEl, rootMargin: '300px', threshold: 0 },
     );
-    io.observe(sentinel);
+    io.observe(sentinelEl);
     return () => io.disconnect();
-  }, [open, orderedSolves.length]);
+  }, [open, sentinelEl, scrollEl, orderedSolves.length]);
 
   return (
     <>
@@ -139,12 +140,22 @@ const HistoryDrawer = observer(function HistoryDrawer({
               borderTopRightRadius: 20,
               bgcolor: 'background.paper',
               backgroundImage: 'none',
-              ...vhSafe(85),
-              display: 'flex',
-              flexDirection: 'column',
             },
           },
         }}>
+        {/* Inner wrapper uses CSS grid with `minmax(0, 1fr)` for the cards
+            row. Grid is more rigid than flex about constraining row heights:
+            the cards row is exactly `wrapper height − drag − header`, no
+            min-content fallback. This prevents scrollHeight from growing
+            past the actual content (the symptom: the user could scroll
+            indefinitely into a vast empty area below the last card). */}
+        <Box
+          sx={{
+            ...vhSafe(85),
+            display: 'grid',
+            gridTemplateRows: 'auto auto minmax(0, 1fr)',
+            overflow: 'hidden',
+          }}>
         {/* Drag handle */}
         <Box
           sx={{
@@ -218,14 +229,14 @@ const HistoryDrawer = observer(function HistoryDrawer({
 
         {/* Cards */}
         <Box
-          ref={scrollContainerRef}
+          ref={setScrollEl}
           sx={{
-            flex: 1,
             minHeight: 0,
             overflowY: 'auto',
+            overscrollBehavior: 'contain',
             px: 1.5,
             py: 1,
-            pb: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+            pb: 2,
           }}>
           <Stack spacing={1}>
             {visibleSolves.map(solve => {
@@ -243,7 +254,10 @@ const HistoryDrawer = observer(function HistoryDrawer({
               );
             })}
           </Stack>
-          <Box ref={sentinelRef} sx={{ height: 1 }} />
+          {/* Non-zero height sentinel — sub-pixel sentinels can confuse
+              IntersectionObserver with rootMargin in some browsers. */}
+          <Box ref={setSentinelEl} sx={{ height: 8 }} />
+        </Box>
         </Box>
       </Drawer>
 

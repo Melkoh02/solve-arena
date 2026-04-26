@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import { Box, Stack, ToggleButton, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
@@ -33,21 +33,23 @@ const PENALTY_TOGGLE_SX = {
 } as const;
 
 interface MobileResultsListProps {
-  /** Ref to the scroll container; used as the IntersectionObserver root so
-   * infinite scroll fires correctly even when the cards are inside a
-   * nested scrollable drawer. */
-  scrollRoot?: React.RefObject<HTMLDivElement | null>;
+  /** Scroll container element used as the IntersectionObserver root so
+   * infinite scroll fires correctly inside a nested scrollable drawer.
+   * Passed as an element (not a ref) so the IO effect can react to it
+   * mounting — refs aren't reactive. */
+  scrollEl?: HTMLDivElement | null;
 }
 
 const MobileResultsList = observer(function MobileResultsList({
-  scrollRoot,
+  scrollEl,
 }: MobileResultsListProps) {
   const { roomStore, settingsStore } = useStore();
   const precision = settingsStore.timerPrecision;
 
   const [selectedSolve, setSelectedSolve] = useState<RoomSolve | null>(null);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  // Callback ref so the IO effect re-runs when React attaches the sentinel.
+  const [sentinelEl, setSentinelEl] = useState<HTMLDivElement | null>(null);
 
   // Most-recent first, only completed rounds
   const completedRounds = useMemo(() => {
@@ -75,9 +77,7 @@ const MobileResultsList = observer(function MobileResultsList({
   }, [completedRounds.length]);
 
   useEffect(() => {
-    const sentinel = sentinelRef.current;
-    const root = scrollRoot?.current ?? null;
-    if (!sentinel) return;
+    if (!sentinelEl || !scrollEl) return;
     const io = new IntersectionObserver(
       entries => {
         if (entries[0]?.isIntersecting) {
@@ -86,11 +86,11 @@ const MobileResultsList = observer(function MobileResultsList({
           );
         }
       },
-      { root, rootMargin: '300px', threshold: 0 },
+      { root: scrollEl, rootMargin: '300px', threshold: 0 },
     );
-    io.observe(sentinel);
+    io.observe(sentinelEl);
     return () => io.disconnect();
-  }, [completedRounds.length, scrollRoot]);
+  }, [completedRounds.length, sentinelEl, scrollEl]);
 
   // Live solve for the open detail modal (penalty/cross changes update immediately)
   const liveSolve = selectedSolve
@@ -111,7 +111,9 @@ const MobileResultsList = observer(function MobileResultsList({
             onSelect={setSelectedSolve}
           />
         ))}
-        <Box ref={sentinelRef} sx={{ height: 1 }} />
+        {/* Non-zero height sentinel — sub-pixel sentinels can confuse
+            IntersectionObserver with rootMargin in some browsers. */}
+        <Box ref={setSentinelEl} sx={{ height: 8 }} />
       </Stack>
 
       <SolveDetailModal solve={liveSolve} onClose={() => setSelectedSolve(null)} />

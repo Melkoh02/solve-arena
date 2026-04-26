@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Button,
@@ -16,8 +16,8 @@ import MoreTimeIcon from '@mui/icons-material/MoreTime';
 import { observer } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
 import { formatTime } from '../../lib/utils/formatTime';
-import { matchesShortcut } from '../../lib/utils/shortcuts';
 import { useStore } from '../../lib/hooks/useStore';
+import { useScramblePreviewShortcut } from '../../lib/hooks/useScramblePreviewShortcut';
 import ScramblePreview from './ScramblePreview';
 
 /**
@@ -111,42 +111,10 @@ const ScrambleDisplay = observer(function ScrambleDisplay({
     });
   };
 
-  // Keyboard shortcut: hold = temporary preview, ctrl-variant = toggle
-  const holdPreviewRef = useRef(false);
-  const holdBinding = settingsStore.shortcuts.holdScramblePreview;
-  const toggleBinding = settingsStore.shortcuts.toggleScramblePreview;
-  useEffect(() => {
-    const INTERACTIVE = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
-    const handleDown = (e: KeyboardEvent) => {
-      if (INTERACTIVE.has((e.target as HTMLElement).tagName)) return;
-      // Toggle is checked first because it has stricter modifiers
-      if (matchesShortcut(e, toggleBinding)) {
-        e.preventDefault();
-        togglePreview();
-        return;
-      }
-      if (matchesShortcut(e, holdBinding)) {
-        if (e.repeat) return;
-        e.preventDefault();
-        holdPreviewRef.current = true;
-        setShowPreview(true);
-      }
-    };
-    const handleUp = (e: KeyboardEvent) => {
-      // Use just the key portion of the hold binding so release fires regardless of modifiers
-      if (e.key.toLowerCase() !== holdBinding.key.toLowerCase()) return;
-      if (!holdPreviewRef.current) return;
-      holdPreviewRef.current = false;
-      const persisted = localStorage.getItem(PREVIEW_KEY) === 'true';
-      setShowPreview(persisted);
-    };
-    window.addEventListener('keydown', handleDown);
-    window.addEventListener('keyup', handleUp);
-    return () => {
-      window.removeEventListener('keydown', handleDown);
-      window.removeEventListener('keyup', handleUp);
-    };
-  }, [holdBinding, toggleBinding]);
+  // Keyboard shortcut: hold = temporary preview, ctrl-variant = toggle.
+  // Implementation lives in a shared hook so the mobile layouts get the
+  // same behavior (mobile mode is also used on narrow desktop windows).
+  useScramblePreviewShortcut(setShowPreview, PREVIEW_KEY);
 
   const handleApplyCustom = () => {
     if (customInput.trim() && onSetCustom) {
