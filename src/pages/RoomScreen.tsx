@@ -61,6 +61,8 @@ const RoomScreen = observer(function RoomScreen() {
   const pendingColorRef = useRef<CrossColor>('w');
   // Track round + color for deferred application when solve arrives from server
   const pendingColorForRoundRef = useRef<{ round: number; color: CrossColor } | null>(null);
+  // Track round for deferred +2 inspection penalty when solve arrives from server
+  const pendingPenaltyForRoundRef = useRef<{ round: number } | null>(null);
 
   const handleColorStart = useCallback((color: CrossColor) => {
     const phase = timerStore.timerPhase;
@@ -98,22 +100,39 @@ const RoomScreen = observer(function RoomScreen() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [roomStore, timerStore]);
 
-  // Apply pending color when my solve appears in the store
+  // Apply pending color and/or +2 inspection penalty when my solve appears in
+  // the store (server is source of truth — solve may not be there yet at the
+  // moment we submitTime).
   useEffect(
     () =>
       reaction(
         () => roomStore.solves.length,
         () => {
-          const pending = pendingColorForRoundRef.current;
-          if (!pending) return;
+          const pendingColor = pendingColorForRoundRef.current;
+          const pendingPenalty = pendingPenaltyForRoundRef.current;
+          if (!pendingColor && !pendingPenalty) return;
           const myId = roomStore.playerId;
           if (!myId) return;
-          const solve = roomStore.solves.find(
-            s => s.playerId === myId && s.round === pending.round,
-          );
-          if (solve) {
-            roomStore.updateCrossColor(solve.id, pending.color);
-            pendingColorForRoundRef.current = null;
+          if (pendingColor) {
+            const solve = roomStore.solves.find(
+              s => s.playerId === myId && s.round === pendingColor.round,
+            );
+            if (solve) {
+              roomStore.updateCrossColor(solve.id, pendingColor.color);
+              pendingColorForRoundRef.current = null;
+            }
+          }
+          if (pendingPenalty) {
+            const solve = roomStore.solves.find(
+              s => s.playerId === myId && s.round === pendingPenalty.round,
+            );
+            if (solve && solve.penalty !== 'DNF') {
+              roomStore.updatePenalty(solve.id, '+2');
+              pendingPenaltyForRoundRef.current = null;
+            } else if (solve && solve.penalty === 'DNF') {
+              // DNF beats +2 — drop the pending penalty.
+              pendingPenaltyForRoundRef.current = null;
+            }
           }
         },
       ),
@@ -157,7 +176,8 @@ const RoomScreen = observer(function RoomScreen() {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
 
-  // Submit time and apply pending cross color
+  // Submit time and apply pending cross color / inspection penalty.
+  // Inspection-overrun DNFs surface as `inspecting → stopped` transitions.
   useEffect(
     () =>
       reaction(
@@ -166,13 +186,22 @@ const RoomScreen = observer(function RoomScreen() {
           if (phase === 'running' && prevPhase !== 'running') {
             roomStore.emitTimerStart();
           }
-          if (phase === 'stopped' && prevPhase === 'running' && !roomStore.hasSubmittedCurrentRound) {
+          if (
+            phase === 'stopped' &&
+            (prevPhase === 'running' || prevPhase === 'inspecting') &&
+            !roomStore.hasSubmittedCurrentRound
+          ) {
             const color = pendingColorRef.current;
+            const inspectionPenalty = timerStore.inspectionPenalty;
             if (color !== 'w') {
               // Queue color for when the solve arrives from server
               pendingColorForRoundRef.current = { round: roomStore.currentRound, color };
             }
+            if (inspectionPenalty === '+2') {
+              pendingPenaltyForRoundRef.current = { round: roomStore.currentRound };
+            }
             roomStore.submitTime(timerStore.displayTime, timerStore.lastStopWasDnf);
+            timerStore.clearInspectionPenalty();
             pendingColorRef.current = 'w';
           }
         },
@@ -232,11 +261,17 @@ const RoomScreen = observer(function RoomScreen() {
       // Try auto-join from URL if we have a code and a saved name
       if (urlCode && roomStore.playerName.trim()) {
         roomStore.joinRoom(urlCode).then(success => {
-          if (!success) navigate('/');
+          if (!success) {
+            navigate('/', { state: { joinCode: urlCode }, replace: true });
+          }
         });
         return;
       }
-      navigate('/');
+      if (urlCode) {
+        navigate('/', { state: { joinCode: urlCode }, replace: true });
+      } else {
+        navigate('/');
+      }
       return;
     }
     return reaction(
@@ -539,9 +574,15 @@ const RoomScreen = observer(function RoomScreen() {
               />
             ))}
 
-          {/* Stats bar (rolling averages) */}
-          {!isTimerRunning && myAllSolves.length > 0 && (
-            <Stack direction="row" spacing={3}>
+          {/* Stats bar (rolling averages) — always rendered so the timer area
+              keeps a fixed footprint regardless of solve count. */}
+          {!isTimerRunning && (
+            <Stack
+              direction="row"
+              spacing={3}
+              sx={{
+                visibility: myAllSolves.length > 0 ? 'visible' : 'hidden',
+              }}>
               <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
                 ao5: {formatAverage(ao5, precision)}
               </Typography>
@@ -581,25 +622,30 @@ const RoomScreen = observer(function RoomScreen() {
             <Timer disabled={isTimerDisabled} onColorStart={handleColorStart} />
           )}
 
-          {/* Previous solves stack */}
-          {!isTimerRunning && previousSolves.length > 0 && (
+          {/* Previous solves stack — always renders 4 slots so the history bar
+              below it doesn't drift as solves accumulate. */}
+          {!isTimerRunning && (
             <Box sx={{ textAlign: 'center', mt: 1, overflow: 'hidden' }}>
-              {previousSolves.map((solve, i) => (
-                <Typography
-                  key={solve.id}
-                  sx={{
-                    fontFamily: 'monospace',
-                    fontVariantNumeric: 'tabular-nums',
-                    fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
-                    fontWeight: 600,
-                    color: 'text.secondary',
-                    opacity: 0.5 - i * 0.08,
-                    lineHeight: 1.5,
-                    userSelect: 'none',
-                  }}>
-                  {getDisplayTime(solve, precision)}
-                </Typography>
-              ))}
+              {Array.from({ length: 4 }).map((_, i) => {
+                const solve = previousSolves[i];
+                return (
+                  <Typography
+                    key={solve?.id ?? `placeholder-${i}`}
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontVariantNumeric: 'tabular-nums',
+                      fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
+                      fontWeight: 600,
+                      color: 'text.secondary',
+                      opacity: 0.5 - i * 0.08,
+                      lineHeight: 1.5,
+                      userSelect: 'none',
+                      visibility: solve ? 'visible' : 'hidden',
+                    }}>
+                    {solve ? getDisplayTime(solve, precision) : '0.00'}
+                  </Typography>
+                );
+              })}
             </Box>
           )}
         </Box>

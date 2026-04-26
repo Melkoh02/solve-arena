@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -52,10 +53,15 @@ const LABEL_SX = {
 const SoloScreen = observer(function SoloScreen() {
   const { timerStore, soloStore, settingsStore } = useStore();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const muiTheme = useMuiTheme();
   const isNarrowViewport = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const useMobileLayout = useIsMobile();
   const [competAnchor, setCompetAnchor] = useState<HTMLElement | null>(null);
+  const [deepLinkCode, setDeepLinkCode] = useState<string | null>(null);
+  const competeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const mobileCompeteButtonRef = useRef<HTMLButtonElement | null>(null);
   const [selectedSolve, setSelectedSolve] = useState<SoloSolve | null>(null);
   const [aoSolves, setAoSolves] = useState<SoloSolve[] | null>(null);
   const [aoSize, setAoSize] = useState(5);
@@ -87,7 +93,8 @@ const SoloScreen = observer(function SoloScreen() {
   const isTimerActive =
     timerStore.timerPhase === 'running' ||
     timerStore.timerPhase === 'ready' ||
-    timerStore.timerPhase === 'preparing';
+    timerStore.timerPhase === 'preparing' ||
+    timerStore.timerPhase === 'inspecting';
 
   const handleColorStart = useCallback((color: CrossColor) => {
     // Check phase via direct access (not reactive dependency)
@@ -103,7 +110,19 @@ const SoloScreen = observer(function SoloScreen() {
 
   const touchHandlers = useTimerTouch(false, handleColorStart);
 
-  // Submit solve when timer stops
+  // Deep-link auto-open: when arriving from /room/:code with no saved name,
+  // RoomScreen redirects here with state.joinCode set. Open the Compete
+  // popover anchored to the Compete button, prefilled with the code.
+  useEffect(() => {
+    const joinCode = (location.state as { joinCode?: string } | null)?.joinCode;
+    if (!joinCode) return;
+    setDeepLinkCode(joinCode);
+    setCompetAnchor(competeButtonRef.current ?? mobileCompeteButtonRef.current);
+    // Consume the state so refresh / future navigations don't re-trigger this.
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.state, location.pathname, navigate]);
+
+  // Submit solve when timer stops (also catches inspection-overrun DNFs).
   useEffect(
     () =>
       reaction(
@@ -111,14 +130,22 @@ const SoloScreen = observer(function SoloScreen() {
         (phase, prevPhase) => {
           if (
             phase === 'stopped' &&
-            prevPhase === 'running' &&
-            timerStore.displayTime > 0
+            (prevPhase === 'running' || prevPhase === 'inspecting') &&
+            (timerStore.displayTime > 0 || timerStore.lastStopWasDnf)
           ) {
+            const inspectionPenalty = timerStore.inspectionPenalty;
             soloStore.addSolve(
               timerStore.displayTime,
               timerStore.lastStopWasDnf,
               pendingColorRef.current,
             );
+            if (inspectionPenalty === '+2') {
+              const last = soloStore.lastSolve;
+              if (last && last.penalty !== 'DNF') {
+                soloStore.updatePenalty(last.id, '+2');
+              }
+            }
+            timerStore.clearInspectionPenalty();
             pendingColorRef.current = 'w';
           }
         },
@@ -233,6 +260,7 @@ const SoloScreen = observer(function SoloScreen() {
           onTouchEnd={touchHandlers.onTouchEnd}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenCompete={anchor => setCompetAnchor(anchor)}
+          competeButtonRef={mobileCompeteButtonRef}
           onSelectSolve={setSelectedSolve}
           onRequestClearAll={() => setDeleteConfirm(true)}
           previousSolves={previousSolves}
@@ -277,6 +305,7 @@ const SoloScreen = observer(function SoloScreen() {
               <SettingsIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
             </IconButton>
             <Button
+              ref={competeButtonRef}
               variant="outlined"
               size="small"
               startIcon={
@@ -334,9 +363,15 @@ const SoloScreen = observer(function SoloScreen() {
           />
         )}
 
-        {/* Stats bar (rolling averages) */}
-        {!isTimerRunning && soloStore.eventSolves.length > 0 && (
-          <Stack direction="row" spacing={3}>
+        {/* Stats bar (rolling averages) — always rendered so the timer area
+            keeps a fixed footprint regardless of solve count. */}
+        {!isTimerRunning && (
+          <Stack
+            direction="row"
+            spacing={3}
+            sx={{
+              visibility: soloStore.eventSolves.length > 0 ? 'visible' : 'hidden',
+            }}>
             <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
               ao5: {formatAverage(soloStore.ao5, precision)}
             </Typography>
@@ -349,25 +384,30 @@ const SoloScreen = observer(function SoloScreen() {
         {/* Timer */}
         <Timer disabled={false} onColorStart={handleColorStart} />
 
-        {/* Previous solves stack (quick glance) */}
-        {!isTimerRunning && previousSolves.length > 0 && (
+        {/* Previous solves stack — always renders 4 slots so the history bar
+            below it doesn't drift as solves accumulate. */}
+        {!isTimerRunning && (
           <Box sx={{ textAlign: 'center', overflow: 'hidden' }}>
-            {previousSolves.map((solve, i) => (
-              <Typography
-                key={solve.id}
-                sx={{
-                  fontFamily: 'monospace',
-                  fontVariantNumeric: 'tabular-nums',
-                  fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
-                  fontWeight: 600,
-                  color: 'text.secondary',
-                  opacity: 0.5 - i * 0.08,
-                  lineHeight: 1.5,
-                  userSelect: 'none',
-                }}>
-                {getDisplayTime(solve, precision)}
-              </Typography>
-            ))}
+            {Array.from({ length: 4 }).map((_, i) => {
+              const solve = previousSolves[i];
+              return (
+                <Typography
+                  key={solve?.id ?? `placeholder-${i}`}
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontVariantNumeric: 'tabular-nums',
+                    fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
+                    fontWeight: 600,
+                    color: 'text.secondary',
+                    opacity: 0.5 - i * 0.08,
+                    lineHeight: 1.5,
+                    userSelect: 'none',
+                    visibility: solve ? 'visible' : 'hidden',
+                  }}>
+                  {solve ? getDisplayTime(solve, precision) : '0.00'}
+                </Typography>
+              );
+            })}
           </Box>
         )}
       </Box>
@@ -453,7 +493,12 @@ const SoloScreen = observer(function SoloScreen() {
       {/* Compete popover */}
       <JoinRoomPopover
         anchorEl={competAnchor}
-        onClose={() => setCompetAnchor(null)}
+        onClose={() => {
+          setCompetAnchor(null);
+          setDeepLinkCode(null);
+        }}
+        initialRoomCode={deepLinkCode ?? undefined}
+        autoFocusName={!!deepLinkCode}
       />
 
       {/* Settings dialog */}
