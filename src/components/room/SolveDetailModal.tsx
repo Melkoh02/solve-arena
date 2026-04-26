@@ -14,6 +14,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
+import { useIsMobile } from '../../lib/hooks/useIsMobile';
 import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
 import type { RoomSolve } from '../../lib/types/room';
 import type { Penalty } from '../../lib/types/timer';
@@ -51,6 +52,7 @@ const SolveDetailModal = observer(function SolveDetailModal({
 }: SolveDetailModalProps) {
   const { roomStore, settingsStore } = useStore();
   const { t, i18n } = useTranslation();
+  const isMobile = useIsMobile();
   const precision = settingsStore.timerPrecision;
 
   if (!solve) return null;
@@ -71,6 +73,8 @@ const SolveDetailModal = observer(function SolveDetailModal({
             borderColor: 'divider',
             borderRadius: 3,
             backgroundImage: 'none',
+            mx: isMobile ? 1.5 : undefined,
+            my: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 16px)' : undefined,
           },
         },
       }}>
@@ -96,8 +100,8 @@ const SolveDetailModal = observer(function SolveDetailModal({
             {t('room.round')} {solve.round}
           </Typography>
         </Box>
-        <IconButton size="small" onClick={onClose}>
-          <CloseIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+        <IconButton size={isMobile ? 'medium' : 'small'} onClick={onClose}>
+          <CloseIcon sx={{ fontSize: isMobile ? 24 : 18, color: 'text.secondary' }} />
         </IconButton>
       </DialogTitle>
       <DialogContent>
@@ -117,7 +121,9 @@ const SolveDetailModal = observer(function SolveDetailModal({
           <Typography
             sx={{
               fontFamily: '"Inter", monospace',
-              fontSize: 'clamp(2.2rem, 10vw, 3.2rem)',
+              fontSize: isMobile
+                ? 'clamp(3rem, 14vw, 4.5rem)'
+                : 'clamp(2.2rem, 10vw, 3.2rem)',
               fontWeight: 900,
               fontVariantNumeric: 'tabular-nums',
               color: isMe ? 'primary.main' : 'text.primary',
@@ -131,13 +137,13 @@ const SolveDetailModal = observer(function SolveDetailModal({
         {/* Penalty buttons (own solves only) */}
         {isMe && (
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2.5 }}>
-            <ButtonGroup size="small">
+            <ButtonGroup size={isMobile ? 'medium' : 'small'}>
               <Button
                 variant={solve.penalty === '+2' ? 'contained' : 'outlined'}
                 onClick={() =>
                   roomStore.updatePenalty(solve.id, '+2' as Penalty)
                 }
-                sx={{ minWidth: 48 }}>
+                sx={{ minWidth: isMobile ? 64 : 48 }}>
                 +2
               </Button>
               <Button
@@ -145,7 +151,7 @@ const SolveDetailModal = observer(function SolveDetailModal({
                 onClick={() =>
                   roomStore.updatePenalty(solve.id, 'DNF' as Penalty)
                 }
-                sx={{ minWidth: 48 }}>
+                sx={{ minWidth: isMobile ? 64 : 48 }}>
                 DNF
               </Button>
             </ButtonGroup>
@@ -167,8 +173,8 @@ const SolveDetailModal = observer(function SolveDetailModal({
                     onClick={isMe ? () => roomStore.updateCrossColor(solve.id, c.key) : undefined}
                     title={`${c.label} (${c.key.toUpperCase()})`}
                     sx={{
-                      width: 28,
-                      height: 28,
+                      width: isMobile ? 36 : 28,
+                      height: isMobile ? 36 : 28,
                       borderRadius: '50%',
                       bgcolor: c.hex,
                       cursor: isMe ? 'pointer' : 'default',
@@ -261,8 +267,9 @@ const SolveDetailModal = observer(function SolveDetailModal({
         {/* Copy button */}
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
           <Button
-            size="small"
+            size={isMobile ? 'medium' : 'small'}
             variant="outlined"
+            fullWidth={isMobile}
             startIcon={<ContentCopyIcon sx={{ fontSize: 16 }} />}
             onClick={() => {
               const exportFmt = settingsStore.timeFormat;
@@ -276,7 +283,7 @@ const SolveDetailModal = observer(function SolveDetailModal({
               ].join('\n');
               navigator.clipboard.writeText(text);
             }}
-            sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
+            sx={{ textTransform: 'none', fontSize: isMobile ? '0.85rem' : '0.75rem' }}>
             Copy
           </Button>
         </Box>

@@ -19,11 +19,14 @@ import { observer } from 'mobx-react-lite';
 import { reaction } from 'mobx';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../lib/hooks/useStore';
+import { useIsMobile } from '../lib/hooks/useIsMobile';
+import { vhSafe } from '../lib/utils/viewport';
 import ScrambleDisplay from '../components/timer/ScrambleDisplay';
 import Timer, { useTimerTouch } from '../components/timer/Timer';
 import HostControls from '../components/room/HostControls';
 import PlayerSidebar from '../components/room/PlayerSidebar';
 import ResultsTable from '../components/room/ResultsTable';
+import MobileRoomLayout from '../components/room/mobile/MobileRoomLayout';
 import SettingsDialog from '../components/settings/SettingsDialog';
 import { formatTime, getDisplayTime } from '../lib/utils/formatTime';
 import { calculateAverage, formatAverage } from '../lib/utils/averages';
@@ -47,6 +50,7 @@ const RoomScreen = observer(function RoomScreen() {
   const { code: urlCode } = useParams<{ code: string }>();
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
+  const useMobileLayout = useIsMobile();
   const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
 
   const [pbSnack, setPbSnack] = useState<PbNotification | null>(null);
@@ -293,13 +297,25 @@ const RoomScreen = observer(function RoomScreen() {
     <Box
       sx={{
         display: 'flex',
-        flexDirection: 'row',
-        height: '100vh',
-        maxWidth: 1400,
+        flexDirection: useMobileLayout ? 'column' : 'row',
+        ...vhSafe(100),
+        maxWidth: useMobileLayout ? '100%' : 1400,
         mx: 'auto',
         width: '100%',
         overflow: 'hidden',
       }}>
+      {useMobileLayout ? (
+        <MobileRoomLayout
+          onColorStart={handleColorStart}
+          onTouchStart={touchHandlers.onTouchStart}
+          onTouchEnd={touchHandlers.onTouchEnd}
+          onOpenSettings={() => setSettingsOpen(true)}
+          onLeave={handleLeave}
+          onCopyCode={handleCopyCode}
+          isTimerDisabled={isTimerDisabled}
+        />
+      ) : (
+        <>
       {/* ── Sidebar — fully hidden when closed or timer running ── */}
       {sidebarOpen && !isTimerRunning && (
         <Box
@@ -588,7 +604,8 @@ const RoomScreen = observer(function RoomScreen() {
           )}
         </Box>
 
-        {/* Results history — hidden when timer is running */}
+        {/* Results history — header sits in its own row so it stays put when
+            the table scrolls horizontally on narrow viewports. */}
         {!isTimerRunning && (
           <Box
             sx={{
@@ -596,7 +613,9 @@ const RoomScreen = observer(function RoomScreen() {
               minHeight: 150,
               borderTop: '1px solid',
               borderColor: 'divider',
-              overflowY: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
             }}>
             <Box
               sx={{
@@ -605,10 +624,8 @@ const RoomScreen = observer(function RoomScreen() {
                 justifyContent: 'space-between',
                 px: 2,
                 py: 1,
-                position: 'sticky',
-                top: 0,
-                zIndex: 2,
                 bgcolor: 'background.default',
+                flexShrink: 0,
               }}>
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Typography
@@ -646,10 +663,14 @@ const RoomScreen = observer(function RoomScreen() {
                 )}
               </Stack>
             </Box>
-            <ResultsTable />
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+              <ResultsTable />
+            </Box>
           </Box>
         )}
       </Box>
+        </>
+      )}
 
       {/* Settings dialog */}
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />

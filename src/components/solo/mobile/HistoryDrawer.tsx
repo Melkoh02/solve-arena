@@ -19,6 +19,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../../lib/hooks/useStore';
 import { formatTime, getDisplayTime } from '../../../lib/utils/formatTime';
+import { vhSafe } from '../../../lib/utils/viewport';
 import HistoryCard from './HistoryCard';
 import type { SoloSolve } from '../../../lib/stores/soloStore';
 
@@ -136,7 +137,7 @@ const HistoryDrawer = observer(function HistoryDrawer({
               borderTopRightRadius: 20,
               bgcolor: 'background.paper',
               backgroundImage: 'none',
-              height: '85vh',
+              ...vhSafe(85),
               display: 'flex',
               flexDirection: 'column',
             },

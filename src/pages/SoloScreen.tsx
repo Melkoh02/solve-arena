@@ -35,6 +35,7 @@ import SettingsDialog from '../components/settings/SettingsDialog';
 import { formatTime, getDisplayTime } from '../lib/utils/formatTime';
 import { formatAverage } from '../lib/utils/averages';
 import { matchesShortcut } from '../lib/utils/shortcuts';
+import { vhSafe } from '../lib/utils/viewport';
 import type { SoloSolve } from '../lib/stores/soloStore';
 import type { CrossColor } from '../lib/types/room';
 
@@ -219,7 +220,7 @@ const SoloScreen = observer(function SoloScreen() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        ...vhSafe(100),
         maxWidth: useMobileLayout ? '100%' : 1000,
         mx: 'auto',
         width: '100%',
@@ -371,7 +372,9 @@ const SoloScreen = observer(function SoloScreen() {
         )}
       </Box>
 
-      {/* ── History table (fills remaining space) ───────────── */}
+      {/* ── History table (fills remaining space) ─────────────
+          Header is in its own row outside the scroll container so it
+          stays put when the table scrolls horizontally on narrow viewports. */}
       {!isTimerRunning && historyVisible && soloStore.eventSolves.length > 0 && (
         <Box
           sx={{
@@ -379,7 +382,9 @@ const SoloScreen = observer(function SoloScreen() {
             minHeight: 150,
             borderTop: '1px solid',
             borderColor: 'divider',
-            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
           }}>
           <Box
             sx={{
@@ -388,10 +393,8 @@ const SoloScreen = observer(function SoloScreen() {
               justifyContent: 'space-between',
               px: 2,
               py: 1,
-              position: 'sticky',
-              top: 0,
-              zIndex: 2,
               bgcolor: 'background.default',
+              flexShrink: 0,
             }}>
             <Stack direction="row" spacing={1.5} alignItems="center">
               <Typography
@@ -433,13 +436,15 @@ const SoloScreen = observer(function SoloScreen() {
               <DeleteOutlineIcon sx={{ fontSize: 16 }} />
             </IconButton>
           </Box>
-          <SoloHistory
-            onSelectSolve={setSelectedSolve}
-            onSelectAo={(solves, size) => {
-              setAoSolves(solves);
-              setAoSize(size);
-            }}
-          />
+          <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+            <SoloHistory
+              onSelectSolve={setSelectedSolve}
+              onSelectAo={(solves, size) => {
+                setAoSolves(solves);
+                setAoSize(size);
+              }}
+            />
+          </Box>
         </Box>
       )}
         </>
