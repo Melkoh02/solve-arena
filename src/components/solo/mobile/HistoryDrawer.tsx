@@ -51,6 +51,7 @@ const HistoryDrawer = observer(function HistoryDrawer({
 
   const [visible, setVisible] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Most-recent first
   const orderedSolves = [...soloStore.eventSolves].reverse();
@@ -63,7 +64,8 @@ const HistoryDrawer = observer(function HistoryDrawer({
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
-    if (!sentinel || !open) return;
+    const root = scrollContainerRef.current;
+    if (!sentinel || !root || !open) return;
     const io = new IntersectionObserver(
       entries => {
         if (entries[0]?.isIntersecting) {
@@ -72,7 +74,7 @@ const HistoryDrawer = observer(function HistoryDrawer({
           );
         }
       },
-      { threshold: 0.1 },
+      { root, rootMargin: '300px', threshold: 0 },
     );
     io.observe(sentinel);
     return () => io.disconnect();
@@ -216,8 +218,10 @@ const HistoryDrawer = observer(function HistoryDrawer({
 
         {/* Cards */}
         <Box
+          ref={scrollContainerRef}
           sx={{
             flex: 1,
+            minHeight: 0,
             overflowY: 'auto',
             px: 1.5,
             py: 1,

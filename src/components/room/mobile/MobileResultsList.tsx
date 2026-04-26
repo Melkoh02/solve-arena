@@ -32,7 +32,16 @@ const PENALTY_TOGGLE_SX = {
   },
 } as const;
 
-const MobileResultsList = observer(function MobileResultsList() {
+interface MobileResultsListProps {
+  /** Ref to the scroll container; used as the IntersectionObserver root so
+   * infinite scroll fires correctly even when the cards are inside a
+   * nested scrollable drawer. */
+  scrollRoot?: React.RefObject<HTMLDivElement | null>;
+}
+
+const MobileResultsList = observer(function MobileResultsList({
+  scrollRoot,
+}: MobileResultsListProps) {
   const { roomStore, settingsStore } = useStore();
   const precision = settingsStore.timerPrecision;
 
@@ -67,6 +76,7 @@ const MobileResultsList = observer(function MobileResultsList() {
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
+    const root = scrollRoot?.current ?? null;
     if (!sentinel) return;
     const io = new IntersectionObserver(
       entries => {
@@ -76,11 +86,11 @@ const MobileResultsList = observer(function MobileResultsList() {
           );
         }
       },
-      { threshold: 0.1 },
+      { root, rootMargin: '300px', threshold: 0 },
     );
     io.observe(sentinel);
     return () => io.disconnect();
-  }, [completedRounds.length]);
+  }, [completedRounds.length, scrollRoot]);
 
   // Live solve for the open detail modal (penalty/cross changes update immediately)
   const liveSolve = selectedSolve
