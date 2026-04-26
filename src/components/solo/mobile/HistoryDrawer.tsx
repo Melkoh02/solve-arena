@@ -143,16 +143,18 @@ const HistoryDrawer = observer(function HistoryDrawer({
             },
           },
         }}>
-        {/* Inner wrapper owns the height + flex layout. Setting these on
-            the Drawer's Paper slot via slotProps was unreliable — they
-            silently failed to apply, leaving the cards box content-sized
-            and showing a large empty area below the last card at scroll
-            bottom. */}
+        {/* Inner wrapper uses CSS grid with `minmax(0, 1fr)` for the cards
+            row. Grid is more rigid than flex about constraining row heights:
+            the cards row is exactly `wrapper height − drag − header`, no
+            min-content fallback. This prevents scrollHeight from growing
+            past the actual content (the symptom: the user could scroll
+            indefinitely into a vast empty area below the last card). */}
         <Box
           sx={{
             ...vhSafe(85),
-            display: 'flex',
-            flexDirection: 'column',
+            display: 'grid',
+            gridTemplateRows: 'auto auto minmax(0, 1fr)',
+            overflow: 'hidden',
           }}>
         {/* Drag handle */}
         <Box
@@ -229,12 +231,12 @@ const HistoryDrawer = observer(function HistoryDrawer({
         <Box
           ref={setScrollEl}
           sx={{
-            flex: 1,
             minHeight: 0,
             overflowY: 'auto',
+            overscrollBehavior: 'contain',
             px: 1.5,
             py: 1,
-            pb: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+            pb: 2,
           }}>
           <Stack spacing={1}>
             {visibleSolves.map(solve => {

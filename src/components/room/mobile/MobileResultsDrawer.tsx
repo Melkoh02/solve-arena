@@ -125,13 +125,14 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
             },
           },
         }}>
-        {/* Inner wrapper owns the height + flex layout. Setting these on
-            Drawer's Paper slot via slotProps was unreliable. */}
+        {/* Inner wrapper uses CSS grid with minmax(0, 1fr) for the cards
+            row — see HistoryDrawer.tsx for the rationale. */}
         <Box
           sx={{
             ...vhSafe(85),
-            display: 'flex',
-            flexDirection: 'column',
+            display: 'grid',
+            gridTemplateRows: 'auto auto minmax(0, 1fr)',
+            overflow: 'hidden',
           }}>
         {/* Drag handle */}
         <Box
@@ -198,10 +199,10 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
         <Box
           ref={setScrollEl}
           sx={{
-            flex: 1,
             minHeight: 0,
             overflow: 'auto',
-            pb: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
+            overscrollBehavior: 'contain',
+            pb: 2,
           }}>
           <MobileResultsList scrollEl={scrollEl} />
         </Box>
