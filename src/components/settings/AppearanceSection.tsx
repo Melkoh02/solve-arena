@@ -24,7 +24,9 @@ const AppearanceSection = observer(function AppearanceSection() {
   const { themeStore, languageStore } = useStore();
   const { t, i18n } = useTranslation();
 
-  const currentLang = SUPPORTED_LANGUAGES.find(l => l.id === i18n.language) ?? SUPPORTED_LANGUAGES[0];
+  const currentLang =
+    SUPPORTED_LANGUAGES.find(l => l.id === i18n.language) ??
+    SUPPORTED_LANGUAGES[0];
   const tokens = themeStore.tokensFor(themeStore.scheme);
 
   return (
@@ -37,23 +39,35 @@ const AppearanceSection = observer(function AppearanceSection() {
         onChange={(_, val) => val && themeStore.setScheme(val)}
         size="small"
         sx={{ mb: 2 }}>
-        <ToggleButton value="light" sx={{ textTransform: 'none', gap: 0.5, px: 2 }}>
+        <ToggleButton
+          value="light"
+          sx={{ textTransform: 'none', gap: 0.5, px: 2 }}>
           <LightModeIcon sx={{ fontSize: 16 }} />
           {t('settings.themeLight')}
         </ToggleButton>
-        <ToggleButton value="dark" sx={{ textTransform: 'none', gap: 0.5, px: 2 }}>
+        <ToggleButton
+          value="dark"
+          sx={{ textTransform: 'none', gap: 0.5, px: 2 }}>
           <DarkModeIcon sx={{ fontSize: 16 }} />
           {t('settings.themeDark')}
         </ToggleButton>
-        <ToggleButton value="glass" sx={{ textTransform: 'none', gap: 0.5, px: 2 }}>
+        <ToggleButton
+          value="glass"
+          sx={{ textTransform: 'none', gap: 0.5, px: 2 }}>
           <AutoAwesomeIcon sx={{ fontSize: 16 }} />
           {t('settings.themeGlass')}
         </ToggleButton>
       </ToggleButtonGroup>
 
       {/* Accent colors for the active theme */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
-        <Typography sx={{ ...LABEL_SX, mb: 0 }}>{t('settings.colors')}</Typography>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 1 }}>
+        <Typography sx={{ ...LABEL_SX, mb: 0 }}>
+          {t('settings.colors')}
+        </Typography>
         <SectionResetButton
           visible={themeStore.isPaletteModified(themeStore.scheme)}
           onClick={() => themeStore.resetPalette(themeStore.scheme)}
@@ -114,9 +128,12 @@ function ColorSwatch({ label, value, onChange }: ColorSwatchProps) {
   const pendingRef = useRef<string | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  useEffect(() => () => {
-    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
-  }, []);
+  useEffect(
+    () => () => {
+      if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    },
+    [],
+  );
 
   const handleChange = (next: string) => {
     pendingRef.current = next;
@@ -198,7 +215,9 @@ function normalizeForInput(value: string): string {
   if (/^#[0-9a-fA-F]{6}$/.test(value)) return value;
   if (/^#[0-9a-fA-F]{8}$/.test(value)) return value.slice(0, 7);
   if (/^#[0-9a-fA-F]{3}$/.test(value)) {
-    const r = value[1], g = value[2], b = value[3];
+    const r = value[1],
+      g = value[2],
+      b = value[3];
     return `#${r}${r}${g}${g}${b}${b}`;
   }
   return '#000000';

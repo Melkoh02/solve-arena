@@ -127,13 +127,7 @@ export default function ScrambleActionSheet({
         {view === 'menu' && (
           <Stack spacing={1} sx={{ pb: 2 }}>
             <ActionRow
-              icon={
-                showPreview ? (
-                  <VisibilityIcon />
-                ) : (
-                  <VisibilityOffIcon />
-                )
-              }
+              icon={showPreview ? <VisibilityIcon /> : <VisibilityOffIcon />}
               label={t('settings.scrambleAction3DPreview')}
               onClick={() => {
                 onTogglePreview();
@@ -158,8 +152,7 @@ export default function ScrambleActionSheet({
 
         {view === 'edit' && (
           <Box sx={{ pb: 2 }}>
-            <Typography
-              sx={{ fontSize: '0.85rem', fontWeight: 700, mb: 1 }}>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, mb: 1 }}>
               {t('timer.enterCustomScramble')}
             </Typography>
             <TextField
@@ -209,8 +202,7 @@ export default function ScrambleActionSheet({
 
         {view === 'manual' && (
           <Box sx={{ pb: 2 }}>
-            <Typography
-              sx={{ fontSize: '0.85rem', fontWeight: 700, mb: 1 }}>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, mb: 1 }}>
               {t('timer.enterManualTime')}
             </Typography>
             <TextField
@@ -322,8 +314,7 @@ function ActionRow({
         }}>
         {icon}
       </Box>
-      <Typography
-        sx={{ fontSize: '0.95rem', fontWeight: 600, flex: 1 }}>
+      <Typography sx={{ fontSize: '0.95rem', fontWeight: 600, flex: 1 }}>
         {label}
       </Typography>
     </ButtonBase>

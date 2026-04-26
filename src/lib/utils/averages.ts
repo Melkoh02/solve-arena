@@ -42,7 +42,10 @@ export function calculateAverage(
   return trimmed.reduce((a, b) => a + b, 0) / trimmed.length;
 }
 
-export function formatAverage(avg: number | null, precision: TimerPrecision = 2): string {
+export function formatAverage(
+  avg: number | null,
+  precision: TimerPrecision = 2,
+): string {
   if (avg === null) return '-';
   if (!isFinite(avg)) return 'DNF';
   return formatTime(avg, precision);

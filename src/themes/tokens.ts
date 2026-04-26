@@ -26,7 +26,9 @@ export const TOKEN_KEYS: ThemeTokenKey[] = [
 ];
 
 /** Schemes with a wallpaper gradient — these render `backgroundAccent`. */
-export const GRADIENT_SCHEMES: ReadonlySet<Scheme> = new Set(['glass'] as Scheme[]);
+export const GRADIENT_SCHEMES: ReadonlySet<Scheme> = new Set([
+  'glass',
+] as Scheme[]);
 
 /** Token keys to expose in the settings UI for a given scheme. */
 export function tokenKeysForScheme(scheme: Scheme): ThemeTokenKey[] {
@@ -67,8 +69,9 @@ export const GLASS_TOKENS: Readonly<ThemeTokens> = Object.freeze({
   error: '#f44336',
 });
 
-export const DEFAULT_TOKENS: Readonly<Record<Scheme, ThemeTokens>> = Object.freeze({
-  light: LIGHT_TOKENS,
-  dark: DARK_TOKENS,
-  glass: GLASS_TOKENS,
-});
+export const DEFAULT_TOKENS: Readonly<Record<Scheme, ThemeTokens>> =
+  Object.freeze({
+    light: LIGHT_TOKENS,
+    dark: DARK_TOKENS,
+    glass: GLASS_TOKENS,
+  });

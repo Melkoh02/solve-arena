@@ -55,7 +55,7 @@ function parseTimeInput(input: string): number | null {
     const cs = num % 100;
     const secs = Math.floor(num / 100) % 100;
     const mins = Math.floor(num / 10000);
-    ms = (mins * 60000) + (secs * 1000) + (cs * 10);
+    ms = mins * 60000 + secs * 1000 + cs * 10;
   }
 
   if (ms <= 0) return null;
@@ -126,7 +126,14 @@ const ScrambleDisplay = observer(function ScrambleDisplay({
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 90, mb: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: 90,
+          mb: 2,
+        }}>
         <CircularProgress size={20} sx={{ color: 'primary.main' }} />
       </Box>
     );
@@ -208,7 +215,9 @@ const ScrambleDisplay = observer(function ScrambleDisplay({
           px: { xs: 2, md: 3 },
           py: 1.5,
           borderRadius: 2,
-          bgcolor: isCustom ? 'rgba(255, 105, 180, 0.08)' : 'rgba(255, 105, 180, 0.04)',
+          bgcolor: isCustom
+            ? 'rgba(255, 105, 180, 0.08)'
+            : 'rgba(255, 105, 180, 0.04)',
           border: '1px solid',
           borderColor: isCustom ? 'primary.main' : 'divider',
         }}>
@@ -234,7 +243,11 @@ const ScrambleDisplay = observer(function ScrambleDisplay({
           <Button
             size="small"
             onClick={onClearCustom}
-            sx={{ textTransform: 'none', fontSize: '0.65rem', color: 'text.secondary' }}>
+            sx={{
+              textTransform: 'none',
+              fontSize: '0.65rem',
+              color: 'text.secondary',
+            }}>
             {t('timer.clearCustom')}
           </Button>
         </Box>

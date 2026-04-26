@@ -61,7 +61,10 @@ function formatKey(key: string): string {
   return key;
 }
 
-export function shortcutsEqual(a: ShortcutBinding, b: ShortcutBinding): boolean {
+export function shortcutsEqual(
+  a: ShortcutBinding,
+  b: ShortcutBinding,
+): boolean {
   return (
     normalize(a.key) === normalize(b.key) &&
     !!a.ctrl === !!b.ctrl &&

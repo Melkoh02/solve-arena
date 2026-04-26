@@ -17,10 +17,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { getDisplayTime } from '../../lib/utils/formatTime';
-import {
-  calculateAverage,
-  formatAverage,
-} from '../../lib/utils/averages';
+import { calculateAverage, formatAverage } from '../../lib/utils/averages';
 import type { Penalty } from '../../lib/types/timer';
 import type { RoomSolve } from '../../lib/types/room';
 

@@ -1,6 +1,12 @@
 import { makeAutoObservable, runInAction } from 'mobx';
 import { io, Socket } from 'socket.io-client';
-import type { ClientToServerEvents, Player, RoomSolve, RoomState, ServerToClientEvents, } from '../types/room';
+import type {
+  ClientToServerEvents,
+  Player,
+  RoomSolve,
+  RoomState,
+  ServerToClientEvents,
+} from '../types/room';
 import type { Penalty } from '../types/timer';
 import { PLAYER_NAME_KEY } from '../constants';
 import { getEffectiveTime } from '../utils/averages';
@@ -60,7 +66,14 @@ export class RoomStore {
     });
 
     this.socket.on('connect', () => {
-      console.log('[socket] connected, id:', this.socket.id, 'pendingRejoin:', this.pendingRejoinCode, 'oldId:', this.lastKnownPlayerId);
+      console.log(
+        '[socket] connected, id:',
+        this.socket.id,
+        'pendingRejoin:',
+        this.pendingRejoinCode,
+        'oldId:',
+        this.lastKnownPlayerId,
+      );
       runInAction(() => {
         this.isConnected = true;
         // Auto-rejoin if we were in a room
@@ -69,31 +82,42 @@ export class RoomStore {
           const code = this.pendingRejoinCode;
           const oldId = this.lastKnownPlayerId;
           this.pendingRejoinCode = null;
-          this.socket.emit('rejoin-room', {
-            roomCode: code,
-            playerName: this.playerName,
-            oldPlayerId: oldId,
-          }, (response) => {
-            runInAction(() => {
-              this.isReconnecting = false;
-              if ('error' in response) {
-                // Room gone, clear state
-                this.roomCode = null;
-                this.players = [];
-                this.solves = [];
-                this.currentRound = 0;
-                this.currentScramble = '';
-              }
-            });
-          });
+          this.socket.emit(
+            'rejoin-room',
+            {
+              roomCode: code,
+              playerName: this.playerName,
+              oldPlayerId: oldId,
+            },
+            response => {
+              runInAction(() => {
+                this.isReconnecting = false;
+                if ('error' in response) {
+                  // Room gone, clear state
+                  this.roomCode = null;
+                  this.players = [];
+                  this.solves = [];
+                  this.currentRound = 0;
+                  this.currentScramble = '';
+                }
+              });
+            },
+          );
         }
         // Track current socket id for future reconnects
         this.lastKnownPlayerId = this.socket.id ?? null;
       });
     });
 
-    this.socket.on('disconnect', (reason) => {
-      console.log('[socket] disconnected, reason:', reason, 'roomCode:', this.roomCode, 'lastKnownId:', this.lastKnownPlayerId);
+    this.socket.on('disconnect', reason => {
+      console.log(
+        '[socket] disconnected, reason:',
+        reason,
+        'roomCode:',
+        this.roomCode,
+        'lastKnownId:',
+        this.lastKnownPlayerId,
+      );
       runInAction(() => {
         this.isConnected = false;
         // If we were in a room, preserve state for rejoin
@@ -137,7 +161,9 @@ export class RoomStore {
           this.solvingPlayerIds.clear();
         } else {
           const currentRoundSolveIds = new Set(
-            state.solves.filter(s => s.round === state.currentRound).map(s => s.playerId),
+            state.solves
+              .filter(s => s.round === state.currentRound)
+              .map(s => s.playerId),
           );
           for (const id of this.solvingPlayerIds) {
             if (currentRoundSolveIds.has(id)) {
@@ -198,7 +224,9 @@ export class RoomStore {
   }
 
   get isHost(): boolean {
-    return this.lastKnownPlayerId != null && this.lastKnownPlayerId === this.hostId;
+    return (
+      this.lastKnownPlayerId != null && this.lastKnownPlayerId === this.hostId
+    );
   }
 
   get playerId(): string | undefined {
@@ -222,16 +250,23 @@ export class RoomStore {
   }
 
   get remainingPlayersCountCurrentRound(): number {
-    return Math.max(0, this.players.length - this.submittedPlayersCountCurrentRound);
+    return Math.max(
+      0,
+      this.players.length - this.submittedPlayersCountCurrentRound,
+    );
   }
 
   get areAllPlayersSubmittedCurrentRound(): boolean {
-    return this.players.length > 0 && this.remainingPlayersCountCurrentRound === 0;
+    return (
+      this.players.length > 0 && this.remainingPlayersCountCurrentRound === 0
+    );
   }
 
   get hasSubmittedCurrentRound(): boolean {
     if (!this.lastKnownPlayerId) return false;
-    return this.currentRoundSolves.some(s => s.playerId === this.lastKnownPlayerId);
+    return this.currentRoundSolves.some(
+      s => s.playerId === this.lastKnownPlayerId,
+    );
   }
 
   get hasSubmittedOrPendingCurrentRound(): boolean {
@@ -251,7 +286,9 @@ export class RoomStore {
 
   get myCurrentRoundSolve(): RoomSolve | undefined {
     if (!this.lastKnownPlayerId) return undefined;
-    return this.currentRoundSolves.find(s => s.playerId === this.lastKnownPlayerId);
+    return this.currentRoundSolves.find(
+      s => s.playerId === this.lastKnownPlayerId,
+    );
   }
 
   setPlayerName(name: string) {
@@ -373,12 +410,14 @@ export class RoomStore {
   }
 
   emitTimerStart() {
-    if (this.lastKnownPlayerId) this.solvingPlayerIds.add(this.lastKnownPlayerId);
+    if (this.lastKnownPlayerId)
+      this.solvingPlayerIds.add(this.lastKnownPlayerId);
     this.socket.emit('timer-start');
   }
 
   submitTime(time: number, dnf = false) {
-    if (this.lastKnownPlayerId) this.solvingPlayerIds.delete(this.lastKnownPlayerId);
+    if (this.lastKnownPlayerId)
+      this.solvingPlayerIds.delete(this.lastKnownPlayerId);
     this.pendingSubmissionRound = this.currentRound;
     this.socket.emit('submit-time', { time, dnf });
   }
@@ -387,7 +426,10 @@ export class RoomStore {
     this.socket.emit('update-penalty', { solveId, penalty });
   }
 
-  updateCrossColor(solveId: string, crossColor: RoomSolve['crossColor'] & string) {
+  updateCrossColor(
+    solveId: string,
+    crossColor: RoomSolve['crossColor'] & string,
+  ) {
     this.socket.emit('update-cross-color', { solveId, crossColor });
   }
 
@@ -450,9 +492,10 @@ export class RoomStore {
 
       const minutes = Math.floor(effTime / 60000);
       const seconds = (effTime % 60000) / 1000;
-      const timeStr = minutes > 0
-        ? `${minutes}:${seconds.toFixed(2).padStart(5, '0')}`
-        : seconds.toFixed(2);
+      const timeStr =
+        minutes > 0
+          ? `${minutes}:${seconds.toFixed(2).padStart(5, '0')}`
+          : seconds.toFixed(2);
 
       this.pbNotificationQueue.push({
         playerName: solve.playerName,
@@ -460,7 +503,9 @@ export class RoomStore {
         time: timeStr,
         isSelf: solve.playerId === this.lastKnownPlayerId,
       });
-    } else if (effTime < (this.previousBestTimes.get(solve.playerId) ?? Infinity)) {
+    } else if (
+      effTime < (this.previousBestTimes.get(solve.playerId) ?? Infinity)
+    ) {
       // Not a PB but update tracking if needed
       this.previousBestTimes.set(solve.playerId, effTime);
     }

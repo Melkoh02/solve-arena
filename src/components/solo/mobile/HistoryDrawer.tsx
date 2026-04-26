@@ -101,7 +101,11 @@ const HistoryDrawer = observer(function HistoryDrawer({
           flexShrink: 0,
           textAlign: 'left',
         }}>
-        <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+        <Stack
+          direction="row"
+          spacing={1.25}
+          alignItems="center"
+          sx={{ minWidth: 0 }}>
           <Typography
             sx={{
               textTransform: 'uppercase',
@@ -114,13 +118,21 @@ const HistoryDrawer = observer(function HistoryDrawer({
           </Typography>
           {best !== null && (
             <Typography
-              sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>
+              sx={{
+                fontFamily: 'monospace',
+                fontSize: '0.7rem',
+                color: 'text.secondary',
+              }}>
               {t('room.best')}: {formatTime(best, precision)}
             </Typography>
           )}
           {avg !== null && (
             <Typography
-              sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary' }}>
+              sx={{
+                fontFamily: 'monospace',
+                fontSize: '0.7rem',
+                color: 'text.secondary',
+              }}>
               Avg: {formatTime(avg, precision)}
             </Typography>
           )}
@@ -156,108 +168,122 @@ const HistoryDrawer = observer(function HistoryDrawer({
             gridTemplateRows: 'auto auto minmax(0, 1fr)',
             overflow: 'hidden',
           }}>
-        {/* Drag handle */}
-        <Box
-          sx={{
-            width: 40,
-            height: 4,
-            bgcolor: 'divider',
-            borderRadius: 2,
-            mx: 'auto',
-            mt: 1,
-            mb: 1,
-            flexShrink: 0,
-          }}
-        />
+          {/* Drag handle */}
+          <Box
+            sx={{
+              width: 40,
+              height: 4,
+              bgcolor: 'divider',
+              borderRadius: 2,
+              mx: 'auto',
+              mt: 1,
+              mb: 1,
+              flexShrink: 0,
+            }}
+          />
 
-        {/* Header */}
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            px: 2,
-            py: 1,
-            borderBottom: '1px solid',
-            borderColor: 'divider',
-            flexShrink: 0,
-          }}>
-          <Stack direction="row" spacing={0.5} alignItems="center" sx={{ minWidth: 0 }}>
-            {/* Destructive action lives on the LEFT, away from the close
+          {/* Header */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 1,
+              borderBottom: '1px solid',
+              borderColor: 'divider',
+              flexShrink: 0,
+            }}>
+            <Stack
+              direction="row"
+              spacing={0.5}
+              alignItems="center"
+              sx={{ minWidth: 0 }}>
+              {/* Destructive action lives on the LEFT, away from the close
                 affordance so users don't tap it by mistake. The clear-all
                 still goes through a confirmation dialog. */}
-            <IconButton
-              size="medium"
-              onClick={onRequestClearAll}
-              sx={{ color: 'text.secondary', p: 0.875, mr: 0.5 }}
-              aria-label={t('solo.clearAll')}>
-              <DeleteOutlineIcon sx={{ fontSize: 22 }} />
-            </IconButton>
-            <Typography
-              sx={{
-                textTransform: 'uppercase',
-                letterSpacing: '0.12em',
-                fontSize: '0.7rem',
-                fontWeight: 700,
-                color: 'text.secondary',
-              }}>
-              {t('room.history')} ({count})
-            </Typography>
-            {best !== null && (
+              <IconButton
+                size="medium"
+                onClick={onRequestClearAll}
+                sx={{ color: 'text.secondary', p: 0.875, mr: 0.5 }}
+                aria-label={t('solo.clearAll')}>
+                <DeleteOutlineIcon sx={{ fontSize: 22 }} />
+              </IconButton>
               <Typography
-                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary', pl: 0.75 }}>
-                {t('room.best')}: {formatTime(best, precision)}
+                sx={{
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.12em',
+                  fontSize: '0.7rem',
+                  fontWeight: 700,
+                  color: 'text.secondary',
+                }}>
+                {t('room.history')} ({count})
               </Typography>
-            )}
-            {avg !== null && (
-              <Typography
-                sx={{ fontFamily: 'monospace', fontSize: '0.7rem', color: 'text.secondary', pl: 0.75 }}>
-                Avg: {formatTime(avg, precision)}
-              </Typography>
-            )}
-          </Stack>
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <IconButton
-              size="medium"
-              onClick={onClose}
-              sx={{ color: 'text.secondary', p: 0.875 }}
-              aria-label={t('common.cancel')}>
-              <CloseIcon sx={{ fontSize: 22 }} />
-            </IconButton>
-          </Stack>
-        </Box>
+              {best !== null && (
+                <Typography
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontSize: '0.7rem',
+                    color: 'text.secondary',
+                    pl: 0.75,
+                  }}>
+                  {t('room.best')}: {formatTime(best, precision)}
+                </Typography>
+              )}
+              {avg !== null && (
+                <Typography
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontSize: '0.7rem',
+                    color: 'text.secondary',
+                    pl: 0.75,
+                  }}>
+                  Avg: {formatTime(avg, precision)}
+                </Typography>
+              )}
+            </Stack>
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <IconButton
+                size="medium"
+                onClick={onClose}
+                sx={{ color: 'text.secondary', p: 0.875 }}
+                aria-label={t('common.cancel')}>
+                <CloseIcon sx={{ fontSize: 22 }} />
+              </IconButton>
+            </Stack>
+          </Box>
 
-        {/* Cards */}
-        <Box
-          ref={setScrollEl}
-          sx={{
-            minHeight: 0,
-            overflowY: 'auto',
-            overscrollBehavior: 'contain',
-            px: 1.5,
-            py: 1,
-            pb: 2,
-          }}>
-          <Stack spacing={1}>
-            {visibleSolves.map(solve => {
-              // index in event-solves array (1-based original order)
-              const originalIndex =
-                soloStore.eventSolves.findIndex(s => s.id === solve.id) + 1;
-              return (
-                <HistoryCard
-                  key={solve.id}
-                  solve={solve}
-                  index={originalIndex}
-                  onSelect={onSelectSolve}
-                  onRequestDelete={setDeleteTarget}
-                />
-              );
-            })}
-          </Stack>
-          {/* Non-zero height sentinel — sub-pixel sentinels can confuse
+          {/* Cards */}
+          <Box
+            ref={setScrollEl}
+            sx={{
+              minHeight: 0,
+              overflowY: 'auto',
+              overscrollBehavior: 'contain',
+              px: 1.5,
+              py: 1,
+              pb: 2,
+            }}>
+            <Stack spacing={1}>
+              {visibleSolves.map(solve => {
+                // index in event-solves array (1-based original order)
+                const originalIndex =
+                  soloStore.eventSolves.findIndex(s => s.id === solve.id) + 1;
+                return (
+                  <HistoryCard
+                    key={solve.id}
+                    solve={solve}
+                    index={originalIndex}
+                    onSelect={onSelectSolve}
+                    onRequestDelete={setDeleteTarget}
+                  />
+                );
+              })}
+            </Stack>
+            {/* Non-zero height sentinel — sub-pixel sentinels can confuse
               IntersectionObserver with rootMargin in some browsers. */}
-          <Box ref={setSentinelEl} sx={{ height: 8 }} />
-        </Box>
+            <Box ref={setSentinelEl} sx={{ height: 8 }} />
+          </Box>
         </Box>
       </Drawer>
 

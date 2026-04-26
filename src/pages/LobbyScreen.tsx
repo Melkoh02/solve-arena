@@ -186,8 +186,12 @@ const LobbyScreen = observer(function LobbyScreen() {
             aria-label={t('settings.toggleTheme')}
             title={t('settings.toggleTheme')}>
             {themeStore.scheme === 'light' && <DarkModeIcon fontSize="small" />}
-            {themeStore.scheme === 'dark' && <AutoAwesomeIcon fontSize="small" />}
-            {themeStore.scheme === 'glass' && <LightModeIcon fontSize="small" />}
+            {themeStore.scheme === 'dark' && (
+              <AutoAwesomeIcon fontSize="small" />
+            )}
+            {themeStore.scheme === 'glass' && (
+              <LightModeIcon fontSize="small" />
+            )}
           </IconButton>
           <LanguageSelect />
         </Box>

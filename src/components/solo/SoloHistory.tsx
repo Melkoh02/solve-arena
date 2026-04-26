@@ -193,7 +193,9 @@ const SoloHistory = observer(function SoloHistory({
               {t('room.dateTime').replace('& ', '')}
               {renderSortIcon('date')}
             </TableCell>
-            <TableCell sx={{ ...HEADER_SX, width: 32, pr: { xs: 1.5, sm: 2, md: 3 } }} />
+            <TableCell
+              sx={{ ...HEADER_SX, width: 32, pr: { xs: 1.5, sm: 2, md: 3 } }}
+            />
           </TableRow>
         </TableHead>
         <TableBody>
@@ -316,7 +318,12 @@ const SoloHistory = observer(function SoloHistory({
                 }}>
                 {formatShortDate(row.solve.date)}
               </TableCell>
-              <TableCell sx={{ p: 0, textAlign: 'center', pr: { xs: 1.5, sm: 2, md: 3 } }}>
+              <TableCell
+                sx={{
+                  p: 0,
+                  textAlign: 'center',
+                  pr: { xs: 1.5, sm: 2, md: 3 },
+                }}>
                 <IconButton
                   size="small"
                   onClick={() => setDeleteTarget(row.solve)}

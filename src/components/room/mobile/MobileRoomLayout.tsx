@@ -320,7 +320,9 @@ function SubmittedTimeDisplay({ timeStr }: { timeStr: string }) {
   return (
     <Typography sx={{ ...baseSx, color: 'text.primary' }}>
       {intPart}
-      <Typography component="span" sx={{ ...baseSx, color: 'primary.main', fontSize: 'inherit' }}>
+      <Typography
+        component="span"
+        sx={{ ...baseSx, color: 'primary.main', fontSize: 'inherit' }}>
         {decPart}
       </Typography>
     </Typography>

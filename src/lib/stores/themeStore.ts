@@ -145,8 +145,9 @@ export class ThemeStore {
   private savePalette() {
     try {
       // Only persist non-empty overrides to keep storage tidy
-      const empty =
-        Object.values(this.paletteOverrides).every(o => Object.keys(o).length === 0);
+      const empty = Object.values(this.paletteOverrides).every(
+        o => Object.keys(o).length === 0,
+      );
       if (empty) {
         localStorage.removeItem(PALETTE_KEY);
         return;
@@ -157,4 +158,3 @@ export class ThemeStore {
     }
   }
 }
-

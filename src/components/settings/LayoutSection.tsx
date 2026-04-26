@@ -13,7 +13,10 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import type { LayoutMode } from '../../lib/constants/settingsDefaults';
 import SectionResetButton from './SectionResetButton';
-import { SETTINGS_LABEL_SX as LABEL_SX, SETTINGS_SECTION_HEADER_SX } from './styles';
+import {
+  SETTINGS_LABEL_SX as LABEL_SX,
+  SETTINGS_SECTION_HEADER_SX,
+} from './styles';
 
 const LayoutSection = observer(function LayoutSection() {
   const { settingsStore } = useStore();

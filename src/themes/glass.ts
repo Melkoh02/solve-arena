@@ -146,7 +146,7 @@ export function createGlassTheme(tokens: ThemeTokens = GLASS_TOKENS) {
             textTransform: 'none' as const,
           },
           containedPrimary: {
-            background: alpha(PRIMARY, 0.30),
+            background: alpha(PRIMARY, 0.3),
             color: '#fff',
             fontWeight: 700,
             letterSpacing: '0.04em',
@@ -155,7 +155,7 @@ export function createGlassTheme(tokens: ThemeTokens = GLASS_TOKENS) {
               background: alpha(PRIMARY, 0.45),
             },
             '&.Mui-disabled': {
-              background: alpha(PRIMARY, 0.10),
+              background: alpha(PRIMARY, 0.1),
               color: alpha(PRIMARY, 0.35),
             },
           },
@@ -164,14 +164,14 @@ export function createGlassTheme(tokens: ThemeTokens = GLASS_TOKENS) {
             color: PRIMARY,
             '&:hover': {
               borderColor: PRIMARY,
-              backgroundColor: alpha(PRIMARY, 0.10),
+              backgroundColor: alpha(PRIMARY, 0.1),
             },
           },
           outlinedError: {
-            borderColor: alpha(tokens.error, 0.30),
+            borderColor: alpha(tokens.error, 0.3),
             '&:hover': {
               borderColor: tokens.error,
-              backgroundColor: alpha(tokens.error, 0.10),
+              backgroundColor: alpha(tokens.error, 0.1),
             },
           },
         },

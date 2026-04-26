@@ -12,10 +12,20 @@ import CloseIcon from '@mui/icons-material/Close';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { observer } from 'mobx-react-lite';
-import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
-import { calculateAverage, formatAverage, getEffectiveTime } from '../../lib/utils/averages';
+import {
+  getDisplayTime,
+  getDisplayTimeForExport,
+} from '../../lib/utils/formatTime';
+import {
+  calculateAverage,
+  formatAverage,
+  getEffectiveTime,
+} from '../../lib/utils/averages';
 import { useStore } from '../../lib/hooks/useStore';
-import { CROSS_COLOR_HEX, CROSS_COLOR_LABEL } from '../../lib/constants/crossColors';
+import {
+  CROSS_COLOR_HEX,
+  CROSS_COLOR_LABEL,
+} from '../../lib/constants/crossColors';
 import type { SoloSolve } from '../../lib/stores/soloStore';
 
 export interface AverageDetailModalProps {
@@ -24,7 +34,10 @@ export interface AverageDetailModalProps {
   onClose: () => void;
 }
 
-function getTrimmedIndices(solves: SoloSolve[], size: number): { bestIdx: number; worstIdx: number } {
+function getTrimmedIndices(
+  solves: SoloSolve[],
+  size: number,
+): { bestIdx: number; worstIdx: number } {
   if (solves.length < size) return { bestIdx: -1, worstIdx: -1 };
   const window = solves.slice(0, size);
   const times = window.map(getEffectiveTime);
@@ -49,7 +62,11 @@ function formatDateFull(ts: number): string {
   return `${y}-${mo}-${da} ${h}:${mi}:${s}`;
 }
 
-const AverageDetailModal = observer(function AverageDetailModal({ solves, size, onClose }: AverageDetailModalProps) {
+const AverageDetailModal = observer(function AverageDetailModal({
+  solves,
+  size,
+  onClose,
+}: AverageDetailModalProps) {
   const { settingsStore } = useStore();
   const precision = settingsStore.timerPrecision;
 
@@ -73,7 +90,8 @@ const AverageDetailModal = observer(function AverageDetailModal({ solves, size, 
 
     const scrambleLines = window.map((s, i) => {
       const display = getDisplayTimeForExport(s, precision, exportFmt);
-      const timeStr = i === bestIdx || i === worstIdx ? `(${display})` : display;
+      const timeStr =
+        i === bestIdx || i === worstIdx ? `(${display})` : display;
       return `${i + 1}. ${timeStr}   ${s.scramble}`;
     });
 
@@ -187,7 +205,9 @@ const AverageDetailModal = observer(function AverageDetailModal({ solves, size, 
                   px: 1.25,
                   py: 0.5,
                   borderRadius: 1,
-                  bgcolor: trimmed ? 'rgba(255, 105, 180, 0.04)' : 'transparent',
+                  bgcolor: trimmed
+                    ? 'rgba(255, 105, 180, 0.04)'
+                    : 'transparent',
                 }}>
                 <Typography
                   sx={{

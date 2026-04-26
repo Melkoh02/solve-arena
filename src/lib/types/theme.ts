@@ -1,4 +1,4 @@
-import type {SharedColors} from '../../themes/sharedColors.ts';
+import type { SharedColors } from '../../themes/sharedColors.ts';
 
 export type Scheme = 'light' | 'dark' | 'glass';
 
