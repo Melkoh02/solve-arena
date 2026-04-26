@@ -21,6 +21,7 @@ export interface MobileSoloLayoutProps {
   onTouchEnd: (e: React.TouchEvent) => void;
   onOpenSettings: () => void;
   onOpenCompete: (anchor: HTMLElement) => void;
+  competeButtonRef?: React.Ref<HTMLButtonElement>;
   onSelectSolve: (solve: SoloSolve) => void;
   onRequestClearAll: () => void;
   previousSolves: SoloSolve[];
@@ -32,6 +33,7 @@ const MobileSoloLayout = observer(function MobileSoloLayout({
   onTouchEnd,
   onOpenSettings,
   onOpenCompete,
+  competeButtonRef,
   onSelectSolve,
   onRequestClearAll,
   previousSolves,
@@ -76,13 +78,20 @@ const MobileSoloLayout = observer(function MobileSoloLayout({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+      }}>
       {!isTimerRunning && (
         <MobileTopBar
           eventId={soloStore.eventId}
           onChangePuzzle={id => soloStore.changeEvent(id)}
           onOpenSettings={onOpenSettings}
           onOpenCompete={onOpenCompete}
+          competeButtonRef={competeButtonRef}
         />
       )}
 

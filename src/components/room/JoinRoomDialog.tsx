@@ -20,11 +20,15 @@ import ServerStatusDot from './ServerStatusDot';
 interface JoinRoomPopoverProps {
   anchorEl: HTMLElement | null;
   onClose: () => void;
+  initialRoomCode?: string;
+  autoFocusName?: boolean;
 }
 
 const JoinRoomPopover = observer(function JoinRoomPopover({
   anchorEl,
   onClose,
+  initialRoomCode,
+  autoFocusName,
 }: JoinRoomPopoverProps) {
   const { roomStore, serverStore } = useStore();
   const { t } = useTranslation();
@@ -47,6 +51,15 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
     }, 1000);
     return () => clearInterval(timer);
   }, [isWaking]);
+
+  // Prefill room code on transition from empty/undefined → value, but don't
+  // clobber whatever the user has already typed.
+  useEffect(() => {
+    if (initialRoomCode && !roomCode) {
+      setRoomCode(initialRoomCode.toUpperCase());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialRoomCode]);
 
   const canSubmit = roomStore.playerName.trim().length > 0;
   const isBusy = roomStore.isJoining;
@@ -94,7 +107,13 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
         },
       }}>
       <Box sx={{ p: 2.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            mb: 1.5,
+          }}>
           <Typography sx={{ fontWeight: 700, fontSize: '0.9rem' }}>
             {t('lobby.compete')}
           </Typography>
@@ -111,7 +130,8 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
               borderColor: 'rgba(255, 165, 0, 0.3)',
               bgcolor: 'rgba(255, 165, 0, 0.06)',
             }}>
-            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.75 }}>
+            <Typography
+              sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 0.75 }}>
               {t('server.wakingMessage', { seconds: elapsed })}
             </Typography>
             <LinearProgress
@@ -136,8 +156,10 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
           value={roomStore.playerName}
           onChange={e => roomStore.setPlayerName(e.target.value)}
           onKeyDown={e => {
-            if (e.key === 'Enter') handleCreate();
+            if (e.key === 'Enter')
+              (initialRoomCode ? handleJoin : handleCreate)();
           }}
+          autoFocus={autoFocusName}
           fullWidth
           size="small"
           sx={{ mb: 2 }}

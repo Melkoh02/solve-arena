@@ -10,6 +10,7 @@ export interface MobileTopBarProps {
   onChangePuzzle: (id: string) => void;
   onOpenSettings: () => void;
   onOpenCompete: (anchor: HTMLElement) => void;
+  competeButtonRef?: React.Ref<HTMLButtonElement>;
 }
 
 export default function MobileTopBar({
@@ -17,6 +18,7 @@ export default function MobileTopBar({
   onChangePuzzle,
   onOpenSettings,
   onOpenCompete,
+  competeButtonRef,
 }: MobileTopBarProps) {
   const { t } = useTranslation();
   return (
@@ -46,6 +48,7 @@ export default function MobileTopBar({
           <SettingsIcon sx={{ fontSize: 22 }} />
         </IconButton>
         <IconButton
+          ref={competeButtonRef}
           size="medium"
           onClick={e => onOpenCompete(e.currentTarget)}
           aria-label={t('lobby.compete')}
