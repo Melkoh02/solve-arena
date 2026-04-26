@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-04-25
+
+### Fixed
+
+- **Mobile history drawer's infinite scroll stalled after the first batch and left empty space below the last card.** Two compounding bugs:
+  - The cards `Box` in the solo drawer was missing `minHeight: 0`. Without it, flex children default to `min-height: auto` (= content size), so the inner scroll container couldn't shrink to its flex parent's bounds — causing the whole drawer to scroll instead of the cards box, and leaving empty space below the loaded cards when content was short. (Multiplayer's drawer already had this set.)
+  - The `IntersectionObserver` was using the implicit viewport root with no `rootMargin`. Once the first batch had rendered, the sentinel-vs-viewport intersection math went unreliable inside the nested scroll container, so subsequent pages never triggered. Both solo and multiplayer drawers now scope the observer to their own scroll container and use `rootMargin: 300px` so the next page preloads before the user reaches the bottom.
+
 ## [1.3.0] - 2026-04-25
 
 WCA-style inspection mode + shareable multiplayer room links + UX polish.
@@ -118,6 +126,7 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.3.1]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.1
 [1.3.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.0
 [1.2.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.2.0
 [1.1.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.1.0
