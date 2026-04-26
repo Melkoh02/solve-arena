@@ -26,6 +26,8 @@ Solve Arena — a speedcube timer with solo and multiplayer modes. React 19 + Vi
 
 **Multiple branches can coexist on `develop`.** Features and fixes accumulate on `develop` until the user decides to cut a release. There is no schedule — the user explicitly says when to release.
 
+**Debug instrumentation never lands on `develop`.** Bright-color paints, console.logs, alert() prints, large debug sentinels, hardcoded test data — anything used for local diagnosis must be reverted before commit. If a debug branch (e.g. `debug/<name>`) is created for visual diagnosis, it stays local: when you find the actual fix, make it on a fresh `fix/<name>` branch (cherry-pick or just rewrite the relevant change), and merge **that** into `develop`. The debug branch is throwaway. Never merge a `debug/*` branch into `develop` even after cleanup — the branch name and history advertise scratch-quality work.
+
 ### Versioning (Semantic Versioning)
 
 The version number is decided at release time, not when creating branches. Look at everything on `develop` since the last release and apply these rules:
