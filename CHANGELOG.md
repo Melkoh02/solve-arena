@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-04-25
+
+WCA-style inspection mode + shareable multiplayer room links + UX polish.
+
+### Added
+
+- **Inspection mode** (Settings → Timer → Enable inspection) — optional WCA-style 15s countdown before each solve. Press spacebar to start inspection; the countdown ticks down in orange (`#ffa726`). While the countdown is running, press and hold spacebar (or a color key) to arm — the display turns green (`#4caf50`) to acknowledge, and the countdown keeps ticking. Release the key to start the actual timer from 0. Penalties are applied automatically on overrun: 0–2s past the limit → `+2` on the resulting solve, more than 2s → auto-DNF (the timer stops itself and records a DNF before the user can start). Press Escape during inspection to cancel back to idle. Duration is configurable from 5–60 seconds. Inspection is gated behind the new setting; default is OFF and existing behavior is unchanged.
+- **Deep-link multiplayer rooms** — share `https://solvearena.net/room/<CODE>` and the recipient lands directly in the room when they already have a player name set (auto-joins on mount). First-time visitors get bounced to the home screen with the Compete popover already open, the room code prefilled, and the name field focused — type a name, press Enter, you're in. The popover's name-field Enter binding switches from "create room" to "join room" when a code is prefilled, since that's clearly the intent. Router state is consumed via `replace: true` so a refresh doesn't re-trigger the popover.
+- **`inspectionEnabled` / `inspectionDuration` settings** persisted alongside the rest of `@M003:settings`. New `'inspecting'` `TimerPhase`. New `inspectionArmed` flag on `timerStore` so the press/release semantics work without exiting the inspecting phase (which would freeze the countdown).
+- **Mobile parity for inspection** — touch handlers in `useTimerTouch` mirror the keyboard flow: tap on idle → start inspection; tap on inspecting → arm (green); release → run.
+
+### Changed
+
+- **Compete popover layout** — Join Room (the room-code field + outlined Join button) now sits above the `OR` divider. The prominent Create Room button sits below. Reflects the more common "I have a code" flow.
+- **Timer area now reserves a fixed vertical footprint** — the AO5/AO12 row and the 4-slot previous-solves stack always render (with `visibility: hidden` placeholders when there are no solves yet), so the history bar below them lands at the same Y from the very first solve through the 50th. Previously the history bar slid downward as solves accumulated, which felt jittery mid-session. Applied to both solo and multiplayer.
+
+### Fixed
+
+- **Solo history table had a 36px gap above the column headers and the first body row was hidden behind the floating column header.** Both came from a stale `top: 36` on the sticky `<th>` cells — leftover from when the "HISTORY" bar lived inside the scroll container. After moving the bar outside the scroll container in v1.2.0, the offset was pushing the sticky headers down 36px from the top of the inner scroll area at scrollTop:0, leaving the body's first row visually covered. Removed the `top` override; sticky headers now sit at `top: 0` of the inner scroll container as MUI's `stickyHeader` intends.
+- **Inspection second-press flow was stuck.** `endInspection()` recorded the penalty but didn't change `timerPhase`, so the subsequent `setReady()` / `setPreparing()` calls — which guard against transitions from non-`idle`/`stopped` phases — silently no-op'd. The countdown reset to 15 and the timer never started. `endInspection()` now exits the `inspecting` phase explicitly (to `idle` on in-time/`+2`, or to `stopped`+DNF on 2s+ overrun) and returns the DNF flag so the caller can short-circuit when needed.
+- **Inspection on color keys was inconsistent.** Color keys could both start and end inspection, and the cross color was captured at the wrong moment. Now: only spacebar starts inspection (so all solves go through the same gate), but either spacebar or a color key can arm during inspection — and a color-key arm captures the cross color for the upcoming solve.
+
 ## [1.2.0] - 2026-04-25
 
 Mobile-friendly multiplayer + cross-platform polish.
@@ -96,6 +118,7 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.3.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.0
 [1.2.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.2.0
 [1.1.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.1.0
 [1.0.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.0.0
