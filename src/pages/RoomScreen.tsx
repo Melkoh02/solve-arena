@@ -232,11 +232,17 @@ const RoomScreen = observer(function RoomScreen() {
       // Try auto-join from URL if we have a code and a saved name
       if (urlCode && roomStore.playerName.trim()) {
         roomStore.joinRoom(urlCode).then(success => {
-          if (!success) navigate('/');
+          if (!success) {
+            navigate('/', { state: { joinCode: urlCode }, replace: true });
+          }
         });
         return;
       }
-      navigate('/');
+      if (urlCode) {
+        navigate('/', { state: { joinCode: urlCode }, replace: true });
+      } else {
+        navigate('/');
+      }
       return;
     }
     return reaction(

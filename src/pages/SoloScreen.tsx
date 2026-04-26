@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Box,
   Button,
@@ -52,10 +53,15 @@ const LABEL_SX = {
 const SoloScreen = observer(function SoloScreen() {
   const { timerStore, soloStore, settingsStore } = useStore();
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const muiTheme = useMuiTheme();
   const isNarrowViewport = useMediaQuery(muiTheme.breakpoints.down('sm'));
   const useMobileLayout = useIsMobile();
   const [competAnchor, setCompetAnchor] = useState<HTMLElement | null>(null);
+  const [deepLinkCode, setDeepLinkCode] = useState<string | null>(null);
+  const competeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const mobileCompeteButtonRef = useRef<HTMLButtonElement | null>(null);
   const [selectedSolve, setSelectedSolve] = useState<SoloSolve | null>(null);
   const [aoSolves, setAoSolves] = useState<SoloSolve[] | null>(null);
   const [aoSize, setAoSize] = useState(5);
@@ -102,6 +108,18 @@ const SoloScreen = observer(function SoloScreen() {
   }, []);
 
   const touchHandlers = useTimerTouch(false, handleColorStart);
+
+  // Deep-link auto-open: when arriving from /room/:code with no saved name,
+  // RoomScreen redirects here with state.joinCode set. Open the Compete
+  // popover anchored to the Compete button, prefilled with the code.
+  useEffect(() => {
+    const joinCode = (location.state as { joinCode?: string } | null)?.joinCode;
+    if (!joinCode) return;
+    setDeepLinkCode(joinCode);
+    setCompetAnchor(competeButtonRef.current ?? mobileCompeteButtonRef.current);
+    // Consume the state so refresh / future navigations don't re-trigger this.
+    navigate(location.pathname, { replace: true, state: null });
+  }, [location.state, location.pathname, navigate]);
 
   // Submit solve when timer stops
   useEffect(
@@ -233,6 +251,7 @@ const SoloScreen = observer(function SoloScreen() {
           onTouchEnd={touchHandlers.onTouchEnd}
           onOpenSettings={() => setSettingsOpen(true)}
           onOpenCompete={anchor => setCompetAnchor(anchor)}
+          competeButtonRef={mobileCompeteButtonRef}
           onSelectSolve={setSelectedSolve}
           onRequestClearAll={() => setDeleteConfirm(true)}
           previousSolves={previousSolves}
@@ -277,6 +296,7 @@ const SoloScreen = observer(function SoloScreen() {
               <SettingsIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
             </IconButton>
             <Button
+              ref={competeButtonRef}
               variant="outlined"
               size="small"
               startIcon={
@@ -464,7 +484,12 @@ const SoloScreen = observer(function SoloScreen() {
       {/* Compete popover */}
       <JoinRoomPopover
         anchorEl={competAnchor}
-        onClose={() => setCompetAnchor(null)}
+        onClose={() => {
+          setCompetAnchor(null);
+          setDeepLinkCode(null);
+        }}
+        initialRoomCode={deepLinkCode ?? undefined}
+        autoFocusName={!!deepLinkCode}
       />
 
       {/* Settings dialog */}
