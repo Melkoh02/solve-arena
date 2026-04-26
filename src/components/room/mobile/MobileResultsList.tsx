@@ -269,6 +269,31 @@ const PlayerCell = observer(function PlayerCell({
             }}>
             {getDisplayTime(solve, precision)}
           </Typography>
+          {/* Color marker sits immediately after the time so my picker
+              doesn't end up adjacent to the next player's marker. */}
+          {isMe ? (
+            <CrossColorPicker
+              value={solve.crossColor}
+              onChange={color => roomStore.updateCrossColor(solve.id, color)}
+              size={18}
+            />
+          ) : (
+            solve.crossColor && (
+              <Box
+                sx={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 0.75,
+                  bgcolor:
+                    CROSS_COLORS.find(c => c.key === solve.crossColor)?.hex ??
+                    '#FFFFFF',
+                  border: '2px solid',
+                  borderColor: 'divider',
+                  flexShrink: 0,
+                }}
+              />
+            )
+          )}
           {isMe && (
             <>
               <ToggleButton
@@ -287,27 +312,7 @@ const PlayerCell = observer(function PlayerCell({
                 sx={PENALTY_TOGGLE_SX}>
                 DNF
               </ToggleButton>
-              <CrossColorPicker
-                value={solve.crossColor}
-                onChange={color => roomStore.updateCrossColor(solve.id, color)}
-                size={22}
-              />
             </>
-          )}
-          {!isMe && solve.crossColor && (
-            <Box
-              sx={{
-                width: 18,
-                height: 18,
-                borderRadius: 0.75,
-                bgcolor:
-                  CROSS_COLORS.find(c => c.key === solve.crossColor)?.hex ??
-                  '#FFFFFF',
-                border: '2px solid',
-                borderColor: 'divider',
-                flexShrink: 0,
-              }}
-            />
           )}
         </Stack>
       ) : (
