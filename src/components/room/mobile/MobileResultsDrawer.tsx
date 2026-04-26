@@ -122,12 +122,17 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
               borderTopRightRadius: 20,
               bgcolor: 'background.paper',
               backgroundImage: 'none',
-              ...vhSafe(85),
-              display: 'flex',
-              flexDirection: 'column',
             },
           },
         }}>
+        {/* Inner wrapper owns the height + flex layout. Setting these on
+            Drawer's Paper slot via slotProps was unreliable. */}
+        <Box
+          sx={{
+            ...vhSafe(85),
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
         {/* Drag handle */}
         <Box
           sx={{
@@ -199,6 +204,7 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
             pb: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
           }}>
           <MobileResultsList scrollEl={scrollEl} />
+        </Box>
         </Box>
       </Drawer>
     </>
