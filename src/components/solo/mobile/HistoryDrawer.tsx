@@ -140,12 +140,20 @@ const HistoryDrawer = observer(function HistoryDrawer({
               borderTopRightRadius: 20,
               bgcolor: 'background.paper',
               backgroundImage: 'none',
-              ...vhSafe(85),
-              display: 'flex',
-              flexDirection: 'column',
             },
           },
         }}>
+        {/* Inner wrapper owns the height + flex layout. Setting these on
+            the Drawer's Paper slot via slotProps was unreliable — they
+            silently failed to apply, leaving the cards box content-sized
+            and showing a large empty area below the last card at scroll
+            bottom. */}
+        <Box
+          sx={{
+            ...vhSafe(85),
+            display: 'flex',
+            flexDirection: 'column',
+          }}>
         {/* Drag handle */}
         <Box
           sx={{
@@ -245,6 +253,7 @@ const HistoryDrawer = observer(function HistoryDrawer({
             })}
           </Stack>
           <Box ref={setSentinelEl} sx={{ height: 1 }} />
+        </Box>
         </Box>
       </Drawer>
 
