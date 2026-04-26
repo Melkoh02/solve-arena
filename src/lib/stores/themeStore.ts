@@ -19,7 +19,7 @@ type PaletteOverrides = Record<Scheme, Partial<ThemeTokens>>;
 const SAVE_DEBOUNCE_MS = 250;
 
 export class ThemeStore {
-  scheme: Scheme = 'dark';
+  scheme: Scheme = 'glass';
   paletteOverrides: PaletteOverrides = { light: {}, dark: {}, glass: {} };
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -37,13 +37,6 @@ export class ThemeStore {
     });
     this.loadScheme();
     this.loadPalette();
-    try {
-      const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
-      mq?.addEventListener?.('change', e => {
-        const saved = localStorage.getItem(THEME_KEY) as Scheme | null;
-        if (!saved) this.setScheme(e.matches ? 'dark' : 'light');
-      });
-    } catch {}
   }
 
   setScheme(next: Scheme) {
@@ -103,10 +96,9 @@ export class ThemeStore {
         runInAction(() => (this.scheme = saved as Scheme));
         return;
       }
-      const prefersDark = window.matchMedia?.(
-        '(prefers-color-scheme: dark)',
-      )?.matches;
-      runInAction(() => (this.scheme = prefersDark ? 'dark' : 'light'));
+      // No saved preference: glass is the default scheme. Existing users with
+      // a saved theme keep their choice; only first-time visitors land on glass.
+      runInAction(() => (this.scheme = 'glass'));
     } catch {
       // ignore
     }
