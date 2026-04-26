@@ -21,7 +21,7 @@ export function useTimerTouch(
   disabled: boolean,
   onColorStart?: (color: CrossColor) => void,
 ) {
-  const { timerStore } = useStore();
+  const { timerStore, settingsStore } = useStore();
   const rafRef = useRef<number | null>(null);
   const isTouching = useRef(false);
 
@@ -47,16 +47,37 @@ export function useTimerTouch(
         return;
       }
 
-      // TODO: support tap-to-inspect for touch devices.
-      // For now, touch input bypasses inspection mode entirely.
-      if (timerStore.timerPhase === 'inspecting') return;
+      // Second tap during inspection: end inspection and arm ready.
+      // (DNF overrun is handled inside endInspection — phase becomes 'stopped'
+      // and the existing submission reactions record the DNF.)
+      if (timerStore.timerPhase === 'inspecting') {
+        const dnf = timerStore.endInspection(settingsStore.inspectionDuration);
+        if (!dnf) {
+          timerStore.setReady();
+          isTouching.current = true;
+        }
+        return;
+      }
 
       if (!isTouching.current) {
         isTouching.current = true;
+
+        // First tap with inspection enabled: start inspection. The
+        // subsequent touchend won't arm the timer because phase is
+        // 'inspecting', not 'ready'.
+        if (
+          settingsStore.inspectionEnabled &&
+          (timerStore.timerPhase === 'idle' ||
+            timerStore.timerPhase === 'stopped')
+        ) {
+          timerStore.startInspection();
+          return;
+        }
+
         timerStore.setReady();
       }
     },
-    [timerStore, disabled],
+    [timerStore, settingsStore, disabled],
   );
 
   const onTouchEnd = useCallback(
@@ -255,14 +276,17 @@ const Timer = observer(function Timer({
       const isSpace = e.code === 'Space';
 
       // Inspecting → space/colorKey ends inspection and arms preparing/ready
+      // (or short-circuits to a DNF if the cuber overran by more than 2s).
       if (timerStore.timerPhase === 'inspecting') {
         if (!isSpace && !colorKey) return;
         e.preventDefault();
         if (!isKeyDown.current) {
           isKeyDown.current = true;
           pendingColorRef.current = colorKey ?? 'w';
-          timerStore.endInspection(settingsStore.inspectionDuration);
-          beginPrepareOrReady(isSpace);
+          const dnf = timerStore.endInspection(settingsStore.inspectionDuration);
+          if (!dnf) {
+            beginPrepareOrReady(isSpace);
+          }
         }
         return;
       }

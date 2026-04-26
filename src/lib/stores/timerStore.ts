@@ -101,28 +101,40 @@ export class TimerStore {
   }
 
   /**
-   * Compute the WCA inspection penalty based on overrun and clear inspection
-   * timing state. Does NOT change `timerPhase` — caller transitions to
-   * `preparing` or `ready` immediately after.
+   * Compute the WCA inspection penalty based on overrun and exit the
+   * inspecting phase. On in-time / +2 overrun, transitions to `idle` so the
+   * caller can use `setReady()` / `setPreparing()` for the next step. On 2s+
+   * overrun, transitions straight to `stopped` with `lastStopWasDnf=true` so
+   * the existing solve-submission reaction records a DNF.
+   *
+   * Returns true when a force-DNF was triggered (caller should not arm
+   * preparing/ready in that case).
    */
-  endInspection(durationSeconds: number) {
-    if (this.timerPhase !== 'inspecting') return;
+  endInspection(durationSeconds: number): boolean {
+    if (this.timerPhase !== 'inspecting') return false;
     const elapsed =
       this.inspectionStartTime !== null
         ? Date.now() - this.inspectionStartTime
         : this.inspectionElapsedMs;
     const limitMs = durationSeconds * 1000;
-    if (elapsed <= limitMs) {
-      this.inspectionPenalty = 'none';
-    } else if (elapsed <= limitMs + 2000) {
-      this.inspectionPenalty = '+2';
-    } else {
-      // Caller should have invoked forceDnfFromInspection already; record DNF.
-      this.inspectionPenalty = 'none';
-      this.lastStopWasDnf = true;
-    }
     this.inspectionStartTime = null;
     this.inspectionElapsedMs = 0;
+    if (elapsed <= limitMs) {
+      this.inspectionPenalty = 'none';
+      this.timerPhase = 'idle';
+      return false;
+    }
+    if (elapsed <= limitMs + 2000) {
+      this.inspectionPenalty = '+2';
+      this.timerPhase = 'idle';
+      return false;
+    }
+    // 2s+ overrun → force DNF (race with the inspection RAF loop)
+    this.inspectionPenalty = 'none';
+    this.lastStopWasDnf = true;
+    this.displayTime = 0;
+    this.timerPhase = 'stopped';
+    return true;
   }
 
   /** Cancel inspection and return to idle without recording a solve. */
