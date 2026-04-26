@@ -111,7 +111,9 @@ const MobileResultsList = observer(function MobileResultsList({
             onSelect={setSelectedSolve}
           />
         ))}
-        <Box ref={setSentinelEl} sx={{ height: 1 }} />
+        {/* Non-zero height sentinel — sub-pixel sentinels can confuse
+            IntersectionObserver with rootMargin in some browsers. */}
+        <Box ref={setSentinelEl} sx={{ height: 8 }} />
       </Stack>
 
       <SolveDetailModal solve={liveSolve} onClose={() => setSelectedSolve(null)} />

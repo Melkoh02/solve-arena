@@ -254,7 +254,9 @@ const HistoryDrawer = observer(function HistoryDrawer({
               );
             })}
           </Stack>
-          <Box ref={setSentinelEl} sx={{ height: 1 }} />
+          {/* Non-zero height sentinel — sub-pixel sentinels can confuse
+              IntersectionObserver with rootMargin in some browsers. */}
+          <Box ref={setSentinelEl} sx={{ height: 8 }} />
         </Box>
         </Box>
       </Drawer>
