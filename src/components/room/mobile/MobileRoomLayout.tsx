@@ -3,6 +3,7 @@ import { observer } from 'mobx-react-lite';
 import { Box, Stack, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../../lib/hooks/useStore';
+import { useScramblePreviewShortcut } from '../../../lib/hooks/useScramblePreviewShortcut';
 import { getDisplayTime } from '../../../lib/utils/formatTime';
 import { calculateAverage, formatAverage } from '../../../lib/utils/averages';
 import Timer from '../../timer/Timer';
@@ -70,6 +71,10 @@ const MobileRoomLayout = observer(function MobileRoomLayout({
       return next;
     });
   };
+
+  // Wire the configurable scramble-preview shortcut. The desktop
+  // ScrambleDisplay registers the same hook; only one is mounted at a time.
+  useScramblePreviewShortcut(setShowPreview, PREVIEW_KEY);
 
   const mySolve = roomStore.myCurrentRoundSolve;
   const myAllSolves = (() => {

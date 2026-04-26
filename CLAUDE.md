@@ -38,6 +38,10 @@ When in doubt, ask the user what version they want.
 
 ### Release Process
 
+**Deploys require explicit user consent. Always.** Never deploy on your own initiative — even if the user labels the underlying work "urgent", "asap", or "needed yesterday". "Fix this asap" means fix the code asap; it does **not** mean push to prod. The user always wants to test changes locally before they ship. Only proceed with a deploy when the user explicitly says to release / deploy / push to master / ship / etc.
+
+When in doubt, finish the fix on `develop`, summarize what's stacked, and ask: "ready to deploy as vX.Y.Z, or want to test first?"
+
 Only start this when the user explicitly says to release.
 
 1. On `develop`, ensure all feature/fix branches are merged and everything is tested.
@@ -118,6 +122,15 @@ When adding a new setting:
 - Server is the source of truth for room state. Client `roomStore` mirrors it via socket events.
 - Don't trust client timestamps for ranking — the server stamps solve completion.
 - After a reconnection, MobX `playerId` is the canonical identity; `socket.id` may be stale (see prior reconnection bugs in commit history).
+
+### Mobile parity (important)
+Mobile mode is not just for phones — users explicitly switch to it on desktop for narrow / multitasking windows. So **every change must work on both layouts**: any shortcut, behavior, feature, or fix needs equivalent coverage in the mobile layout (`MobileSoloLayout` / `MobileRoomLayout` / mobile sub-components) AND the desktop layout. A useful mental check: if `useIsMobile()` returns `true`, does this still work?
+
+Common pitfalls to avoid:
+- A keyboard handler living inside a desktop-only component (e.g. `ScrambleDisplay`) — the mobile layout uses different sub-components and won't get the handler. Extract such handlers into hooks (e.g. `useScramblePreviewShortcut`) used by both layouts.
+- State that's owned by a desktop-only component but synced to mobile via `localStorage` "storage" events — same-tab `setItem` calls don't fire `storage` events, so mobile won't see the update. Use a shared hook or lift state to the screen.
+- ButtonBase / button-like clickable areas without considering keyboard: pressing space on a focused button-like fires its `onClick`. Prefer non-clickable wrappers, or ensure the timer key handler defocuses button-likes (existing `Timer.tsx` does this for `tag === 'BUTTON'` and `role === 'button'`).
+- Touch handlers (`useTimerTouch`) need the same state-machine coverage as keyboard handlers — a feature added only to keyboard isn't done.
 
 ## Quality Checklist
 Before any commit:

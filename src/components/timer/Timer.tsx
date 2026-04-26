@@ -213,10 +213,18 @@ const Timer = observer(function Timer({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
       if (isInsideOverlay(e.target)) return;
-      const tag = (e.target as HTMLElement).tagName;
-      if (e.code === 'Space' && tag === 'BUTTON') {
+      const target = e.target as HTMLElement;
+      const tag = target.tagName;
+      // Space activates focused buttons (and ButtonBase divs with role=button)
+      // on keyup. preventDefault on keydown alone isn't enough because each
+      // event has its own defaultPrevented flag — so we also blur the
+      // focused element. The keyup then fires on body, and the button's
+      // activation handler never sees it.
+      const isButtonLike =
+        tag === 'BUTTON' || target.getAttribute('role') === 'button';
+      if (e.code === 'Space' && isButtonLike) {
         e.preventDefault();
-        (e.target as HTMLElement).blur();
+        target.blur();
       } else if (INTERACTIVE_TAGS.has(tag)) {
         return;
       }
