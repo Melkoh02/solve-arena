@@ -16,6 +16,8 @@ import { shortcutsEqual } from '../utils/shortcuts';
 export class SettingsStore {
   colorKeyHoldThreshold: number = SETTINGS_DEFAULTS.colorKeyHoldThreshold;
   spacebarRequiresHold: boolean = SETTINGS_DEFAULTS.spacebarRequiresHold;
+  inspectionEnabled: boolean = SETTINGS_DEFAULTS.inspectionEnabled;
+  inspectionDuration: number = SETTINGS_DEFAULTS.inspectionDuration;
   timerPrecision: TimerPrecision = SETTINGS_DEFAULTS.timerPrecision;
   timeFormat: TimeFormat = SETTINGS_DEFAULTS.timeFormat;
   layoutMode: LayoutMode = SETTINGS_DEFAULTS.layoutMode;
@@ -35,6 +37,16 @@ export class SettingsStore {
 
   setSpacebarRequiresHold(value: boolean) {
     this.spacebarRequiresHold = value;
+    this.saveToStorage();
+  }
+
+  setInspectionEnabled(value: boolean) {
+    this.inspectionEnabled = value;
+    this.saveToStorage();
+  }
+
+  setInspectionDuration(seconds: number) {
+    this.inspectionDuration = Math.max(5, Math.min(60, Math.round(seconds)));
     this.saveToStorage();
   }
 
@@ -69,7 +81,9 @@ export class SettingsStore {
   get isTimerModified(): boolean {
     return (
       this.colorKeyHoldThreshold !== SETTINGS_DEFAULTS.colorKeyHoldThreshold ||
-      this.spacebarRequiresHold !== SETTINGS_DEFAULTS.spacebarRequiresHold
+      this.spacebarRequiresHold !== SETTINGS_DEFAULTS.spacebarRequiresHold ||
+      this.inspectionEnabled !== SETTINGS_DEFAULTS.inspectionEnabled ||
+      this.inspectionDuration !== SETTINGS_DEFAULTS.inspectionDuration
     );
   }
 
@@ -86,7 +100,8 @@ export class SettingsStore {
 
   get isShortcutsModified(): boolean {
     for (const id of Object.keys(SHORTCUT_DEFAULTS) as ShortcutId[]) {
-      if (!shortcutsEqual(this.shortcuts[id], SHORTCUT_DEFAULTS[id])) return true;
+      if (!shortcutsEqual(this.shortcuts[id], SHORTCUT_DEFAULTS[id]))
+        return true;
     }
     return false;
   }
@@ -94,6 +109,8 @@ export class SettingsStore {
   resetTimer() {
     this.colorKeyHoldThreshold = SETTINGS_DEFAULTS.colorKeyHoldThreshold;
     this.spacebarRequiresHold = SETTINGS_DEFAULTS.spacebarRequiresHold;
+    this.inspectionEnabled = SETTINGS_DEFAULTS.inspectionEnabled;
+    this.inspectionDuration = SETTINGS_DEFAULTS.inspectionDuration;
     this.saveToStorage();
   }
 
@@ -120,6 +137,8 @@ export class SettingsStore {
       const data: AppSettings = {
         colorKeyHoldThreshold: this.colorKeyHoldThreshold,
         spacebarRequiresHold: this.spacebarRequiresHold,
+        inspectionEnabled: this.inspectionEnabled,
+        inspectionDuration: this.inspectionDuration,
         timerPrecision: this.timerPrecision,
         timeFormat: this.timeFormat,
         layoutMode: this.layoutMode,
@@ -138,10 +157,25 @@ export class SettingsStore {
       const data = JSON.parse(raw) as Partial<AppSettings>;
 
       if (typeof data.colorKeyHoldThreshold === 'number') {
-        this.colorKeyHoldThreshold = Math.max(100, Math.min(2000, data.colorKeyHoldThreshold));
+        this.colorKeyHoldThreshold = Math.max(
+          100,
+          Math.min(2000, data.colorKeyHoldThreshold),
+        );
       }
       if (typeof data.spacebarRequiresHold === 'boolean') {
         this.spacebarRequiresHold = data.spacebarRequiresHold;
+      }
+      if (typeof data.inspectionEnabled === 'boolean') {
+        this.inspectionEnabled = data.inspectionEnabled;
+      }
+      if (
+        typeof data.inspectionDuration === 'number' &&
+        Number.isFinite(data.inspectionDuration)
+      ) {
+        this.inspectionDuration = Math.max(
+          5,
+          Math.min(60, Math.round(data.inspectionDuration)),
+        );
       }
       if (data.timerPrecision === 1 || data.timerPrecision === 2) {
         this.timerPrecision = data.timerPrecision;
@@ -160,7 +194,11 @@ export class SettingsStore {
         const next = cloneShortcuts(SHORTCUT_DEFAULTS);
         for (const id of Object.keys(SHORTCUT_DEFAULTS) as ShortcutId[]) {
           const stored = (data.shortcuts as Partial<ShortcutBindings>)[id];
-          if (stored && typeof stored.key === 'string' && stored.key.length > 0) {
+          if (
+            stored &&
+            typeof stored.key === 'string' &&
+            stored.key.length > 0
+          ) {
             next[id] = normalizeBinding(stored);
           }
         }

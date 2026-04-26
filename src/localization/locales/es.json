@@ -119,6 +119,8 @@
     "timerSection": "Cronómetro",
     "colorKeyHoldTime": "Tiempo de presión para teclas de color",
     "spacebarRequiresHold": "Espacio requiere presión",
+    "inspectionEnabled": "Activar inspección",
+    "inspectionDuration": "Duración de inspección",
     "displaySection": "Pantalla",
     "timerPrecision": "Precisión del cronómetro",
     "timeFormatExport": "Formato de copia/exportación",

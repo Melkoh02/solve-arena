@@ -61,6 +61,8 @@ const RoomScreen = observer(function RoomScreen() {
   const pendingColorRef = useRef<CrossColor>('w');
   // Track round + color for deferred application when solve arrives from server
   const pendingColorForRoundRef = useRef<{ round: number; color: CrossColor } | null>(null);
+  // Track round for deferred +2 inspection penalty when solve arrives from server
+  const pendingPenaltyForRoundRef = useRef<{ round: number } | null>(null);
 
   const handleColorStart = useCallback((color: CrossColor) => {
     const phase = timerStore.timerPhase;
@@ -98,22 +100,39 @@ const RoomScreen = observer(function RoomScreen() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [roomStore, timerStore]);
 
-  // Apply pending color when my solve appears in the store
+  // Apply pending color and/or +2 inspection penalty when my solve appears in
+  // the store (server is source of truth — solve may not be there yet at the
+  // moment we submitTime).
   useEffect(
     () =>
       reaction(
         () => roomStore.solves.length,
         () => {
-          const pending = pendingColorForRoundRef.current;
-          if (!pending) return;
+          const pendingColor = pendingColorForRoundRef.current;
+          const pendingPenalty = pendingPenaltyForRoundRef.current;
+          if (!pendingColor && !pendingPenalty) return;
           const myId = roomStore.playerId;
           if (!myId) return;
-          const solve = roomStore.solves.find(
-            s => s.playerId === myId && s.round === pending.round,
-          );
-          if (solve) {
-            roomStore.updateCrossColor(solve.id, pending.color);
-            pendingColorForRoundRef.current = null;
+          if (pendingColor) {
+            const solve = roomStore.solves.find(
+              s => s.playerId === myId && s.round === pendingColor.round,
+            );
+            if (solve) {
+              roomStore.updateCrossColor(solve.id, pendingColor.color);
+              pendingColorForRoundRef.current = null;
+            }
+          }
+          if (pendingPenalty) {
+            const solve = roomStore.solves.find(
+              s => s.playerId === myId && s.round === pendingPenalty.round,
+            );
+            if (solve && solve.penalty !== 'DNF') {
+              roomStore.updatePenalty(solve.id, '+2');
+              pendingPenaltyForRoundRef.current = null;
+            } else if (solve && solve.penalty === 'DNF') {
+              // DNF beats +2 — drop the pending penalty.
+              pendingPenaltyForRoundRef.current = null;
+            }
           }
         },
       ),
@@ -157,7 +176,8 @@ const RoomScreen = observer(function RoomScreen() {
     setSidebarOpen(!isMobile);
   }, [isMobile]);
 
-  // Submit time and apply pending cross color
+  // Submit time and apply pending cross color / inspection penalty.
+  // Inspection-overrun DNFs surface as `inspecting → stopped` transitions.
   useEffect(
     () =>
       reaction(
@@ -166,13 +186,22 @@ const RoomScreen = observer(function RoomScreen() {
           if (phase === 'running' && prevPhase !== 'running') {
             roomStore.emitTimerStart();
           }
-          if (phase === 'stopped' && prevPhase === 'running' && !roomStore.hasSubmittedCurrentRound) {
+          if (
+            phase === 'stopped' &&
+            (prevPhase === 'running' || prevPhase === 'inspecting') &&
+            !roomStore.hasSubmittedCurrentRound
+          ) {
             const color = pendingColorRef.current;
+            const inspectionPenalty = timerStore.inspectionPenalty;
             if (color !== 'w') {
               // Queue color for when the solve arrives from server
               pendingColorForRoundRef.current = { round: roomStore.currentRound, color };
             }
+            if (inspectionPenalty === '+2') {
+              pendingPenaltyForRoundRef.current = { round: roomStore.currentRound };
+            }
             roomStore.submitTime(timerStore.displayTime, timerStore.lastStopWasDnf);
+            timerStore.clearInspectionPenalty();
             pendingColorRef.current = 'w';
           }
         },

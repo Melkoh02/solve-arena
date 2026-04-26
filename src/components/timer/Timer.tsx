@@ -17,7 +17,10 @@ interface TimerProps {
 }
 
 /** Hook that returns touch handlers for the timer area. */
-export function useTimerTouch(disabled: boolean, onColorStart?: (color: CrossColor) => void) {
+export function useTimerTouch(
+  disabled: boolean,
+  onColorStart?: (color: CrossColor) => void,
+) {
   const { timerStore } = useStore();
   const rafRef = useRef<number | null>(null);
   const isTouching = useRef(false);
@@ -43,6 +46,10 @@ export function useTimerTouch(disabled: boolean, onColorStart?: (color: CrossCol
         timerStore.stopTimer();
         return;
       }
+
+      // TODO: support tap-to-inspect for touch devices.
+      // For now, touch input bypasses inspection mode entirely.
+      if (timerStore.timerPhase === 'inspecting') return;
 
       if (!isTouching.current) {
         isTouching.current = true;
@@ -71,10 +78,15 @@ export function useTimerTouch(disabled: boolean, onColorStart?: (color: CrossCol
   return { onTouchStart, onTouchEnd };
 }
 
-const Timer = observer(function Timer({ disabled = false, onColorStart, large = false }: TimerProps) {
+const Timer = observer(function Timer({
+  disabled = false,
+  onColorStart,
+  large = false,
+}: TimerProps) {
   const { timerStore, settingsStore } = useStore();
   const theme = useMuiTheme();
   const rafRef = useRef<number | null>(null);
+  const inspectionRafRef = useRef<number | null>(null);
   const isKeyDown = useRef(false);
   const pendingColorRef = useRef<CrossColor | null>(null);
   const stopTimestamp = useRef(0);
@@ -99,11 +111,68 @@ const Timer = observer(function Timer({ disabled = false, onColorStart, large = 
     }
   };
 
+  const stopInspectionRaf = useCallback(() => {
+    if (inspectionRafRef.current !== null) {
+      cancelAnimationFrame(inspectionRafRef.current);
+      inspectionRafRef.current = null;
+    }
+  }, []);
+
+  // ── Inspection RAF loop ────────────────────────────────
+  // Runs while phase === 'inspecting'. Updates elapsed time each frame and
+  // triggers an automatic DNF when the cuber overruns by more than 2s.
+  useEffect(() => {
+    if (timerStore.timerPhase !== 'inspecting') {
+      stopInspectionRaf();
+      return;
+    }
+
+    const dnfThresholdMs = (settingsStore.inspectionDuration + 2) * 1000;
+
+    const tick = () => {
+      if (timerStore.timerPhase !== 'inspecting') {
+        inspectionRafRef.current = null;
+        return;
+      }
+      timerStore.tickInspection();
+      if (timerStore.inspectionElapsedMs > dnfThresholdMs) {
+        timerStore.forceDnfFromInspection();
+        inspectionRafRef.current = null;
+        return;
+      }
+      inspectionRafRef.current = requestAnimationFrame(tick);
+    };
+
+    inspectionRafRef.current = requestAnimationFrame(tick);
+    return () => stopInspectionRaf();
+  }, [
+    timerStore,
+    timerStore.timerPhase,
+    settingsStore.inspectionDuration,
+    stopInspectionRaf,
+  ]);
+
   // ── Keyboard handlers ──────────────────────────────────
 
   useEffect(() => {
     const isInsideOverlay = (target: EventTarget | null) =>
-      !!(target as HTMLElement)?.closest?.('[role="dialog"], [role="presentation"], .MuiPopover-root');
+      !!(target as HTMLElement)?.closest?.(
+        '[role="dialog"], [role="presentation"], .MuiPopover-root',
+      );
+
+    const beginPrepareOrReady = (isSpace: boolean) => {
+      if (isSpace && !settingsStore.spacebarRequiresHold) {
+        // Space key goes straight to ready (green) with no delay
+        timerStore.setReady();
+      } else {
+        // Enter preparing (red), then ready (green) after hold threshold
+        timerStore.setPreparing();
+        clearHoldTimer();
+        holdTimerRef.current = setTimeout(() => {
+          timerStore.setReady();
+        }, settingsStore.colorKeyHoldThreshold);
+      }
+    };
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return;
@@ -117,8 +186,21 @@ const Timer = observer(function Timer({ disabled = false, onColorStart, large = 
       }
       if (disabled) return;
 
+      // Escape during inspection cancels back to idle
+      if (e.code === 'Escape' && timerStore.timerPhase === 'inspecting') {
+        e.preventDefault();
+        timerStore.cancelInspection();
+        isKeyDown.current = false;
+        return;
+      }
+
       // Escape cancels preparing, ready, or resets stopped to idle
-      if (e.code === 'Escape' && (timerStore.timerPhase === 'preparing' || timerStore.timerPhase === 'ready' || timerStore.timerPhase === 'stopped')) {
+      if (
+        e.code === 'Escape' &&
+        (timerStore.timerPhase === 'preparing' ||
+          timerStore.timerPhase === 'ready' ||
+          timerStore.timerPhase === 'stopped')
+      ) {
         e.preventDefault();
         clearHoldTimer();
         if (timerStore.timerPhase === 'stopped') {
@@ -135,11 +217,29 @@ const Timer = observer(function Timer({ disabled = false, onColorStart, large = 
       // ignored so system shortcuts / app focus changes don't stop the timer.
       if (timerStore.timerPhase === 'running') {
         const IGNORE = new Set([
-          'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight',
-          'ShiftLeft', 'ShiftRight', 'MetaLeft', 'MetaRight',
-          'Tab', 'CapsLock', 'ContextMenu',
-          'F1', 'F2', 'F3', 'F4', 'F5', 'F6',
-          'F7', 'F8', 'F9', 'F10', 'F11', 'F12',
+          'ControlLeft',
+          'ControlRight',
+          'AltLeft',
+          'AltRight',
+          'ShiftLeft',
+          'ShiftRight',
+          'MetaLeft',
+          'MetaRight',
+          'Tab',
+          'CapsLock',
+          'ContextMenu',
+          'F1',
+          'F2',
+          'F3',
+          'F4',
+          'F5',
+          'F6',
+          'F7',
+          'F8',
+          'F9',
+          'F10',
+          'F11',
+          'F12',
         ]);
         if (IGNORE.has(e.code)) return;
         e.preventDefault();
@@ -151,9 +251,23 @@ const Timer = observer(function Timer({ disabled = false, onColorStart, large = 
         return;
       }
 
-      // Spacebar or color keys start the preparing/ready/start flow
       const colorKey = getColorFromEvent(e, settingsStore.shortcuts);
       const isSpace = e.code === 'Space';
+
+      // Inspecting → space/colorKey ends inspection and arms preparing/ready
+      if (timerStore.timerPhase === 'inspecting') {
+        if (!isSpace && !colorKey) return;
+        e.preventDefault();
+        if (!isKeyDown.current) {
+          isKeyDown.current = true;
+          pendingColorRef.current = colorKey ?? 'w';
+          timerStore.endInspection(settingsStore.inspectionDuration);
+          beginPrepareOrReady(isSpace);
+        }
+        return;
+      }
+
+      // Spacebar or color keys start the preparing/ready/start flow
       if (!isSpace && !colorKey) return;
       e.preventDefault();
 
@@ -164,17 +278,18 @@ const Timer = observer(function Timer({ disabled = false, onColorStart, large = 
         isKeyDown.current = true;
         pendingColorRef.current = colorKey ?? 'w';
 
-        if (isSpace && !settingsStore.spacebarRequiresHold) {
-          // Space key goes straight to ready (green) with no delay
-          timerStore.setReady();
-        } else {
-          // Enter preparing (red), then ready (green) after hold threshold
-          timerStore.setPreparing();
-          clearHoldTimer();
-          holdTimerRef.current = setTimeout(() => {
-            timerStore.setReady();
-          }, settingsStore.colorKeyHoldThreshold);
+        // If inspection is enabled and we're starting fresh, enter inspection
+        // instead of preparing. Don't enter inspection from any other phase.
+        if (
+          settingsStore.inspectionEnabled &&
+          (timerStore.timerPhase === 'idle' ||
+            timerStore.timerPhase === 'stopped')
+        ) {
+          timerStore.startInspection();
+          return;
         }
+
+        beginPrepareOrReady(isSpace);
       }
     };
 
@@ -216,7 +331,18 @@ const Timer = observer(function Timer({ disabled = false, onColorStart, large = 
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
       clearHoldTimer();
     };
-  }, [timerStore, settingsStore, settingsStore.colorKeyHoldThreshold, settingsStore.spacebarRequiresHold, settingsStore.shortcuts, animate, disabled, onColorStart]);
+  }, [
+    timerStore,
+    settingsStore,
+    settingsStore.colorKeyHoldThreshold,
+    settingsStore.spacebarRequiresHold,
+    settingsStore.shortcuts,
+    settingsStore.inspectionEnabled,
+    settingsStore.inspectionDuration,
+    animate,
+    disabled,
+    onColorStart,
+  ]);
 
   const getColor = (): string => {
     switch (timerStore.timerPhase) {
@@ -240,16 +366,9 @@ const Timer = observer(function Timer({ disabled = false, onColorStart, large = 
     }
   };
 
-  const timeStr = formatTime(timerStore.displayTime, settingsStore.timerPrecision);
-  const dotIndex = timeStr.lastIndexOf('.');
-  const intPart = dotIndex >= 0 ? timeStr.slice(0, dotIndex) : timeStr;
-  const decPart = dotIndex >= 0 ? timeStr.slice(dotIndex) : '';
-
   const baseSx = {
     fontFamily: '"Inter", monospace',
-    fontSize: large
-      ? 'clamp(5.5rem, 28vw, 10rem)'
-      : 'clamp(3rem, 12vw, 8rem)',
+    fontSize: large ? 'clamp(5.5rem, 28vw, 10rem)' : 'clamp(3rem, 12vw, 8rem)',
     fontWeight: 900,
     fontVariantNumeric: 'tabular-nums',
     textAlign: 'center',
@@ -264,18 +383,42 @@ const Timer = observer(function Timer({ disabled = false, onColorStart, large = 
     transition: 'color 0.15s, text-shadow 0.3s',
   } as const;
 
+  // Inspecting phase: show countdown number (or "+1" / "+2" overrun marker).
+  if (timerStore.timerPhase === 'inspecting') {
+    const duration = settingsStore.inspectionDuration;
+    const elapsedSec = timerStore.inspectionElapsedMs / 1000;
+    const remaining = duration - elapsedSec;
+    let label: string;
+    let color: string;
+    if (remaining > 0) {
+      label = String(Math.ceil(remaining));
+      color = '#ffa726'; // warning orange
+    } else {
+      const overrun = -remaining;
+      label = overrun <= 1 ? '+1' : '+2';
+      color = '#f44336'; // overrun red
+    }
+    return <Typography sx={{ ...baseSx, color }}>{label}</Typography>;
+  }
+
+  const timeStr = formatTime(
+    timerStore.displayTime,
+    settingsStore.timerPrecision,
+  );
+  const dotIndex = timeStr.lastIndexOf('.');
+  const intPart = dotIndex >= 0 ? timeStr.slice(0, dotIndex) : timeStr;
+  const decPart = dotIndex >= 0 ? timeStr.slice(dotIndex) : '';
+
   if (timerStore.showDnf && timerStore.timerPhase === 'stopped') {
-    return (
-      <Typography sx={{ ...baseSx, color: '#f44336' }}>
-        DNF
-      </Typography>
-    );
+    return <Typography sx={{ ...baseSx, color: '#f44336' }}>DNF</Typography>;
   }
 
   return (
     <Typography sx={{ ...baseSx, color: getColor() }}>
       {intPart}
-      <Typography component="span" sx={{ ...baseSx, color: getAccentColor(), fontSize: 'inherit', py: 0 }}>
+      <Typography
+        component="span"
+        sx={{ ...baseSx, color: getAccentColor(), fontSize: 'inherit', py: 0 }}>
         {decPart}
       </Typography>
     </Typography>

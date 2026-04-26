@@ -118,6 +118,8 @@
     "timerSection": "Timer",
     "colorKeyHoldTime": "Color key hold time",
     "spacebarRequiresHold": "Spacebar requires hold",
+    "inspectionEnabled": "Enable inspection",
+    "inspectionDuration": "Inspection duration",
     "displaySection": "Display",
     "timerPrecision": "Timer precision",
     "timeFormatExport": "Copy/export format",
