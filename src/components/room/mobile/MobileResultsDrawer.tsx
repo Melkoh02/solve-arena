@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useState } from 'react';
 import { observer } from 'mobx-react-lite';
 import {
   Box,
@@ -32,7 +32,10 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
   const { roomStore, settingsStore } = useStore();
   const { t } = useTranslation();
   const precision = settingsStore.timerPrecision;
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  // Callback ref backed by useState so MobileResultsList's IO effect re-runs
+  // the moment the scroll container actually mounts (Drawer's lazy paper
+  // rendering can put ref population after the child's effect).
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
   // My solves to compute "Worst" / "Avg" labels for the peek (matches desktop history header)
   const mySolves = (() => {
@@ -188,14 +191,14 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
             per-player mini-cells inside each card. Horizontal scroll for
             wide rooms; vertical scroll for many rounds. */}
         <Box
-          ref={scrollContainerRef}
+          ref={setScrollEl}
           sx={{
             flex: 1,
             minHeight: 0,
             overflow: 'auto',
             pb: 'calc(env(safe-area-inset-bottom, 0px) + 16px)',
           }}>
-          <MobileResultsList scrollRoot={scrollContainerRef} />
+          <MobileResultsList scrollEl={scrollEl} />
         </Box>
       </Drawer>
     </>
