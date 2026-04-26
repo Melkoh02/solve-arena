@@ -28,6 +28,8 @@ export interface AppSettings {
   // Timer
   colorKeyHoldThreshold: number;
   spacebarRequiresHold: boolean;
+  inspectionEnabled: boolean;
+  inspectionDuration: number;
 
   // Display
   timerPrecision: TimerPrecision;
@@ -57,6 +59,8 @@ export const SHORTCUT_DEFAULTS: Readonly<ShortcutBindings> = Object.freeze({
 export const SETTINGS_DEFAULTS: Readonly<AppSettings> = Object.freeze({
   colorKeyHoldThreshold: 500,
   spacebarRequiresHold: false,
+  inspectionEnabled: false,
+  inspectionDuration: 15,
   timerPrecision: 2,
   timeFormat: 'auto',
   layoutMode: 'auto',

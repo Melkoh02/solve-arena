@@ -1,6 +1,12 @@
 export type Penalty = 'none' | '+2' | 'DNF';
 
-export type TimerPhase = 'idle' | 'preparing' | 'ready' | 'running' | 'stopped';
+export type TimerPhase =
+  | 'idle'
+  | 'inspecting'
+  | 'preparing'
+  | 'ready'
+  | 'running'
+  | 'stopped';
 
 export interface WCAEvent {
   id: string;

@@ -93,7 +93,8 @@ const SoloScreen = observer(function SoloScreen() {
   const isTimerActive =
     timerStore.timerPhase === 'running' ||
     timerStore.timerPhase === 'ready' ||
-    timerStore.timerPhase === 'preparing';
+    timerStore.timerPhase === 'preparing' ||
+    timerStore.timerPhase === 'inspecting';
 
   const handleColorStart = useCallback((color: CrossColor) => {
     // Check phase via direct access (not reactive dependency)
@@ -121,7 +122,7 @@ const SoloScreen = observer(function SoloScreen() {
     navigate(location.pathname, { replace: true, state: null });
   }, [location.state, location.pathname, navigate]);
 
-  // Submit solve when timer stops
+  // Submit solve when timer stops (also catches inspection-overrun DNFs).
   useEffect(
     () =>
       reaction(
@@ -129,14 +130,22 @@ const SoloScreen = observer(function SoloScreen() {
         (phase, prevPhase) => {
           if (
             phase === 'stopped' &&
-            prevPhase === 'running' &&
-            timerStore.displayTime > 0
+            (prevPhase === 'running' || prevPhase === 'inspecting') &&
+            (timerStore.displayTime > 0 || timerStore.lastStopWasDnf)
           ) {
+            const inspectionPenalty = timerStore.inspectionPenalty;
             soloStore.addSolve(
               timerStore.displayTime,
               timerStore.lastStopWasDnf,
               pendingColorRef.current,
             );
+            if (inspectionPenalty === '+2') {
+              const last = soloStore.lastSolve;
+              if (last && last.penalty !== 'DNF') {
+                soloStore.updatePenalty(last.id, '+2');
+              }
+            }
+            timerStore.clearInspectionPenalty();
             pendingColorRef.current = 'w';
           }
         },
