@@ -143,34 +143,6 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
           sx={{ mb: 2 }}
         />
 
-        {/* Create room */}
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          onClick={handleCreate}
-          disabled={!canSubmit || isBusy}
-          sx={{ py: 1, fontSize: '0.8rem' }}>
-          {action === 'create' ? (
-            <CircularProgress size={18} sx={{ color: 'inherit' }} />
-          ) : (
-            t('lobby.createRoom')
-          )}
-        </Button>
-
-        <Divider sx={{ my: 1.5 }}>
-          <Typography
-            variant="caption"
-            sx={{
-              color: 'text.secondary',
-              textTransform: 'uppercase',
-              letterSpacing: '0.1em',
-              fontSize: '0.6rem',
-            }}>
-            {t('lobby.or')}
-          </Typography>
-        </Divider>
-
         {/* Join room */}
         <Stack direction="row" spacing={1}>
           <TextField
@@ -207,6 +179,34 @@ const JoinRoomPopover = observer(function JoinRoomPopover({
             )}
           </Button>
         </Stack>
+
+        <Divider sx={{ my: 1.5 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              fontSize: '0.6rem',
+            }}>
+            {t('lobby.or')}
+          </Typography>
+        </Divider>
+
+        {/* Create room */}
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          onClick={handleCreate}
+          disabled={!canSubmit || isBusy}
+          sx={{ py: 1, fontSize: '0.8rem' }}>
+          {action === 'create' ? (
+            <CircularProgress size={18} sx={{ color: 'inherit' }} />
+          ) : (
+            t('lobby.createRoom')
+          )}
+        </Button>
       </Box>
     </Popover>
   );
