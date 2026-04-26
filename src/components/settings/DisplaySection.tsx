@@ -9,8 +9,14 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import SectionResetButton from './SectionResetButton';
-import { SETTINGS_LABEL_SX as LABEL_SX, SETTINGS_SECTION_HEADER_SX } from './styles';
-import type { TimerPrecision, TimeFormat } from '../../lib/constants/settingsDefaults';
+import {
+  SETTINGS_LABEL_SX as LABEL_SX,
+  SETTINGS_SECTION_HEADER_SX,
+} from './styles';
+import type {
+  TimerPrecision,
+  TimeFormat,
+} from '../../lib/constants/settingsDefaults';
 
 const DisplaySection = observer(function DisplaySection() {
   const { settingsStore } = useStore();
@@ -18,7 +24,11 @@ const DisplaySection = observer(function DisplaySection() {
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1 }}>
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 1 }}>
         <Typography sx={SETTINGS_SECTION_HEADER_SX}>
           {t('settings.displaySection')}
         </Typography>
@@ -33,13 +43,19 @@ const DisplaySection = observer(function DisplaySection() {
       <ToggleButtonGroup
         value={settingsStore.timerPrecision}
         exclusive
-        onChange={(_, val: TimerPrecision | null) => val !== null && settingsStore.setTimerPrecision(val)}
+        onChange={(_, val: TimerPrecision | null) =>
+          val !== null && settingsStore.setTimerPrecision(val)
+        }
         size="small"
         sx={{ mb: 2.5 }}>
-        <ToggleButton value={2} sx={{ textTransform: 'none', fontFamily: 'monospace', px: 2 }}>
+        <ToggleButton
+          value={2}
+          sx={{ textTransform: 'none', fontFamily: 'monospace', px: 2 }}>
           0.00
         </ToggleButton>
-        <ToggleButton value={1} sx={{ textTransform: 'none', fontFamily: 'monospace', px: 2 }}>
+        <ToggleButton
+          value={1}
+          sx={{ textTransform: 'none', fontFamily: 'monospace', px: 2 }}>
           0.0
         </ToggleButton>
       </ToggleButtonGroup>
@@ -49,12 +65,16 @@ const DisplaySection = observer(function DisplaySection() {
       <ToggleButtonGroup
         value={settingsStore.timeFormat}
         exclusive
-        onChange={(_, val: TimeFormat | null) => val !== null && settingsStore.setTimeFormat(val)}
+        onChange={(_, val: TimeFormat | null) =>
+          val !== null && settingsStore.setTimeFormat(val)
+        }
         size="small">
         <ToggleButton value="auto" sx={{ textTransform: 'none', px: 2 }}>
           {t('settings.timeFormatAuto')}
         </ToggleButton>
-        <ToggleButton value="mm:ss.xx" sx={{ textTransform: 'none', fontFamily: 'monospace', px: 2 }}>
+        <ToggleButton
+          value="mm:ss.xx"
+          sx={{ textTransform: 'none', fontFamily: 'monospace', px: 2 }}>
           mm:ss.xx
         </ToggleButton>
       </ToggleButtonGroup>

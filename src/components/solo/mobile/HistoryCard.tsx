@@ -1,5 +1,11 @@
 import { observer } from 'mobx-react-lite';
-import { Box, IconButton, Stack, ToggleButton, Typography } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  Stack,
+  ToggleButton,
+  Typography,
+} from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { useTranslation } from 'react-i18next';
@@ -66,9 +72,7 @@ const HistoryCard = observer(function HistoryCard({
       </Typography>
 
       {/* Time + date stack */}
-      <Stack
-        sx={{ minWidth: 0, flex: 1 }}
-        onClick={() => onSelect(solve)}>
+      <Stack sx={{ minWidth: 0, flex: 1 }} onClick={() => onSelect(solve)}>
         <Stack direction="row" alignItems="center" spacing={0.75}>
           {solve.online && (
             <GroupsIcon

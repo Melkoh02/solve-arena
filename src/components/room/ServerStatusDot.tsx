@@ -24,7 +24,11 @@ const ServerStatusDot = observer(function ServerStatusDot() {
   return (
     <Box
       title={label}
-      onClick={serverStore.status === 'offline' ? () => serverStore.warmUp() : undefined}
+      onClick={
+        serverStore.status === 'offline'
+          ? () => serverStore.warmUp()
+          : undefined
+      }
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -38,7 +42,10 @@ const ServerStatusDot = observer(function ServerStatusDot() {
           borderRadius: '50%',
           bgcolor: color,
           boxShadow: `0 0 6px ${color}80`,
-          animation: serverStore.status === 'waking' ? `${pulse} 1.5s ease-in-out infinite` : 'none',
+          animation:
+            serverStore.status === 'waking'
+              ? `${pulse} 1.5s ease-in-out infinite`
+              : 'none',
         }}
       />
     </Box>

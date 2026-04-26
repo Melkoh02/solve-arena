@@ -1,17 +1,16 @@
 import { useMemo } from 'react';
 import { observer } from 'mobx-react-lite';
-import {
-  Box,
-  IconButton,
-  Tooltip,
-  Typography,
-} from '@mui/material';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { formatTime, getDisplayTime } from '../../lib/utils/formatTime';
-import { calculateAverage, formatAverage, getEffectiveTime } from '../../lib/utils/averages';
+import {
+  calculateAverage,
+  formatAverage,
+  getEffectiveTime,
+} from '../../lib/utils/averages';
 import type { RoomSolve } from '../../lib/types/room';
 
 const LABEL_SX = {
@@ -73,7 +72,14 @@ const PlayerSidebar = observer(function PlayerSidebar() {
   }, [roomStore.solves, roomStore.currentRound]);
 
   return (
-    <Box sx={{ px: 1.5, overflow: 'auto', flex: 1, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+    <Box
+      sx={{
+        px: 1.5,
+        overflow: 'auto',
+        flex: 1,
+        scrollbarWidth: 'none',
+        '&::-webkit-scrollbar': { display: 'none' },
+      }}>
       <Typography sx={{ ...LABEL_SX, px: 0.5, mb: 1 }}>
         {t('room.competitors')}
       </Typography>
@@ -89,11 +95,20 @@ const PlayerSidebar = observer(function PlayerSidebar() {
         const globalAvg = roomStore.getGlobalAverage(player.id);
         const hasFinished = !!currentSolve;
         const isDisconnected = !!player.disconnected;
-        const isSolving = !hasFinished && !isDisconnected && roomStore.solvingPlayerIds.has(player.id);
+        const isSolving =
+          !hasFinished &&
+          !isDisconnected &&
+          roomStore.solvingPlayerIds.has(player.id);
         const winCount = winsByPlayer.get(player.id) ?? 0;
 
         // Dot: red = disconnected, pink = finished, yellow = solving, gray = idle
-        const dotColor = isDisconnected ? '#f44336' : hasFinished ? 'primary.main' : isSolving ? '#ffb300' : undefined;
+        const dotColor = isDisconnected
+          ? '#f44336'
+          : hasFinished
+            ? 'primary.main'
+            : isSolving
+              ? '#ffb300'
+              : undefined;
         const dotOpacity = isDisconnected || hasFinished || isSolving ? 1 : 0.3;
         const dotTooltip = isDisconnected
           ? t('room.disconnected')
@@ -205,8 +220,7 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                 <Typography sx={{ ...LABEL_SX, fontSize: '0.5rem', mb: 0.25 }}>
                   {t('room.last')}
                 </Typography>
-                <Typography
-                  sx={{ ...TIME_SX, color: 'text.secondary' }}>
+                <Typography sx={{ ...TIME_SX, color: 'text.secondary' }}>
                   {lastSolve ? getDisplayTime(lastSolve, precision) : '—'}
                 </Typography>
               </Box>
@@ -214,8 +228,7 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                 <Typography sx={{ ...LABEL_SX, fontSize: '0.5rem', mb: 0.25 }}>
                   {t('room.best')}
                 </Typography>
-                <Typography
-                  sx={{ ...TIME_SX, color: 'text.secondary' }}>
+                <Typography sx={{ ...TIME_SX, color: 'text.secondary' }}>
                   {bestTime !== null ? formatTime(bestTime, precision) : '—'}
                 </Typography>
               </Box>
@@ -243,7 +256,10 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                   <Typography
                     variant="caption"
                     sx={{ color: 'text.secondary', fontSize: '0.65rem' }}>
-                    avg: {globalAvg !== null ? formatTime(globalAvg, precision) : '-'}
+                    avg:{' '}
+                    {globalAvg !== null
+                      ? formatTime(globalAvg, precision)
+                      : '-'}
                   </Typography>
                 </Box>
               ) : (
@@ -255,13 +271,10 @@ const PlayerSidebar = observer(function PlayerSidebar() {
                   onClick={() => roomStore.kickPlayer(player.id)}
                   title={t('room.kick')}
                   sx={{ p: 0.25 }}>
-                  <LogoutIcon
-                    sx={{ fontSize: 13, color: 'text.secondary' }}
-                  />
+                  <LogoutIcon sx={{ fontSize: 13, color: 'text.secondary' }} />
                 </IconButton>
               )}
             </Box>
-
           </Box>
         );
       })}

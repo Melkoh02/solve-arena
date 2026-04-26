@@ -15,11 +15,17 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { useIsMobile } from '../../lib/hooks/useIsMobile';
-import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
+import {
+  getDisplayTime,
+  getDisplayTimeForExport,
+} from '../../lib/utils/formatTime';
 import type { RoomSolve } from '../../lib/types/room';
 import type { Penalty } from '../../lib/types/timer';
 
-import { CROSS_COLORS, CROSS_COLOR_LABEL } from '../../lib/constants/crossColors';
+import {
+  CROSS_COLORS,
+  CROSS_COLOR_LABEL,
+} from '../../lib/constants/crossColors';
 
 function formatDateFull(ts: number): string {
   const d = new Date(ts);
@@ -74,7 +80,9 @@ const SolveDetailModal = observer(function SolveDetailModal({
             borderRadius: 3,
             backgroundImage: 'none',
             mx: isMobile ? 1.5 : undefined,
-            my: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 16px)' : undefined,
+            my: isMobile
+              ? 'calc(env(safe-area-inset-top, 0px) + 16px)'
+              : undefined,
           },
         },
       }}>
@@ -101,7 +109,9 @@ const SolveDetailModal = observer(function SolveDetailModal({
           </Typography>
         </Box>
         <IconButton size={isMobile ? 'medium' : 'small'} onClick={onClose}>
-          <CloseIcon sx={{ fontSize: isMobile ? 24 : 18, color: 'text.secondary' }} />
+          <CloseIcon
+            sx={{ fontSize: isMobile ? 24 : 18, color: 'text.secondary' }}
+          />
         </IconButton>
       </DialogTitle>
       <DialogContent>
@@ -170,7 +180,11 @@ const SolveDetailModal = observer(function SolveDetailModal({
                 return (
                   <Box
                     key={c.key}
-                    onClick={isMe ? () => roomStore.updateCrossColor(solve.id, c.key) : undefined}
+                    onClick={
+                      isMe
+                        ? () => roomStore.updateCrossColor(solve.id, c.key)
+                        : undefined
+                    }
                     title={`${c.label} (${c.key.toUpperCase()})`}
                     sx={{
                       width: isMobile ? 36 : 28,
@@ -180,9 +194,7 @@ const SolveDetailModal = observer(function SolveDetailModal({
                       cursor: isMe ? 'pointer' : 'default',
                       border: '2px solid',
                       borderColor: isSelected ? 'primary.main' : 'transparent',
-                      boxShadow: isSelected
-                        ? `0 0 8px ${c.hex}80`
-                        : 'none',
+                      boxShadow: isSelected ? `0 0 8px ${c.hex}80` : 'none',
                       opacity: isSelected ? 1 : 0.5,
                       transition: 'all 0.15s',
                       '&:hover': isMe ? { opacity: 1 } : {},
@@ -283,7 +295,10 @@ const SolveDetailModal = observer(function SolveDetailModal({
               ].join('\n');
               navigator.clipboard.writeText(text);
             }}
-            sx={{ textTransform: 'none', fontSize: isMobile ? '0.85rem' : '0.75rem' }}>
+            sx={{
+              textTransform: 'none',
+              fontSize: isMobile ? '0.85rem' : '0.75rem',
+            }}>
             Copy
           </Button>
         </Box>

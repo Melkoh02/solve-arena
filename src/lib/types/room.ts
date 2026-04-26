@@ -47,7 +47,10 @@ export interface ClientToServerEvents {
   'leave-room': () => void;
   'submit-time': (data: { time: number; dnf?: boolean }) => void;
   'update-penalty': (data: { solveId: string; penalty: Penalty }) => void;
-  'update-cross-color': (data: { solveId: string; crossColor: CrossColor }) => void;
+  'update-cross-color': (data: {
+    solveId: string;
+    crossColor: CrossColor;
+  }) => void;
   'change-event': (data: { eventId: string }) => void;
   'kick-player': (data: { playerId: string }) => void;
   'next-scramble': () => void;

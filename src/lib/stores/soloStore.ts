@@ -93,9 +93,19 @@ export class SoloStore {
    * Returns history rows for the table: each solve with its rolling ao5/ao12.
    * Newest first. Uses small fixed-size windows instead of full-array copies.
    */
-  get historyRows(): { solve: SoloSolve; index: number; ao5: number | null; ao12: number | null }[] {
+  get historyRows(): {
+    solve: SoloSolve;
+    index: number;
+    ao5: number | null;
+    ao12: number | null;
+  }[] {
     const es = this.eventSolves;
-    const rows: { solve: SoloSolve; index: number; ao5: number | null; ao12: number | null }[] = [];
+    const rows: {
+      solve: SoloSolve;
+      index: number;
+      ao5: number | null;
+      ao12: number | null;
+    }[] = [];
 
     for (let i = es.length - 1; i >= 0; i--) {
       // Only slice the small window needed (max 12 elements), newest-first
@@ -113,13 +123,26 @@ export class SoloStore {
   }
 
   /** Sync a solve from a multiplayer room into local storage */
-  syncFromRoom(roomSolve: { id: string; time: number; penalty: string; scramble: string; date: number; crossColor?: CrossColor }, eventId: string) {
+  syncFromRoom(
+    roomSolve: {
+      id: string;
+      time: number;
+      penalty: string;
+      scramble: string;
+      date: number;
+      crossColor?: CrossColor;
+    },
+    eventId: string,
+  ) {
     const existing = this.solves.find(s => s.id === roomSolve.id);
     if (existing) {
       // Update penalty and crossColor if changed
       const newPenalty = (roomSolve.penalty as 'none' | '+2' | 'DNF') || 'none';
       const newCrossColor = roomSolve.crossColor ?? 'w';
-      if (existing.penalty !== newPenalty || existing.crossColor !== newCrossColor) {
+      if (
+        existing.penalty !== newPenalty ||
+        existing.crossColor !== newCrossColor
+      ) {
         existing.penalty = newPenalty;
         existing.crossColor = newCrossColor;
         this.saveToStorage();
@@ -253,7 +276,9 @@ export class SoloStore {
     } catch {
       try {
         // Fallback: request from server
-        const { data } = await axios.get(`${SOCKET_URL}/api/scramble/${this.eventId}`);
+        const { data } = await axios.get(
+          `${SOCKET_URL}/api/scramble/${this.eventId}`,
+        );
         runInAction(() => {
           this.currentScramble = data.scramble;
           this.isLoadingScramble = false;

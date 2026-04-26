@@ -17,7 +17,10 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import { useIsMobile } from '../../lib/hooks/useIsMobile';
-import { getDisplayTime, getDisplayTimeForExport } from '../../lib/utils/formatTime';
+import {
+  getDisplayTime,
+  getDisplayTimeForExport,
+} from '../../lib/utils/formatTime';
 import CrossColorPicker from '../room/CrossColorPicker';
 import type { SoloSolve } from '../../lib/stores/soloStore';
 import { CROSS_COLOR_LABEL } from '../../lib/constants/crossColors';
@@ -79,7 +82,9 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
             // On mobile we keep tighter side margins so the content has room
             mx: isMobile ? 1.5 : undefined,
             // Avoid the dialog hugging the edges of the safe area on iOS
-            my: isMobile ? 'calc(env(safe-area-inset-top, 0px) + 16px)' : undefined,
+            my: isMobile
+              ? 'calc(env(safe-area-inset-top, 0px) + 16px)'
+              : undefined,
           },
         },
       }}>
@@ -94,7 +99,9 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
           {t('room.solveDetails')}
         </Typography>
         <IconButton size={isMobile ? 'medium' : 'small'} onClick={onClose}>
-          <CloseIcon sx={{ fontSize: isMobile ? 24 : 18, color: 'text.secondary' }} />
+          <CloseIcon
+            sx={{ fontSize: isMobile ? 24 : 18, color: 'text.secondary' }}
+          />
         </IconButton>
       </DialogTitle>
       <DialogContent>
@@ -137,13 +144,17 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
           <ButtonGroup size={isMobile ? 'medium' : 'small'}>
             <Button
               variant={liveSolve.penalty === '+2' ? 'contained' : 'outlined'}
-              onClick={() => soloStore.updatePenalty(liveSolve.id, '+2' as Penalty)}
+              onClick={() =>
+                soloStore.updatePenalty(liveSolve.id, '+2' as Penalty)
+              }
               sx={{ minWidth: isMobile ? 64 : 48 }}>
               +2
             </Button>
             <Button
               variant={liveSolve.penalty === 'DNF' ? 'contained' : 'outlined'}
-              onClick={() => soloStore.updatePenalty(liveSolve.id, 'DNF' as Penalty)}
+              onClick={() =>
+                soloStore.updatePenalty(liveSolve.id, 'DNF' as Penalty)
+              }
               sx={{ minWidth: isMobile ? 64 : 48 }}>
               DNF
             </Button>
@@ -236,7 +247,10 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
               ].join('\n');
               navigator.clipboard.writeText(text);
             }}
-            sx={{ textTransform: 'none', fontSize: isMobile ? '0.85rem' : '0.75rem' }}>
+            sx={{
+              textTransform: 'none',
+              fontSize: isMobile ? '0.85rem' : '0.75rem',
+            }}>
             Copy
           </Button>
           <Button
@@ -247,10 +261,16 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
             onClick={() => {
               const exportFmt2 = settingsStore.timeFormat;
               const header = 'Time,Penalty,Scramble,CrossColor,Date';
-              const time = getDisplayTimeForExport(liveSolve, precision, exportFmt2);
-              const penalty = liveSolve.penalty === 'none' ? '' : liveSolve.penalty;
+              const time = getDisplayTimeForExport(
+                liveSolve,
+                precision,
+                exportFmt2,
+              );
+              const penalty =
+                liveSolve.penalty === 'none' ? '' : liveSolve.penalty;
               const scramble = `"${liveSolve.scramble.replace(/"/g, '""')}"`;
-              const cross = CROSS_COLOR_LABEL[liveSolve.crossColor] ?? liveSolve.crossColor;
+              const cross =
+                CROSS_COLOR_LABEL[liveSolve.crossColor] ?? liveSolve.crossColor;
               const date = formatDateFull(liveSolve.date);
               const csv = `${header}\n${time},${penalty},${scramble},${cross},${date}`;
               const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -261,7 +281,10 @@ const SoloSolveDetailModal = observer(function SoloSolveDetailModal({
               a.click();
               URL.revokeObjectURL(url);
             }}
-            sx={{ textTransform: 'none', fontSize: isMobile ? '0.85rem' : '0.75rem' }}>
+            sx={{
+              textTransform: 'none',
+              fontSize: isMobile ? '0.85rem' : '0.75rem',
+            }}>
             Export CSV
           </Button>
         </Box>
