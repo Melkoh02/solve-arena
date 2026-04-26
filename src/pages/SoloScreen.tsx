@@ -334,9 +334,15 @@ const SoloScreen = observer(function SoloScreen() {
           />
         )}
 
-        {/* Stats bar (rolling averages) */}
-        {!isTimerRunning && soloStore.eventSolves.length > 0 && (
-          <Stack direction="row" spacing={3}>
+        {/* Stats bar (rolling averages) — always rendered so the timer area
+            keeps a fixed footprint regardless of solve count. */}
+        {!isTimerRunning && (
+          <Stack
+            direction="row"
+            spacing={3}
+            sx={{
+              visibility: soloStore.eventSolves.length > 0 ? 'visible' : 'hidden',
+            }}>
             <Typography sx={{ ...LABEL_SX, fontSize: '1.3rem' }}>
               ao5: {formatAverage(soloStore.ao5, precision)}
             </Typography>
@@ -349,25 +355,30 @@ const SoloScreen = observer(function SoloScreen() {
         {/* Timer */}
         <Timer disabled={false} onColorStart={handleColorStart} />
 
-        {/* Previous solves stack (quick glance) */}
-        {!isTimerRunning && previousSolves.length > 0 && (
+        {/* Previous solves stack — always renders 4 slots so the history bar
+            below it doesn't drift as solves accumulate. */}
+        {!isTimerRunning && (
           <Box sx={{ textAlign: 'center', overflow: 'hidden' }}>
-            {previousSolves.map((solve, i) => (
-              <Typography
-                key={solve.id}
-                sx={{
-                  fontFamily: 'monospace',
-                  fontVariantNumeric: 'tabular-nums',
-                  fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
-                  fontWeight: 600,
-                  color: 'text.secondary',
-                  opacity: 0.5 - i * 0.08,
-                  lineHeight: 1.5,
-                  userSelect: 'none',
-                }}>
-                {getDisplayTime(solve, precision)}
-              </Typography>
-            ))}
+            {Array.from({ length: 4 }).map((_, i) => {
+              const solve = previousSolves[i];
+              return (
+                <Typography
+                  key={solve?.id ?? `placeholder-${i}`}
+                  sx={{
+                    fontFamily: 'monospace',
+                    fontVariantNumeric: 'tabular-nums',
+                    fontSize: `clamp(${0.8 - i * 0.1}rem, ${2.4 - i * 0.35}vw, ${2.4 - i * 0.35}rem)`,
+                    fontWeight: 600,
+                    color: 'text.secondary',
+                    opacity: 0.5 - i * 0.08,
+                    lineHeight: 1.5,
+                    userSelect: 'none',
+                    visibility: solve ? 'visible' : 'hidden',
+                  }}>
+                  {solve ? getDisplayTime(solve, precision) : '0.00'}
+                </Typography>
+              );
+            })}
           </Box>
         )}
       </Box>
