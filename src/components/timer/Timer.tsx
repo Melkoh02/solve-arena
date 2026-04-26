@@ -47,14 +47,13 @@ export function useTimerTouch(
         return;
       }
 
-      // Second tap during inspection: end inspection and arm ready.
-      // (DNF overrun is handled inside endInspection — phase becomes 'stopped'
-      // and the existing submission reactions record the DNF.)
+      // Touch during inspection arms the timer (countdown keeps ticking,
+      // display turns green). Release will end inspection and start the
+      // actual timer.
       if (timerStore.timerPhase === 'inspecting') {
-        const dnf = timerStore.endInspection(settingsStore.inspectionDuration);
-        if (!dnf) {
-          timerStore.setReady();
+        if (!isTouching.current) {
           isTouching.current = true;
+          timerStore.armInspection();
         }
         return;
       }
@@ -64,7 +63,7 @@ export function useTimerTouch(
 
         // First tap with inspection enabled: start inspection. The
         // subsequent touchend won't arm the timer because phase is
-        // 'inspecting', not 'ready'.
+        // 'inspecting' (not 'inspecting'+armed) at release time.
         if (
           settingsStore.inspectionEnabled &&
           (timerStore.timerPhase === 'idle' ||
@@ -87,13 +86,29 @@ export function useTimerTouch(
 
       isTouching.current = false;
 
+      // Armed during inspection: release ends inspection (records penalty
+      // or force-DNF) and starts the timer.
+      if (
+        timerStore.timerPhase === 'inspecting' &&
+        timerStore.inspectionArmed
+      ) {
+        const dnf = timerStore.endInspection(settingsStore.inspectionDuration);
+        if (!dnf) {
+          timerStore.setReady();
+          timerStore.startTimer();
+          rafRef.current = requestAnimationFrame(animate);
+          onColorStart?.('w');
+        }
+        return;
+      }
+
       if (timerStore.timerPhase === 'ready') {
         timerStore.startTimer();
         rafRef.current = requestAnimationFrame(animate);
         onColorStart?.('w');
       }
     },
-    [timerStore, animate, disabled, onColorStart],
+    [timerStore, settingsStore, animate, disabled, onColorStart],
   );
 
   return { onTouchStart, onTouchEnd };
@@ -275,18 +290,16 @@ const Timer = observer(function Timer({
       const colorKey = getColorFromEvent(e, settingsStore.shortcuts);
       const isSpace = e.code === 'Space';
 
-      // Inspecting → space/colorKey ends inspection and arms preparing/ready
-      // (or short-circuits to a DNF if the cuber overran by more than 2s).
+      // Inspecting → arm the timer. The countdown KEEPS ticking; release
+      // ends inspection and starts the timer. Either space or a color key
+      // can arm — the color key (if any) is captured for the cross color.
       if (timerStore.timerPhase === 'inspecting') {
         if (!isSpace && !colorKey) return;
         e.preventDefault();
         if (!isKeyDown.current) {
           isKeyDown.current = true;
           pendingColorRef.current = colorKey ?? 'w';
-          const dnf = timerStore.endInspection(settingsStore.inspectionDuration);
-          if (!dnf) {
-            beginPrepareOrReady(isSpace);
-          }
+          timerStore.armInspection();
         }
         return;
       }
@@ -299,20 +312,25 @@ const Timer = observer(function Timer({
       if (Date.now() - stopTimestamp.current < 300) return;
 
       if (!isKeyDown.current) {
-        isKeyDown.current = true;
-        pendingColorRef.current = colorKey ?? 'w';
-
-        // If inspection is enabled and we're starting fresh, enter inspection
-        // instead of preparing. Don't enter inspection from any other phase.
-        if (
-          settingsStore.inspectionEnabled &&
-          (timerStore.timerPhase === 'idle' ||
-            timerStore.timerPhase === 'stopped')
-        ) {
-          timerStore.startInspection();
+        // With inspection enabled, only spacebar starts the inspection.
+        // Color keys in idle/stopped are ignored — they're for arming the
+        // timer once inspection has begun, where they also set the cross
+        // color of the upcoming solve.
+        if (settingsStore.inspectionEnabled) {
+          if (!isSpace) return;
+          if (
+            timerStore.timerPhase === 'idle' ||
+            timerStore.timerPhase === 'stopped'
+          ) {
+            isKeyDown.current = true;
+            pendingColorRef.current = 'w';
+            timerStore.startInspection();
+          }
           return;
         }
 
+        isKeyDown.current = true;
+        pendingColorRef.current = colorKey ?? 'w';
         beginPrepareOrReady(isSpace);
       }
     };
@@ -331,6 +349,23 @@ const Timer = observer(function Timer({
 
       if (disabled) return;
       e.preventDefault();
+
+      // Armed during inspection: release ends inspection (records penalty,
+      // exits to 'idle' or 'stopped'+DNF) and starts the timer. The cross
+      // color was captured at arm-time in pendingColorRef.
+      if (
+        timerStore.timerPhase === 'inspecting' &&
+        timerStore.inspectionArmed
+      ) {
+        const dnf = timerStore.endInspection(settingsStore.inspectionDuration);
+        if (!dnf) {
+          timerStore.setReady();
+          timerStore.startTimer();
+          rafRef.current = requestAnimationFrame(animate);
+          onColorStart?.(pendingColorRef.current ?? 'w');
+        }
+        return;
+      }
 
       if (timerStore.timerPhase === 'ready') {
         // Held long enough → start timer
@@ -408,6 +443,7 @@ const Timer = observer(function Timer({
   } as const;
 
   // Inspecting phase: show countdown number (or "+1" / "+2" overrun marker).
+  // Color priority: red overrun > green armed > orange counting.
   if (timerStore.timerPhase === 'inspecting') {
     const duration = settingsStore.inspectionDuration;
     const elapsedSec = timerStore.inspectionElapsedMs / 1000;
@@ -416,11 +452,11 @@ const Timer = observer(function Timer({
     let color: string;
     if (remaining > 0) {
       label = String(Math.ceil(remaining));
-      color = '#ffa726'; // warning orange
+      color = timerStore.inspectionArmed ? '#4caf50' : '#ffa726';
     } else {
       const overrun = -remaining;
       label = overrun <= 1 ? '+1' : '+2';
-      color = '#f44336'; // overrun red
+      color = '#f44336';
     }
     return <Typography sx={{ ...baseSx, color }}>{label}</Typography>;
   }

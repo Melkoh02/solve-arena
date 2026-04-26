@@ -16,6 +16,9 @@ export class TimerStore {
   inspectionStartTime: number | null = null;
   inspectionElapsedMs = 0;
   inspectionPenalty: InspectionPenalty = 'none';
+  /** True while the user is holding the start key during inspection. The
+   * countdown keeps ticking; release will end inspection and start the timer. */
+  inspectionArmed = false;
 
   constructor() {
     makeAutoObservable(this, {
@@ -87,10 +90,18 @@ export class TimerStore {
     this.inspectionStartTime = Date.now();
     this.inspectionElapsedMs = 0;
     this.inspectionPenalty = 'none';
+    this.inspectionArmed = false;
     this.displayTime = 0;
     this.lastStopWasDnf = false;
     this.showDnf = false;
     this.timerPhase = 'inspecting';
+  }
+
+  /** Arm the timer during inspection: user is holding the start key.
+   * The countdown keeps ticking; release ends inspection and starts the timer. */
+  armInspection() {
+    if (this.timerPhase !== 'inspecting') return;
+    this.inspectionArmed = true;
   }
 
   /** Update inspection elapsed time from the wall clock. Called by RAF loop. */
@@ -119,6 +130,7 @@ export class TimerStore {
     const limitMs = durationSeconds * 1000;
     this.inspectionStartTime = null;
     this.inspectionElapsedMs = 0;
+    this.inspectionArmed = false;
     if (elapsed <= limitMs) {
       this.inspectionPenalty = 'none';
       this.timerPhase = 'idle';
@@ -144,6 +156,7 @@ export class TimerStore {
     this.inspectionStartTime = null;
     this.inspectionElapsedMs = 0;
     this.inspectionPenalty = 'none';
+    this.inspectionArmed = false;
     this.displayTime = 0;
   }
 
@@ -160,6 +173,7 @@ export class TimerStore {
     this.inspectionStartTime = null;
     this.inspectionElapsedMs = 0;
     this.inspectionPenalty = 'none';
+    this.inspectionArmed = false;
   }
 
   /** Clear the consumed inspection penalty after a solve has been recorded. */
@@ -175,5 +189,6 @@ export class TimerStore {
     this.inspectionStartTime = null;
     this.inspectionElapsedMs = 0;
     this.inspectionPenalty = 'none';
+    this.inspectionArmed = false;
   }
 }
