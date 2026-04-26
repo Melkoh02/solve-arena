@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-04-26
+
+Mobile-mode polish across history, timer keys, and scramble preview.
+
+### Fixed
+
+- **Scramble preview shortcut (`E` hold / `Ctrl+E` toggle) didn't work on mobile.** The keyboard handler was inline in `ScrambleDisplay`, which is only mounted on the desktop layout — the mobile path renders `MobileScramblePanel` instead, so the shortcut was effectively unbound whenever `useIsMobile()` returned `true` (auto on narrow viewports, or whenever the user explicitly chose Mobile in Settings). Extracted the handler into a shared `useScramblePreviewShortcut` hook used by both the desktop `ScrambleDisplay` and the mobile `MobileSoloLayout` / `MobileRoomLayout`. Same-tab `localStorage` updates don't fire `storage` events, so the previous attempted sync-via-storage was always going to miss; the shared hook avoids that path entirely.
+- **Tapping the mobile scramble pill, then pressing space, fired both the timer AND the bottom sheet.** `MobileScramblePanel` uses `<ButtonBase component="div">`, which renders a `<div role="button">`. The Timer's keydown blur logic only checked `tag === 'BUTTON'`, so the div retained focus across the tap; on the next space press, ButtonBase's keyup activated `onClick` (re-opened the sheet) while the Timer also processed the keypress. Now Timer also blurs elements with `role="button"`, so the keyup fires on body and ButtonBase's activation never sees it.
+- **Mobile history infinite scroll only loaded one page.** The `IntersectionObserver` setup used `useRef` for both the sentinel and the scroll container, but MUI's `Drawer` lazily mounts its paper (`keepMounted: false`); the effect ran once with both refs still `null`, hit the early-return, and never re-ran because refs aren't reactive. Switching to callback refs backed by `useState` makes the elements reactive — when React attaches them, the effect re-runs with the real DOM nodes and the observer is created.
+- **Mobile history drawer had a vast scrollable empty area below the last card.** A 1px `<Box>` was used as the IO sentinel; the combination of single-pixel target + `IntersectionObserver` + `rootMargin: 300px` interacted unpredictably and inflated `scrollHeight` past actual content, letting the user scroll indefinitely past `#1` into a completely empty region. Bumping the sentinel to 8px (still visually negligible against the existing card spacing) makes the layout deterministic. Restructured the drawer body to use CSS Grid (`gridTemplateRows: 'auto auto minmax(0, 1fr)'`) for rigid row sizing, and added `overscrollBehavior: 'contain'` to the scroll container to prevent scroll chaining. Same fix applied to multiplayer's `MobileResultsList`.
+
+### Internal / Infra
+
+- **CLAUDE.md** now documents two new conventions: deploys require explicit user consent (label like "asap"/"urgent" applies to the fix, not the push), and changes must consider mobile parity (the mobile layout is also used on narrow desktop windows, so any handler / focus / shortcut behavior needs equivalent coverage in both layouts). Also added: debug instrumentation (color paints, console.logs, large sentinels) never lands on `develop` — debug branches stay local; the actual fix goes onto a fresh `fix/*` branch.
+
 ## [1.3.1] - 2026-04-25
 
 ### Fixed
@@ -126,6 +141,7 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.3.2]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.2
 [1.3.1]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.1
 [1.3.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.0
 [1.2.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.2.0
