@@ -35,4 +35,19 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['cubing'],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('@mui') || id.includes('@emotion')) return 'mui';
+          if (id.includes('/mobx/') || id.includes('/mobx-react-lite/'))
+            return 'mobx';
+          if (id.includes('react-router')) return 'react-router';
+          if (id.includes('/i18next/') || id.includes('/react-i18next/'))
+            return 'i18n';
+        },
+      },
+    },
+  },
 });
