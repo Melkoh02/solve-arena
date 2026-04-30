@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.2] - 2026-04-30
+
+### Fixed
+
+- **Share-invite message contained the URL twice when sent through the native share sheet** — once on its own line, then again at the end of the templated text. `navigator.share({ text, url })` lets the receiving app stitch the two fields together, and many targets (Messages, Mail, Slack) concatenate them. Since our `text` already embeds the URL via the `room.shareInvite` template, the dedicated `url` field was redundant. Dropping it leaves a single clean message with the link inline.
+
 ## [1.4.1] - 2026-04-30
 
 ### Fixed
@@ -203,6 +209,7 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.4.2]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.4.2
 [1.4.1]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.4.1
 [1.4.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.4.0
 [1.3.5]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.5
