@@ -74,6 +74,19 @@ export class TimerStore {
     }
   }
 
+  /** Abort a running timer without recording a solve. Returns to idle so the
+   * solve-submission reactions (which key off the running→stopped transition)
+   * never see the solve. */
+  cancelRunning() {
+    if (this.timerPhase !== 'running') return;
+    this.timerPhase = 'idle';
+    this.startTime = null;
+    this.displayTime = 0;
+    this.lastStopWasDnf = false;
+    this.showDnf = false;
+    this.inspectionPenalty = 'none';
+  }
+
   updateDisplayTime(time: number) {
     this.displayTime = time;
   }

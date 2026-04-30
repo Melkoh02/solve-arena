@@ -256,6 +256,21 @@ const Timer = observer(function Timer({
         return;
       }
 
+      // Backspace / Delete during a running solve cancels it: timer aborts
+      // and no solve is recorded. After the solve is submitted, the existing
+      // per-solve delete UI is what the user reaches for.
+      if (
+        timerStore.timerPhase === 'running' &&
+        (e.code === 'Backspace' || e.code === 'Delete')
+      ) {
+        e.preventDefault();
+        timerStore.cancelRunning();
+        stopTimestamp.current = Date.now();
+        isKeyDown.current = false;
+        clearHoldTimer();
+        return;
+      }
+
       // Most keys stop a running timer; Escape also flags as DNF.
       // Modifier-only keys (Ctrl, Alt, Shift, Meta, Tab, CapsLock, F1-F12) are
       // ignored so system shortcuts / app focus changes don't stop the timer.
