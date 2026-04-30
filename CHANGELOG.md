@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.1] - 2026-04-30
+
+### Fixed
+
+- **Share-invite text contained HTML-encoded slashes (`https:&#x2F;&#x2F;…`) when copied to the clipboard or sent through the Web Share API.** i18next escapes interpolated values by default, which is harmless when the result is rendered into JSX (React's own escaping handles the `&#x2F;` correctly), but the share path passes the `t()` result straight to `navigator.share` / `navigator.clipboard.writeText`, where the encoded entities surface literally. Set `interpolation: { escapeValue: false }` in the i18n init — the standard React + i18next config, since React handles its own escaping at the rendering layer.
+
 ## [1.4.0] - 2026-04-30
 
 Mobile-focused round of fixes and features: native share invites, exit confirmation, scramble navigation in solo, redesigned multiplayer sidebar, plus a long-standing reconnection bug fix.
@@ -197,6 +203,7 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.4.1]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.4.1
 [1.4.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.4.0
 [1.3.5]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.5
 [1.3.4]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.4
