@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-04-30
+
+Mobile-focused round of fixes and features: native share invites, exit confirmation, scramble navigation in solo, redesigned multiplayer sidebar, plus a long-standing reconnection bug fix.
+
+### Added
+
+- **Prev/next scramble buttons in solo mode.** Press prev once to recall the scramble of the most recently completed solve (the "I accidentally hit space, let me redo that" affordance); press next to roll a brand-new scramble. Forward navigation is unlimited, prev floors at one-step-back. Solves bind to whatever scramble is on screen when the timer starts, regardless of how many prev/next presses got you there. After a solve completes, the just-completed scramble becomes the new prev floor and a fresh scramble becomes the new starting point. New `scrambleStack` + `scrambleStackIndex` on `soloStore` model the navigable window. Buttons render in both the desktop `ScrambleDisplay` and the mobile `MobileScramblePanel`; hidden in multiplayer where the server controls scrambles.
+- **Share-invite button replaces the room-code copy button.** Generates a templated invite (`{name} invited you to a Solve Arena, join here: {url}`) and either pops the native share sheet (Web Share API on iOS / Android) or copies the full message to the clipboard (desktop browsers without `navigator.share`). Wired into all four code-display surfaces — desktop sidebar, desktop top bar, mobile top bar, mobile sidebar sheet.
+- **Exit-confirmation modal in multiplayer.** Guards the Leave button against desktop misclicks and the swipe-back gesture / hardware back button on mobile. The Dialog opens on Leave click; on entering a room a sentinel history entry is pushed so the next back gesture pops to the sentinel and triggers the dialog instead of leaving. Cancelling re-pushes the sentinel so subsequent back gestures are also caught.
+- **3-finger tap on the mobile solo timer area opens a delete-confirm for the most recent solve.** Quick gesture for "I just did a bad solve and want it gone" without opening the history drawer. Cancels any in-flight preparing/ready/inspecting state on detection so the gesture doesn't accidentally arm the timer.
+- **Backspace and Delete cancel a running solve.** New `timerStore.cancelRunning()` aborts the timer back to idle without entering the `stopped` phase, so the solve-submission reactions never see the cancelled run and no time is recorded. After a solve has completed, the existing per-solve delete UI is what the user reaches for.
+- **`Best` time added to the mobile multiplayer history bottomsheet** — both the peek bar and the expanded header. Previously only `Worst` and `Avg` were shown.
+
+### Changed
+
+- **Mobile multiplayer sidebar bottomsheet rewritten to feel native** instead of being the desktop sidebar embedded in a sheet. Header simplified to room code + share + close (the user's identity is shown in their own player card below, no need to repeat it). Each player card has bigger fonts, real breathing room, an `isMe` highlight, host badge, win count, status dot, and `Current` / `Last` / `Best` stat columns sized to actually be readable on a phone. Opponents additionally get ao5 / ao12 / avg as a tertiary row. Leave is now a prominent full-width action at the bottom.
+- **Multiplayer history bottomsheet now always renders** instead of hiding until at least one round has fully completed. Empty-state copy ("No completed rounds yet") is shown inside when there's nothing to display, so users joining a fresh room can still see the affordance.
+- **Reset button on the host controls now closes the mobile sidebar sheet** via a new `onAfterReset` callback. Previously the sheet stayed open after the action.
+- **Dropped the "Scramble" label above the scramble pill on mobile** to save vertical space; the `Custom` indicator stays since the visual highlight alone wasn't conveying that state strongly enough.
+
+### Fixed
+
+- **Multiplayer reconnection race after backgrounding the browser produced a 3-player ghost in a 2-player room and stranded the user's solves on an abandoned id.** When a mobile client wakes from background it can reconnect with a new socket id and emit `rejoin-room` *before* the server's ping timeout (60s) has detected the old socket is dead — leaving the abandoned entry in `room.players` with `disconnected: false`. The handler's old condition (`oldPlayer && oldPlayer.disconnected`) skipped the transfer in that race and added the new socket as a fresh player without removing the stale one. Now the transfer runs whenever `oldPlayer` exists in the room, and the abandoned socket is force-disconnected so its eventual disconnect handler no-ops instead of starting a stray 30-second grace timer.
+- **`Best time so far` PB toast on mobile overlapped the history-drawer peek bar's tap target.** Snackbar now lifts ~80 px (plus safe-area inset) above the default position when `useIsMobile()` is true, in both Solo and Room.
+
 ## [1.3.5] - 2026-04-26
 
 Vendor chunk splitting for better cache reuse across deploys.
@@ -172,6 +197,7 @@ Initial release of Solve Arena.
 - socket.io 4.8 client/server
 - Custom domain: `solvearena.net` (GitHub Pages CNAME)
 
+[1.4.0]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.4.0
 [1.3.5]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.5
 [1.3.4]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.4
 [1.3.3]: https://github.com/Melkoh02/solve-arena/releases/tag/v1.3.3
