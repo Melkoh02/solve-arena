@@ -370,6 +370,10 @@ const SoloScreen = observer(function SoloScreen() {
                 onSetCustom={s => soloStore.setCustomScramble(s)}
                 onClearCustom={() => soloStore.clearCustomScramble()}
                 onManualTime={ms => soloStore.addManualSolve(ms)}
+                onPrevScramble={() => soloStore.prevScramble()}
+                onNextScramble={() => soloStore.nextScramble()}
+                canPrevScramble={soloStore.canPrevScramble}
+                canNextScramble={soloStore.canNextScramble}
               />
             )}
 
@@ -608,12 +612,20 @@ const SoloScreen = observer(function SoloScreen() {
         </DialogActions>
       </Dialog>
 
-      {/* PB notification */}
+      {/* PB notification — on mobile, lift above the history peek bar so
+          the toast doesn't cover the trigger that opens the drawer. */}
       <Snackbar
         open={!!soloStore.pbNotification}
         autoHideDuration={3000}
         onClose={() => soloStore.clearPbNotification()}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={
+          useMobileLayout
+            ? {
+                bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
+              }
+            : undefined
+        }
         message={
           soloStore.pbNotification && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

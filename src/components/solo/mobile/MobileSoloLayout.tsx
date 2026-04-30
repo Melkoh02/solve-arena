@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react';
 import { observer } from 'mobx-react-lite';
-import { Box, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Stack,
+  Typography,
+} from '@mui/material';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../../lib/hooks/useStore';
 import { useScramblePreviewShortcut } from '../../../lib/hooks/useScramblePreviewShortcut';
@@ -46,6 +55,9 @@ const MobileSoloLayout = observer(function MobileSoloLayout({
 
   const [scrambleSheetOpen, setScrambleSheetOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [deleteLastTarget, setDeleteLastTarget] = useState<SoloSolve | null>(
+    null,
+  );
   const [showPreview, setShowPreview] = useState(() => {
     try {
       return localStorage.getItem(PREVIEW_KEY) === 'true';
@@ -82,6 +94,29 @@ const MobileSoloLayout = observer(function MobileSoloLayout({
   // ScrambleDisplay registers the same hook; only one is mounted at a time.
   useScramblePreviewShortcut(setShowPreview, PREVIEW_KEY);
 
+  // 3-finger tap on the timer area requests deletion of the most recent
+  // solve. Wraps the timer touch handler: the first finger already armed
+  // the timer (preparing/ready/inspecting), so we cancel that state when we
+  // detect the gesture. Only fires before the timer starts running — once
+  // a real solve is in progress we leave the touch flow alone.
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (
+      e.touches.length >= 3 &&
+      (timerStore.timerPhase === 'idle' ||
+        timerStore.timerPhase === 'stopped' ||
+        timerStore.timerPhase === 'preparing' ||
+        timerStore.timerPhase === 'ready' ||
+        timerStore.timerPhase === 'inspecting')
+    ) {
+      e.preventDefault();
+      timerStore.resetToIdle();
+      const last = soloStore.lastSolve;
+      if (last) setDeleteLastTarget(last);
+      return;
+    }
+    onTouchStart(e);
+  };
+
   return (
     <Box
       sx={{
@@ -109,13 +144,17 @@ const MobileSoloLayout = observer(function MobileSoloLayout({
             isCustom={soloStore.isCustomScramble}
             showPreview={showPreview}
             onOpenActions={() => setScrambleSheetOpen(true)}
+            onPrevScramble={() => soloStore.prevScramble()}
+            onNextScramble={() => soloStore.nextScramble()}
+            canPrevScramble={soloStore.canPrevScramble}
+            canNextScramble={soloStore.canNextScramble}
           />
         </Box>
       )}
 
       {/* Timer area — fills remaining space, full-screen when running */}
       <Box
-        onTouchStart={onTouchStart}
+        onTouchStart={handleTouchStart}
         onTouchEnd={onTouchEnd}
         sx={{
           flex: 1,
@@ -220,6 +259,57 @@ const MobileSoloLayout = observer(function MobileSoloLayout({
         onSetCustomScramble={s => soloStore.setCustomScramble(s)}
         onManualTime={ms => soloStore.addManualSolve(ms)}
       />
+
+      {/* 3-finger-tap delete confirmation. Same shape as the per-solve
+          confirmation in HistoryDrawer; kept inline so the timer-area
+          gesture can request a delete without going through the drawer. */}
+      <Dialog
+        open={!!deleteLastTarget}
+        onClose={() => setDeleteLastTarget(null)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              backgroundImage: 'none',
+              mx: 2,
+            },
+          },
+        }}>
+        <DialogTitle sx={{ pb: 0.5, fontSize: '1.05rem', fontWeight: 700 }}>
+          {t('solo.deleteSolve')}
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.95rem', color: 'text.secondary' }}>
+            {t('solo.deleteSolveConfirm', {
+              time: deleteLastTarget
+                ? getDisplayTime(deleteLastTarget, precision)
+                : '',
+            })}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button
+            onClick={() => setDeleteLastTarget(null)}
+            sx={{ textTransform: 'none', minWidth: 96 }}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              if (deleteLastTarget) soloStore.deleteSolve(deleteLastTarget.id);
+              setDeleteLastTarget(null);
+            }}
+            sx={{ textTransform: 'none', minWidth: 96 }}>
+            {t('common.confirm')}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 });
