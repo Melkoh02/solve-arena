@@ -1,6 +1,6 @@
 import { Box, IconButton, Stack, Typography } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ShareIcon from '@mui/icons-material/Share';
 import SettingsIcon from '@mui/icons-material/Settings';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ export interface MobileRoomTopBarProps {
   onOpenSidebar: () => void;
   onOpenSettings: () => void;
   onLeave: () => void;
-  onCopyCode: () => void;
+  onShareInvite: () => void;
 }
 
 export default function MobileRoomTopBar({
@@ -20,7 +20,7 @@ export default function MobileRoomTopBar({
   onOpenSidebar,
   onOpenSettings,
   onLeave,
-  onCopyCode,
+  onShareInvite,
 }: MobileRoomTopBarProps) {
   const { t } = useTranslation();
   return (
@@ -63,10 +63,10 @@ export default function MobileRoomTopBar({
         </Typography>
         <IconButton
           size="small"
-          onClick={onCopyCode}
-          aria-label="Copy room code"
+          onClick={onShareInvite}
+          aria-label={t('room.shareTitle')}
           sx={{ p: 0.75, color: 'text.secondary' }}>
-          <ContentCopyIcon sx={{ fontSize: 16 }} />
+          <ShareIcon sx={{ fontSize: 16 }} />
         </IconButton>
       </Stack>
       <Stack
