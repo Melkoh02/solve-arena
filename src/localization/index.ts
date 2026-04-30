@@ -53,6 +53,12 @@ void i18n
       resources,
       fallbackLng: 'en',
       react: { useSuspense: false },
+      // React already escapes when rendering text, and we also use t() to
+      // build plain-text strings (e.g. share-invite messages). Letting
+      // i18next escape HTML special chars on top would either double-escape
+      // in JSX or surface as literal `&#x2F;` in URLs sent to the clipboard
+      // / Web Share API.
+      interpolation: { escapeValue: false },
     },
     () => {
       // ready
