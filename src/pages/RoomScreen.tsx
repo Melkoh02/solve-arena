@@ -367,9 +367,13 @@ const RoomScreen = observer(function RoomScreen() {
     // Native share sheet on iOS/Android. Fall back to clipboard everywhere
     // else (desktop browsers without Web Share API). User-cancelled share
     // throws AbortError, which we silently ignore.
+    //
+    // We deliberately omit the `url` field: many share targets concatenate
+    // `text` + `url`, and our `text` already contains the URL — so passing
+    // both makes it show up twice in the shared message.
     if (typeof navigator.share === 'function') {
       try {
-        await navigator.share({ title: t('room.shareTitle'), text, url });
+        await navigator.share({ title: t('room.shareTitle'), text });
         return;
       } catch (err) {
         if ((err as DOMException)?.name === 'AbortError') return;
