@@ -201,8 +201,14 @@ io.on('connection', socket => {
       }
 
       const oldPlayer = room.players.get(oldPlayerId);
-      if (oldPlayer && oldPlayer.disconnected) {
-        // Restore: transfer old player data to new socket id
+      if (oldPlayer) {
+        // Transfer the old identity onto the new socket id whether or not
+        // the old player is currently flagged as disconnected. A mobile
+        // wake-up can race the server's ping-timeout: the new socket
+        // arrives with rejoin-room before the old socket's disconnect has
+        // been detected, so the old entry is still `disconnected: false`.
+        // Without this transfer the user appears as a duplicate (the
+        // 3-player ghost) and their solves stay bound to the abandoned id.
         const wasHost = oldPlayer.isHost || room.hostId === oldPlayerId;
         room.players.delete(oldPlayerId);
         room.players.set(socket.id, {
@@ -213,14 +219,21 @@ io.on('connection', socket => {
         if (wasHost) {
           room.hostId = socket.id;
         }
-        // Update all solves to point to new socket id
         for (const solve of room.solves) {
           if (solve.playerId === oldPlayerId) {
             solve.playerId = socket.id;
           }
         }
+        // Force-disconnect the abandoned socket if it's still alive. Its
+        // disconnect handler will no-op because the player has already
+        // been removed from `room.players`, so it won't start a stray
+        // 30-second grace timer that would re-resurrect the ghost.
+        const stale = io.sockets.sockets.get(oldPlayerId);
+        if (stale && stale.id !== socket.id) {
+          stale.disconnect();
+        }
       } else {
-        // Old player not found or not disconnected, join as new
+        // Old player truly gone (grace expired or never existed) — join as new.
         room.players.set(socket.id, {
           id: socket.id,
           name: playerName,
