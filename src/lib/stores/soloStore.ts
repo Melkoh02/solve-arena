@@ -28,6 +28,23 @@ export class SoloStore {
   isLoadingScramble = false;
   isCustomScramble = false;
   pbNotification: string | null = null;
+  /**
+   * Per-session scramble navigation. `scrambleStack[0]` is the prev-floor
+   * (the scramble of the most recently completed solve, when one exists);
+   * subsequent entries are the original starting scramble and any
+   * newly-generated scrambles from pressing "next". `scrambleStackIndex`
+   * points at the currently displayed entry.
+   *
+   * Rules:
+   * - prev: at most one step back from the starting position (down to index
+   *   0, the floor). Disabled when at index 0.
+   * - next: unlimited; appends a new scramble when already at the front.
+   * - Recording: solves bind to `currentScramble` at start time; this is
+   *   always `scrambleStack[scrambleStackIndex]` unless a custom scramble
+   *   is active, in which case prev/next are disabled.
+   */
+  scrambleStack: string[] = [];
+  scrambleStackIndex = 0;
 
   constructor() {
     makeAutoObservable(this);
@@ -237,6 +254,30 @@ export class SoloStore {
     return true;
   }
 
+  get canPrevScramble(): boolean {
+    return !this.isCustomScramble && this.scrambleStackIndex > 0;
+  }
+
+  get canNextScramble(): boolean {
+    return !this.isCustomScramble && !this.isLoadingScramble;
+  }
+
+  prevScramble() {
+    if (!this.canPrevScramble) return;
+    this.scrambleStackIndex -= 1;
+    this.currentScramble = this.scrambleStack[this.scrambleStackIndex] ?? '';
+  }
+
+  async nextScramble() {
+    if (!this.canNextScramble) return;
+    if (this.scrambleStackIndex < this.scrambleStack.length - 1) {
+      this.scrambleStackIndex += 1;
+      this.currentScramble = this.scrambleStack[this.scrambleStackIndex] ?? '';
+      return;
+    }
+    await this.generateScramble({ append: true });
+  }
+
   setCustomScramble(scramble: string) {
     this.currentScramble = scramble.trim();
     this.isCustomScramble = true;
@@ -263,33 +304,46 @@ export class SoloStore {
     this.saveToStorage();
   }
 
-  async generateScramble() {
+  async generateScramble({ append = false }: { append?: boolean } = {}) {
     this.isLoadingScramble = true;
+    let next: string | null = null;
     try {
       // Primary: generate client-side (works offline)
       const { randomScrambleForEvent } = await import('cubing/scramble');
       const scramble = await randomScrambleForEvent(this.eventId);
-      runInAction(() => {
-        this.currentScramble = scramble.toString();
-        this.isLoadingScramble = false;
-      });
+      next = scramble.toString();
     } catch {
       try {
         // Fallback: request from server
         const { data } = await axios.get(
           `${SOCKET_URL}/api/scramble/${this.eventId}`,
         );
-        runInAction(() => {
-          this.currentScramble = data.scramble;
-          this.isLoadingScramble = false;
-        });
+        next = data.scramble;
       } catch {
-        runInAction(() => {
-          this.currentScramble = 'Error generating scramble';
-          this.isLoadingScramble = false;
-        });
+        next = 'Error generating scramble';
       }
     }
+    runInAction(() => {
+      const value = next ?? '';
+      this.currentScramble = value;
+      if (append) {
+        this.scrambleStack = [...this.scrambleStack, value];
+        this.scrambleStackIndex = this.scrambleStack.length - 1;
+      } else {
+        // Reset path: rebuild the stack with the most recently completed
+        // solve's scramble as the prev-floor (if any) so the user can step
+        // back exactly once to redo it.
+        const floor = this.lastSolve?.scramble;
+        if (floor && floor !== value) {
+          this.scrambleStack = [floor, value];
+          this.scrambleStackIndex = 1;
+        } else {
+          this.scrambleStack = [value];
+          this.scrambleStackIndex = 0;
+        }
+      }
+      this.isLoadingScramble = false;
+    });
   }
 
   private saveToStorage() {

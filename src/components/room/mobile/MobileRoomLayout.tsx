@@ -22,7 +22,7 @@ export interface MobileRoomLayoutProps {
   onTouchEnd: (e: React.TouchEvent) => void;
   onOpenSettings: () => void;
   onLeave: () => void;
-  onCopyCode: () => void;
+  onShareInvite: () => void;
   isTimerDisabled: boolean;
 }
 
@@ -32,7 +32,7 @@ const MobileRoomLayout = observer(function MobileRoomLayout({
   onTouchEnd,
   onOpenSettings,
   onLeave,
-  onCopyCode,
+  onShareInvite,
   isTimerDisabled,
 }: MobileRoomLayoutProps) {
   const { roomStore, settingsStore, timerStore } = useStore();
@@ -140,7 +140,7 @@ const MobileRoomLayout = observer(function MobileRoomLayout({
           onOpenSidebar={() => setSidebarOpen(true)}
           onOpenSettings={onOpenSettings}
           onLeave={onLeave}
-          onCopyCode={onCopyCode}
+          onShareInvite={onShareInvite}
         />
       )}
 
@@ -283,7 +283,7 @@ const MobileRoomLayout = observer(function MobileRoomLayout({
           setSidebarOpen(false);
           onLeave();
         }}
-        onCopyCode={onCopyCode}
+        onShareInvite={onShareInvite}
       />
 
       {/* Scramble actions — multiplayer omits "edit scramble" since the

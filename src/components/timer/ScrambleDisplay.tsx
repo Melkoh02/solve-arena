@@ -13,6 +13,8 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import EditIcon from '@mui/icons-material/Edit';
 import MoreTimeIcon from '@mui/icons-material/MoreTime';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { observer } from 'mobx-react-lite';
 import { useTranslation } from 'react-i18next';
 import { formatTime } from '../../lib/utils/formatTime';
@@ -73,6 +75,13 @@ interface ScrambleDisplayProps {
   onSetCustom?: (scramble: string) => void;
   onClearCustom?: () => void;
   onManualTime?: (timeMs: number) => void;
+  /** Solo-only: prev/next scramble navigation. Pass both or neither — when
+   * undefined the buttons are hidden (multiplayer drives scrambles from the
+   * server, so this control is suppressed there). */
+  onPrevScramble?: () => void;
+  onNextScramble?: () => void;
+  canPrevScramble?: boolean;
+  canNextScramble?: boolean;
 }
 
 const ScrambleDisplay = observer(function ScrambleDisplay({
@@ -83,6 +92,10 @@ const ScrambleDisplay = observer(function ScrambleDisplay({
   onSetCustom,
   onClearCustom,
   onManualTime,
+  onPrevScramble,
+  onNextScramble,
+  canPrevScramble = false,
+  canNextScramble = false,
 }: ScrambleDisplayProps) {
   const { t } = useTranslation();
   const { settingsStore } = useStore();
@@ -206,6 +219,36 @@ const ScrambleDisplay = observer(function ScrambleDisplay({
             }}>
             <MoreTimeIcon sx={{ fontSize: 14 }} />
           </IconButton>
+        )}
+        {onPrevScramble && onNextScramble && (
+          <>
+            <IconButton
+              size="small"
+              onClick={onPrevScramble}
+              disabled={!canPrevScramble}
+              aria-label={t('timer.prevScramble')}
+              sx={{
+                p: 0.25,
+                color: 'text.secondary',
+                opacity: canPrevScramble ? 0.7 : 0.25,
+                '&:hover': { opacity: canPrevScramble ? 1 : 0.25 },
+              }}>
+              <ChevronLeftIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+            <IconButton
+              size="small"
+              onClick={onNextScramble}
+              disabled={!canNextScramble}
+              aria-label={t('timer.nextScramble')}
+              sx={{
+                p: 0.25,
+                color: 'text.secondary',
+                opacity: canNextScramble ? 0.7 : 0.25,
+                '&:hover': { opacity: canNextScramble ? 1 : 0.25 },
+              }}>
+              <ChevronRightIcon sx={{ fontSize: 18 }} />
+            </IconButton>
+          </>
         )}
       </Box>
       <Box

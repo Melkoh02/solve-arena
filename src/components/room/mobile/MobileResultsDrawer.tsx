@@ -37,7 +37,7 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
   // rendering can put ref population after the child's effect).
   const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
 
-  // My solves to compute "Worst" / "Avg" labels for the peek (matches desktop history header)
+  // My solves to compute "Best" / "Worst" / "Avg" labels for the peek (matches desktop history header)
   const mySolves = (() => {
     const myId = roomStore.playerId;
     if (!myId) return [];
@@ -57,17 +57,22 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
         )
       : 0;
 
+  const best = roomStore.playerId
+    ? roomStore.getBestTime(roomStore.playerId)
+    : null;
+
   const avg = roomStore.playerId
     ? roomStore.getGlobalAverage(roomStore.playerId)
     : null;
 
-  // Don't render anything until at least one round has results
+  // In multiplayer the drawer is always visible — even with no completed
+  // rounds — so the user can peek at history to see other players' times
+  // before doing their first solve.
   const completedRoundsCount = new Set(
     roomStore.solves
       .filter(s => s.round < roomStore.currentRound)
       .map(s => s.round),
   ).size;
-  if (completedRoundsCount === 0) return null;
 
   return (
     <>
@@ -104,6 +109,16 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
             }}>
             {t('room.history')}
           </Typography>
+          {best !== null && (
+            <Typography
+              sx={{
+                fontFamily: 'monospace',
+                fontSize: '0.7rem',
+                color: 'text.secondary',
+              }}>
+              {t('room.best')}: {formatTime(best, precision)}
+            </Typography>
+          )}
           {worst > 0 && (
             <Typography
               sx={{
@@ -234,7 +249,19 @@ const MobileResultsDrawer = observer(function MobileResultsDrawer({
               overscrollBehavior: 'contain',
               pb: 2,
             }}>
-            <MobileResultsList scrollEl={scrollEl} />
+            {completedRoundsCount === 0 ? (
+              <Box sx={{ textAlign: 'center', px: 3, py: 6 }}>
+                <Typography
+                  sx={{
+                    fontSize: '0.85rem',
+                    color: 'text.secondary',
+                  }}>
+                  {t('room.noHistory')}
+                </Typography>
+              </Box>
+            ) : (
+              <MobileResultsList scrollEl={scrollEl} />
+            )}
           </Box>
         </Box>
       </Drawer>

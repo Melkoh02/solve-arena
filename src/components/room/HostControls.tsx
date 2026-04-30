@@ -4,7 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../lib/hooks/useStore';
 import PuzzleSelector from '../timer/PuzzleSelector';
 
-const HostControls = observer(function HostControls() {
+export interface HostControlsProps {
+  onAfterReset?: () => void;
+}
+
+const HostControls = observer(function HostControls({
+  onAfterReset,
+}: HostControlsProps) {
   const { roomStore } = useStore();
   const { t } = useTranslation();
 
@@ -27,7 +33,10 @@ const HostControls = observer(function HostControls() {
         variant="outlined"
         color="error"
         size="small"
-        onClick={() => roomStore.resetRoom()}>
+        onClick={() => {
+          roomStore.resetRoom();
+          onAfterReset?.();
+        }}>
         {t('room.resetRoom')}
       </Button>
     </Box>

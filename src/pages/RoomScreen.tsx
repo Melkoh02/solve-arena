@@ -3,6 +3,10 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   Box,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   IconButton,
   Snackbar,
   Stack,
@@ -10,7 +14,7 @@ import {
   useMediaQuery,
   useTheme as useMuiTheme,
 } from '@mui/material';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ShareIcon from '@mui/icons-material/Share';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import MeetingRoomIcon from '@mui/icons-material/MeetingRoom';
@@ -55,6 +59,7 @@ const RoomScreen = observer(function RoomScreen() {
 
   const [pbSnack, setPbSnack] = useState<PbNotification | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
   const pbSnackRef = useRef(pbSnack);
   pbSnackRef.current = pbSnack;
 
@@ -318,14 +323,62 @@ const RoomScreen = observer(function RoomScreen() {
     );
   }, [roomStore, navigate, urlCode]);
 
-  const handleLeave = () => {
+  // Leave button + back gesture both go through this so an accidental tap or
+  // swipe doesn't drop the user out of the room without confirming.
+  const requestLeave = () => {
+    setLeaveConfirmOpen(true);
+  };
+
+  const confirmLeave = () => {
+    setLeaveConfirmOpen(false);
     roomStore.leaveRoom();
     navigate('/');
   };
 
-  const handleCopyCode = () => {
-    if (roomStore.roomCode) {
-      navigator.clipboard.writeText(roomStore.roomCode);
+  // Trap browser back / swipe-back gesture while in a room. We push a sentinel
+  // history entry on entry; popping it shows the leave confirmation instead of
+  // navigating away. Cancelling the dialog re-pushes the sentinel so the next
+  // back gesture also gets caught.
+  useEffect(() => {
+    if (!roomStore.isInRoom) return;
+
+    window.history.pushState({ roomGuard: true }, '');
+
+    const onPopState = () => {
+      if (!roomStore.isInRoom) return;
+      setLeaveConfirmOpen(true);
+      window.history.pushState({ roomGuard: true }, '');
+    };
+
+    window.addEventListener('popstate', onPopState);
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+    };
+  }, [roomStore.isInRoom]);
+
+  const handleShareInvite = async () => {
+    const code = roomStore.roomCode;
+    if (!code) return;
+    const url = `${window.location.origin}/room/${code}`;
+    const text = t('room.shareInvite', {
+      name: roomStore.playerName || t('room.player'),
+      url,
+    });
+    // Native share sheet on iOS/Android. Fall back to clipboard everywhere
+    // else (desktop browsers without Web Share API). User-cancelled share
+    // throws AbortError, which we silently ignore.
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: t('room.shareTitle'), text, url });
+        return;
+      } catch (err) {
+        if ((err as DOMException)?.name === 'AbortError') return;
+      }
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // ignore — clipboard not available
     }
   };
 
@@ -379,8 +432,8 @@ const RoomScreen = observer(function RoomScreen() {
           onTouchStart={touchHandlers.onTouchStart}
           onTouchEnd={touchHandlers.onTouchEnd}
           onOpenSettings={() => setSettingsOpen(true)}
-          onLeave={handleLeave}
-          onCopyCode={handleCopyCode}
+          onLeave={requestLeave}
+          onShareInvite={handleShareInvite}
           isTimerDisabled={isTimerDisabled}
         />
       ) : (
@@ -441,9 +494,9 @@ const RoomScreen = observer(function RoomScreen() {
                     </Typography>
                     <IconButton
                       size="small"
-                      onClick={handleCopyCode}
+                      onClick={handleShareInvite}
                       sx={{ p: 0.25 }}>
-                      <ContentCopyIcon
+                      <ShareIcon
                         sx={{ fontSize: 14, color: 'text.secondary' }}
                       />
                     </IconButton>
@@ -469,7 +522,7 @@ const RoomScreen = observer(function RoomScreen() {
                   color="error"
                   fullWidth
                   size="small"
-                  onClick={handleLeave}
+                  onClick={requestLeave}
                   sx={{ mt: 1 }}>
                   {t('room.leave')}
                 </Button>
@@ -544,9 +597,9 @@ const RoomScreen = observer(function RoomScreen() {
                   </Typography>
                   <IconButton
                     size="small"
-                    onClick={handleCopyCode}
+                    onClick={handleShareInvite}
                     sx={{ p: 0.5 }}>
-                    <ContentCopyIcon
+                    <ShareIcon
                       sx={{ fontSize: 16, color: 'text.secondary' }}
                     />
                   </IconButton>
@@ -567,7 +620,7 @@ const RoomScreen = observer(function RoomScreen() {
                   </IconButton>
                   <IconButton
                     size="small"
-                    onClick={handleLeave}
+                    onClick={requestLeave}
                     title={t('room.leave')}
                     sx={{ color: 'error.main' }}>
                     <MeetingRoomIcon sx={{ fontSize: 18 }} />
@@ -788,12 +841,63 @@ const RoomScreen = observer(function RoomScreen() {
         onClose={() => setSettingsOpen(false)}
       />
 
-      {/* PB notification */}
+      {/* Leave confirmation — guards against misclicks (desktop) and
+          accidental swipe-back / hardware back (mobile). */}
+      <Dialog
+        open={leaveConfirmOpen}
+        onClose={() => setLeaveConfirmOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              borderRadius: 3,
+              backgroundImage: 'none',
+              mx: 2,
+            },
+          },
+        }}>
+        <DialogTitle sx={{ pb: 0.5, fontSize: '1.05rem', fontWeight: 700 }}>
+          {t('room.leaveConfirmTitle')}
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: '0.95rem', color: 'text.secondary' }}>
+            {t('room.leaveConfirmBody')}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button
+            onClick={() => setLeaveConfirmOpen(false)}
+            sx={{ textTransform: 'none', minWidth: 96 }}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={confirmLeave}
+            sx={{ textTransform: 'none', minWidth: 96 }}>
+            {t('room.leave')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* PB notification — on mobile, lift above the history peek bar so
+          the toast doesn't cover the trigger that opens the drawer. */}
       <Snackbar
         open={!!pbSnack}
         autoHideDuration={3000}
         onClose={handlePbSnackClose}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        sx={
+          useMobileLayout
+            ? {
+                bottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
+              }
+            : undefined
+        }
         message={
           pbSnack && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
