@@ -16,5 +16,10 @@ module.exports = {
       },
     ],
   },
-  ignorePatterns: ['*.config.js', 'postcss.config.js', 'tailwind.config.ts'],
+  ignorePatterns: [
+    '*.config.js',
+    'postcss.config.js',
+    'tailwind.config.ts',
+    'dist/**',
+  ],
 };

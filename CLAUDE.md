@@ -150,6 +150,49 @@ Common pitfalls to avoid:
 - ButtonBase / button-like clickable areas without considering keyboard: pressing space on a focused button-like fires its `onClick`. Prefer non-clickable wrappers, or ensure the timer key handler defocuses button-likes (existing `Timer.tsx` does this for `tag === 'BUTTON'` and `role === 'button'`).
 - Touch handlers (`useTimerTouch`) need the same state-machine coverage as keyboard handlers — a feature added only to keyboard isn't done.
 
+## Documentation
+
+The `docs/` folder is the authoritative record of how Solve Arena works:
+
+- `docs/glossary.md` — domain concepts, WCA events, scramble navigation stack, effective time, averages math, timer phases, room lifecycle, storage/settings keys, shortcuts.
+- `docs/architecture.md` — provider hierarchy, mutation data flow, MobX store architecture, scramble pipeline, mobile parity architecture, server architecture, lookup tables.
+- `docs/merge-points.md` — high-impact convergence points (Timer, timerStore, soloStore, roomStore, server, ScrambleDisplay, ResultsTable, etc.), invariants, touch radius.
+- `docs/flows.md` — user-facing scenarios, happy paths, edge cases, cross-cutting QA checklists.
+
+### When to update which doc
+
+Update `docs/glossary.md` when:
+
+- Adding or renaming an event, penalty, average type, shortcut, or storage key.
+- Changing a mathematical formula, DNF rule, or timer phase transition rule.
+
+Update `docs/flows.md` when:
+
+- Adding, renaming, or changing a screen, action, gesture, or user-facing flow.
+- Modifying edge cases or error-handling behaviour.
+
+Update `docs/architecture.md` when:
+
+- Provider order changes, or a new store/provider is introduced.
+- The data flow on mutations, scramble generation pipeline, or server synchronization scheme changes.
+- Mobile parity architecture or layout resolution changes.
+
+Update `docs/merge-points.md` when:
+
+- A new convergence point appears (e.g. a new form, a new central store/controller, a new socket broadcast hub).
+- The "touch radius" of an existing merge point changes.
+- A new cross-cutting invariant is introduced.
+
+### Doc-staleness check
+
+Before merging a feat/fix branch into `develop`, and before cutting a release from `develop` to `master`, run:
+
+```bash
+yarn check-docs
+```
+
+The script (`scripts/check-docs.sh`) is non-blocking — it lists `src/` and `server/` files that changed and which docs are likely candidates if any were missed. If the change is a pure refactor / visual / test-only change, ignore the warning and continue. Otherwise update the docs per the rules above before merging.
+
 ## Quality Checklist
 
 Before any commit:
@@ -157,7 +200,8 @@ Before any commit:
 1. `yarn format` — Prettier
 2. `yarn lint` — ESLint
 3. `yarn build` — runs `tsc -b` (typecheck) + Vite production build. Must succeed.
+4. `yarn check-docs` — non-blocking reminder; review and update docs if suggested.
 
-For UI changes: 4. Run `yarn dev` and exercise the feature in a browser, including the golden path AND edge cases. 5. Test in both Solo and Multiplayer when the change touches shared components (Timer, ScrambleDisplay, etc.). 6. Test all three themes when the change touches styling — light, dark, glass.
+For UI changes: 5. Run `yarn dev` and exercise the feature in a browser, including the golden path AND edge cases. 6. Test in both Solo and Multiplayer when the change touches shared components (Timer, ScrambleDisplay, etc.). 7. Test all three themes when the change touches styling — light, dark, glass.
 
-For shortcuts changes: 7. Verify the shortcut doesn't fire when an input/textarea is focused. 8. Verify it doesn't fire while the timer is running (unless that's intentional, like a stop key).
+For shortcuts changes: 8. Verify the shortcut doesn't fire when an input/textarea is focused. 9. Verify it doesn't fire while the timer is running (unless that's intentional, like a stop key).
